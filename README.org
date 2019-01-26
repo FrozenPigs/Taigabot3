@@ -1,12 +1,7 @@
-* Maybe Add
+* Add
 ** gadmin
 | Command   | File               |
 |-----------+--------------------|
-| pingip    | core_ctcp          |
-| checkhost | _junk              |
-| shutup    | _junk              |
-| speak     | _junk              |
-| mask      | core_admin_channel |
 | forget    | hashtags           |
 ** admin
 | Command         | File               |
@@ -39,6 +34,15 @@
 | remove          | core_admin_channel |
 | add             | datafiles          |
 | storyofpomfface | stupid             |
+* Maybe
+** gadmin
+| Command   | File               |
+|-----------+--------------------|
+| pingip    | core_ctcp          |
+| checkhost | _junk              |
+| shutup    | _junk              |
+| speak     | _junk              |
+| mask      | core_admin_channel |
 * New Additions
 ** gadmin
 | Command | Description                     |
