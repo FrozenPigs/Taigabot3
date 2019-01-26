@@ -1,4 +1,4 @@
-* Add
+* To Add
 ** gadmin
 | Command   | File               |
 |-----------+--------------------|
@@ -44,15 +44,6 @@
 | If rejoin set, rejoin chan on kick, else remove from conf      | core_misc |
 | If auto ban enabled and user on list then ban them             | core_misc |
 | If auto op/hop/voice enabled and user on list then take actian | core_misc |
-* Maybe
-** gadmin
-| Command   | File               |
-|-----------+--------------------|
-| pingip    | core_ctcp          |
-| checkhost | _junk              |
-| shutup    | _junk              |
-| speak     | _junk              |
-| mask      | core_admin_channel |
 * New Additions
 ** gadmin
 | Command | Description                     |
@@ -67,6 +58,15 @@
 |----------------------------+--------------------------------|
 | masshighlight_input_sieve  | Bans users masshighlighting    |
 | masshighlight_output_sieve | Stops the bot masshighlighting |
+* Maybe Add
+** gadmin
+| Command   | File               |
+|-----------+--------------------|
+| pingip    | core_ctcp          |
+| checkhost | _junk              |
+| shutup    | _junk              |
+| speak     | _junk              |
+| mask      | core_admin_channel |
 * Finished
 ** gadmin
 | Command   | File              | New Command            | New File     |
@@ -120,7 +120,7 @@
 | sieve_suite | core_sieve | access control list for channels           | join/invite |
 | sieve_suite | core_sieve | admin/gadmin commands                      | bot         |
 | ignoresieve | core_sieve | ignore_sieve                               | ignore      |
-* No Add
+* Don't Add
 ** gadmin
 | Command        | File              | Reason                                                    |
 |----------------+-------------------+-----------------------------------------------------------|
