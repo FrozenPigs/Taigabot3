@@ -335,7 +335,7 @@ for server_name in bot.config['servers']:
         sys.exit(0)
 
     bot.clients.append(client)
-    pool.connect(client, server['server'])
+    pool.connect(client, server['server'], tls=True, tls_verify=False)
 
 try:
     pool.handle_forever()
