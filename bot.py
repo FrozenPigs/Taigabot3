@@ -224,6 +224,14 @@ class Client(PydleClient):    # type: ignore
         return prefix
 
     # changing defaults
+    async def on_capability_away_notify_available(self, value: Any) -> False:
+        """Disable away-notify."""
+        return False
+
+    async def on_capability_invite_notify_available(self, value: Any) -> False:
+        """Disable invite-notify."""
+        return False
+
     async def rawmsg(self, command: str, *args: str, **kwargs: str) -> None:
         """
         Is called to send data, non-disabled sieves are run first.
