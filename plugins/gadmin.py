@@ -1,0 +1,601 @@
+"""Sieves and commands for global admins."""
+# Standard Libs
+import itertools
+import platform
+import time
+import asyncio
+from datetime import datetime
+from sqlite3 import OperationalError
+
+# First Party
+import psutil    # type: ignore
+from core import db, hook
+from util import messaging, user
+
+
+@hook.hook('sieve', ['02-parse-destination-input'])
+async def parse_destination_sieve(client, data):
+    """Is used to parse [channel] desdination for gadmin commands."""
+    if not await user.is_gadmin(client, data.server, data.mask):
+        return data
+
+    if data.command is not None:
+        commands = client.bot.plugs['command']
+        command = data.command[1:]
+        return_cmds = {'join', 'part', 'cycle', 'say', 'me', 'raw'}
+
+        if command in commands and command not in return_cmds:
+            for func in commands[command]:
+                adminonly = func.__hook__[1]['admin']
+                gadminonly = func.__hook__[1]['gadmin']
+                if not adminonly and not gadminonly:
+                    return data
+
+                new_message = data.message.replace(data.command, '').strip()
+                if len(new_message) > 0:
+                    if ' ' in new_message:
+                        new_message = new_message.split(' ')
+                        if new_message[0][0] == '#':
+                            data.target = new_message[0]
+                            data.message = data.command + ' '.join(
+                                new_message[1:])
+                    else:
+                        if new_message[0] == '#':
+                            data.target = new_message
+                            data.message = data.command
+    return data
+
+
+async def _non_valid_disable(plugin, data, sieves, events, commands):
+    """Is for checking if the input is an actual sieve, event or command."""
+    sieve = plugin not in sieves
+    event = plugin not in events
+    command = plugin not in commands
+    is_list = plugin != 'list'
+
+    if sieve and event and command and is_list:
+        return True
+    return False
+
+
+async def _valid_disables(sieves, events, commands, nodisable):
+    for event in list(events):
+        if event in nodisable:
+            events.remove(event)
+    for sieve in list(sieves):
+        if sieve in nodisable:
+            sieves.remove(sieve)
+    for command in list(commands):
+        if command in nodisable:
+            commands.remove(command)
+    sieves = ', '.join(sieves)
+    events = ', '.join(events)
+    commands = ', '.join(commands)
+    return sieves, events, commands
+
+
+async def _disable_enable_lists(client, data, gdisabled, nodisable, sieves,
+                                events, commands):
+    """Is for displaying a list of valid gdisables or genables."""
+    if data.command == 'gdisable':
+        sieves, events, commands = _valid_disables(sieves, events, commands,
+                                                   nodisable)
+        if sieves != '':
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'Valid sieves to disable: {sieves}'))
+        if events != '':
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'Valid events to disable: {events}'))
+        if commands != '':
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'Valid commands to disable: {commands}'))
+    else:
+        if not gdisabled:
+            asyncio.create_task(
+                client.notice(data.nickname, 'Nothing gdisabled.'))
+        else:
+            gdisabled = ', '.join(gdisabled)
+            asyncio.create_task(
+                client.notice(data.nickname, f'Disabled: {gdisabled}'))
+
+
+@hook.hook('command', ['gdisable', 'genable'], gadmin=True, autohelp=True)
+async def g_genable_gdisable(client, data):
+    """
+    .genable/.gdisable <list/commands/events/sieves> -- Lists, enables or
+    disables commands, events and sieves.
+    """
+    event_vals = list(client.bot.plugs['event'].values())
+    events = [func[0].__name__ for func in (event for event in event_vals)]
+    commands = list(client.bot.plugs['command'])
+    sieves = list(client.bot.plugs['sieve'])
+
+    nodisable = client.bot.config['servers'][data.server]['no_disable']
+    gdisabled = client.bot.config['servers'][data.server]['disabled']
+
+    message = data.message
+
+    if ' ' in message:
+        message = message.split(' ')
+    else:
+        message = [message]
+    if message[0] == 'list':
+        await _disable_enable_lists(client, data, gdisabled, nodisable, sieves,
+                                    events, commands)
+        return
+
+    for plugin in message:
+        plugin = plugin.lower().strip()
+        if await _non_valid_disable(plugin, data, sieves, events, commands):
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'{plugin} is not a sieve, command or event.'))
+        elif data.command == 'genable':
+            if plugin not in gdisabled:
+                asyncio.create_task(
+                    client.notice(data.nickname,
+                                  f'{plugin} is not gdisabled.'))
+            else:
+                asyncio.create_task(
+                    client.notice(data.nickname, f'genabling {plugin}.'))
+                gdisabled.remove(plugin)
+        elif data.command == 'gdisable':
+            if plugin in gdisabled:
+                asyncio.create_task(
+                    client.notice(data.nickname,
+                                  f'{plugin} is already gdisabled.'))
+            elif plugin in nodisable:
+                asyncio.create_task(
+                    client.notice(data.nickname,
+                                  f'You cannot gdisable {plugin}.'))
+            else:
+                asyncio.create_task(
+                    client.notice(data.nickname, f'gdisabling {plugin}.'))
+                gdisabled.append(plugin)
+
+
+@hook.hook('command', ['gadmins'], gadmin=True, autohelp=True)
+async def g_gadmins(client, data):
+    """
+    .gadmins <list/add/del> [user/mask] -- Lists, adds or deletes users or
+    masks from gadmins.
+    """
+    gadmins = client.bot.config['servers'][data.server]['admins']
+    message = data.message.replace(',', ' ')
+    conn = client.bot.dbs[data.server]
+
+    if ' ' in message:
+        message = message.split(' ')
+        masks = await user.parse_masks(conn, conn, ' '.join(message[1:]))
+    else:
+        message = [message]
+
+    if message[0] == 'del':
+        for mask in masks:
+            if mask in gadmins:
+                gadmins.remove(mask)
+                asyncio.create_task(
+                    client.notice(data.nickname,
+                                  f'Removing {mask} from gadmins.'))
+            else:
+                asyncio.create_task(
+                    client.notice(data.nickname, f'{mask} is not a gadmin.'))
+    elif message[0] == 'add':
+        for mask in masks:
+            if mask in gadmins:
+                asyncio.create_task(
+                    client.notice(data.nickname,
+                                  f'{mask} is already a gadmin.'))
+            else:
+                gadmins.append(mask)
+                asyncio.create_task(
+                    client.notice(data.nickname, f'Adding {mask} to gadmins.'))
+    elif message[0] == 'list':
+        asyncio.create_task(
+            client.notice(data.nickname, 'gadmins are: ' + ', '.join(gadmins)))
+        return
+
+
+@hook.hook('command', ['stop', 'restart'], gadmin=True)
+async def g_stop_restart(client, data):
+    """.stop/.restart -- Stops or restarts the bot."""
+    if data.command == 'stop':
+        asyncio.create_task(client.stop())
+    else:
+        asyncio.create_task(client.stop(reset=True))
+
+
+@hook.hook('command', ['nick'], gadmin=True, autohelp=True)
+async def g_nick(client, data):
+    """.nick <nick> -- Changes the bots nick."""
+    new_nick = data.message.strip()
+    if ' ' in new_nick:
+        asyncio.create_task(
+            client.notice(data.nickname, 'Nicknames cannot contain spaces.'))
+        return
+
+    asyncio.create_task(client.set_nickname(new_nick))
+    client.bot.config['servers'][data.server]['nick'] = new_nick
+
+
+@hook.hook('command', ['say', 'me', 'raw'], gadmin=True, autohelp=True)
+async def g_say_me_raw(client, data):
+    """
+    .say/.me/.raw <target/rawcmd> <message> -- Say or action to target or
+    execute raw command.
+    """
+    message = data.message.split(' ')
+    target = message[0]
+    msg = message[1:]
+    command = data.command
+
+    if not len(msg) and command != 'raw':
+        doc = ' '.join(g_say_me_raw.__doc__.split())
+        asyncio.create_task(client.notice(data.nickname, f'{doc}'))
+        return
+
+    if command == 'say':
+        if target != '#':
+            asyncio.create_task(client.message(target, ' '.join(msg)))
+        elif asyncio.create_task(client.in_channel(target)):
+            asyncio.create_task(client.message(target, ' '.join(msg)))
+    elif command == 'me':
+        if target != '#':
+            messaging.action(client, target, ' '.join(msg))
+        elif asyncio.create_task(client.in_channel(target)):
+            messaging.action(client, target, ' '.join(message))
+    elif command == 'raw':
+        asyncio.create_task(
+            client.rawmsg(target,
+                          data.message.replace(target, '').strip()))
+
+
+# TODO: handle 473: ['arteries', '#wednesday', 'Cannot join channel (+i)']
+@hook.hook('command', ['join', 'part', 'cycle'], gadmin=True)
+async def g_join_part_cycle(client, data):
+    """
+    .join/.part [#channel] --- Joins or part a list of channels or part current
+    channel.
+    """
+    channels = client.bot.config['servers'][data.server]['channels']
+    message = data.message.replace(',', ' ')
+    command = data.command
+    no_join = client.bot.config['servers'][data.server]['no_channels']
+
+    if ' ' in message:
+        tmp = message.split(' ')
+        message = [message.lower() for message in tmp]
+
+    else:
+        message = [message.lower()]
+
+    if not message[0]:
+        message = [data.target]
+
+    for channel in message:
+        channel = channel.strip()
+
+        if channel[0] != '#':
+            continue
+        elif channel in no_join:
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'I\'m not allowed in {channel}.'))
+            continue
+
+        if command == 'part' or command == 'cycle':
+            if channel not in channels:
+                asyncio.create_task(
+                    client.notice(data.nickname, f'Not in {channel}.'))
+            else:
+                asyncio.create_task(client.part(channel))
+                asyncio.create_task(
+                    client.notice(data.nickname, f'Parting {channel}.'))
+                channels.remove(channel)
+        time.sleep(0.2)
+        if command == 'join' or command == 'cycle':
+            if channel not in itertools.chain(channels, no_join):
+                channels.append(channel)
+                asyncio.create_task(client.join(channel))
+                asyncio.create_task(
+                    client.notice(data.nickname, f'Joining {channel}.'))
+            else:
+                asyncio.create_task(
+                    client.notice(data.nickname, f'Already in {channel}.'))
+
+
+async def _list_tables(client, data, conn):
+    tables = db.get_table_names(conn)
+    asyncio.create_task(
+        client.notice(data.nickname,
+                      f'Valid tables are: {", ".join(tables)}.'))
+
+
+async def _list_columns(client, data, conn, table, setting=False, cols=None):
+    if not cols:
+        columns = db.get_column_names(conn, table)
+    else:
+        columns = cols
+
+    if client is not None:
+        if not setting:
+            asyncio.create_task(
+                client.notice(
+                    data.nickname,
+                    f'Valid columns to match are: {", ".join(columns)}.'))
+        else:
+            asyncio.create_task(
+                client.notice(
+                    data.nickname,
+                    f'Valid columns to set are: {", ".join(columns)}.'))
+    return columns
+
+
+async def _get_match_value(client, data, message):
+    try:
+        match_value = message[2]
+        return match_value
+    except IndexError:
+        asyncio.create_task(
+            client.notice(data.nickname, 'Need a value to match against.'))
+        doc = ' '.join(g_set.__doc__.split())
+        asyncio.create_task(client.notice(data.nickname, f'{doc}'))
+        return None
+
+
+async def _get_set_column(client, data, conn, message, table, columns):
+    try:
+        set_column = message[3]
+    except IndexError:
+        await _list_columns(
+            client, data, conn, table, setting=True, cols=columns)
+        set_column = ''
+        return
+    finally:
+        if set_column not in columns and set_column != '':
+            await _list_columns(
+                client, data, conn, table, setting=True, cols=columns)
+            return None
+        return set_column
+
+
+@hook.hook('command', ['set'], gadmin=True)
+async def g_set(client, data):
+    """
+    .set <table> <matchcol> <value> <setcol> <value> -- Changes values in the
+    database, and lists valid tables and columns when arguments ommited.
+    """
+    bot = client.bot
+    conn = bot.dbs[data.server]
+
+    if not data.message:
+        doc = ' '.join(g_set.__doc__.split())
+        asyncio.create_task(client.notice(data.nickname, f'{doc}'))
+        await _list_tables(client, data, conn)
+        return
+
+    message = data.message.split(' ')
+    table = message[0]
+    columns = await _list_columns(None, data, conn, table)
+
+    table_exists = db.get_table(conn, table)
+    if isinstance(table_exists, OperationalError):
+        await _list_tables(client, data, conn)
+        return
+    if len(message) == 1:
+        await _list_columns(client, data, conn, table)
+        return
+
+    match_col = message[1]
+    if match_col not in columns:
+        await _list_columns(client, data, conn, table)
+        return
+
+    match_value = await _get_match_value(client, data, message)
+    if not match_value:
+        return
+
+    row_exists = db.get_cell(conn, table, match_col, match_col, match_value)
+    if not row_exists:
+        asyncio.create_task(
+            client.notice(data.nickname,
+                          f'{match_value} is not in that table.'))
+        return
+
+    set_column = await _get_set_column(client, data, conn, message, table,
+                                       columns)
+    if not set_column:
+        return
+
+    value = ' '.join(message[4:])
+    if not value:
+        asyncio.create_task(
+            client.notice(data.nickname, 'Need a value to add.'))
+    else:
+        conn = client.bot.dbs[data.server]
+        asyncio.create_task(
+            client.notice(data.nickname, f'Setting {set_column} to {value}.'))
+        db.set_cell(conn, table, set_column, value, match_col, match_value)
+
+
+async def _conv_bytes(by, gb=False):
+    """Is for converting bytes to mb."""
+    mb = by / 1000000
+    if gb:
+        mb /= 1000
+        size = f'{mb:.2f} GB'
+    else:
+        size = f'{mb:.2f} MB'
+    return size
+
+
+@hook.hook('command', ['system'], gadmin=True)
+async def g_system(client, data):
+    """.system -- Sends notice with system information."""
+    # sensors_temperatures, sensors_fans, boot_time, pids
+    hostname = platform.node()
+    ops = platform.platform()
+
+    architecture = '-'.join(platform.architecture())
+    cpu = platform.machine()
+    cpus = psutil.cpu_count()
+    cpu_per = psutil.cpu_percent()
+    general = (f'Hostname: \x02{hostname}\x02, Operating System: '
+               f'\x02{ops}\x02, Architecture: \x02{architecture}\x02, '
+               f'CPU: \x02{cpu}\x02, Cores: \x02{cpus}\x02, CPU Percent: '
+               f'\x02{cpu_per}\x02')
+    asyncio.create_task(client.notice(data.nickname, general))
+
+    mem = psutil.virtual_memory()
+    mem_total = await _conv_bytes(mem.total, gb=True)
+    mem_used = await _conv_bytes(mem.used, gb=True)
+    mem_available = await _conv_bytes(mem.available, gb=True)
+    mem_free = await _conv_bytes(mem.free, gb=True)
+    mem_per = mem.percent
+    memory = (
+        f'Total Memory: \x02{mem_total}\x02, Memory Used: \x02'
+        f'{mem_used}\x02, Memory Avaiable: \x02{mem_available}\x02, '
+        f'Memory Free: \x02{mem_free}\x02, Memory Percent: \x02{mem_per}\x02')
+    asyncio.create_task(client.notice(data.nickname, memory))
+
+    swap = psutil.swap_memory()
+    swap_total = await _conv_bytes(swap.total, gb=True)
+    swap_used = await _conv_bytes(swap.used, gb=True)
+    swap_free = await _conv_bytes(swap.free, gb=True)
+    swap_per = swap.percent
+
+    p = psutil.Process()
+    with p.oneshot():
+        cwd = p.cwd()
+    duseage = psutil.disk_usage(cwd)
+    disk_total = await _conv_bytes(duseage.total, gb=True)
+    disk_used = await _conv_bytes(duseage.used, gb=True)
+    disk_free = await _conv_bytes(duseage.free, gb=True)
+    disk_per = duseage.percent
+    disk = (
+        f'Total Swap: \x02{swap_total}\x02, Swap Used: \x02{swap_used}\x02, '
+        f'Swap Free: \x02{swap_free}\x02, Swap Percent: \x02{swap_per}\x02, '
+        f'CWD Disk Total: \x02{disk_total}\x02, CWD Disk Used: \x02'
+        f'{disk_used}\x02, CWD Disk Free: \x02{disk_free}\x02, '
+        f'CWD Disk Percent: \x02{disk_per}\x02')
+    asyncio.create_task(client.notice(data.nickname, disk))
+
+    net = psutil.net_io_counters()
+    net_sent = await _conv_bytes(net.bytes_sent, gb=True)
+    net_recv = await _conv_bytes(net.bytes_recv, gb=True)
+    connections = len(psutil.net_connections())
+    last_boot = datetime.fromtimestamp(
+        psutil.boot_time()).strftime('%Y-%m-%d %H:%M:%S')
+    total_procs = len(psutil.pids())
+    netboot = (
+        f'Network Data Sent: \x02{net_sent}\x02, Network Data Recieved:'
+        f' \x02{net_recv}\x02, Total Connections: \x02{connections}\x02, '
+        f'Booted: \x02{last_boot}\x02, Total Processes: \x02{total_procs}\x02')
+    asyncio.create_task(client.notice(data.nickname, netboot))
+
+
+@hook.hook('command', ['bot'], gadmin=True)
+async def g_binfo(client, data):
+    """.memory -- Shows the current memory usage."""
+    p = psutil.Process()
+    with p.oneshot():
+        pid = p.pid
+        cmdline = p.cmdline()
+        cwd = p.cwd()
+        username = p.username()
+
+        mem = p.memory_full_info()
+        rss = await _conv_bytes(mem.rss)
+        vms = await _conv_bytes(mem.vms)
+        heap = await _conv_bytes(mem.data)
+        stack = await _conv_bytes(mem.stack)
+        memper = p.memory_percent()
+        counter = p.io_counters()
+        read = await _conv_bytes(counter.read_count)
+        write = await _conv_bytes(counter.write_count)
+        files = len(p.open_files())
+
+        connections = len(p.connections())
+        percent = p.cpu_percent()
+        threads = p.num_threads()
+        nice = p.nice()
+        aff = p.cpu_affinity()
+        num = p.cpu_num()
+
+    general = (f'Username: \x02{username}\x02, PID: \x02{pid}\x02, cmdline: '
+               f'\x02{" ".join(cmdline)}\x02, cwd: \x02{cwd}\x02')
+    asyncio.create_task(client.notice(data.nickname, general))
+    mem = (f'Real Memory: \x02{rss}\x02, Allocated Memory: \x02{vms}\x02, '
+           f'Stack Size: \x02{stack}\x02, Heap Size: \x02{heap}\x02, '
+           f'Memory Percent: \x02{memper:.2f}\x02')
+    asyncio.create_task(client.notice(data.nickname, mem))
+    disk = (
+        f'Total Disk Read: \x02{read}\x02, Total Disk Write: \x02{write}\x02, '
+        f'Open Files: \x02{files}\x02, Open Net Connections: '
+        f'\x02{connections}\x02')
+    asyncio.create_task(client.notice(data.nickname, disk))
+    aff = ' '.join([str(cpu) for cpu in aff])
+    cpu = (f'Bot CPU Percent: \x02{percent}\x02, Used Threads: '
+           f'\x02{threads}\x02, Niceness: \x02{nice}\x02, '
+           f'CPU Affinity: \x02{aff}\x02, Current Core: \x02{num}\x02')
+    asyncio.create_task(client.notice(data.nickname, cpu))
+
+
+@hook.hook('command', ['ctcp'], gadmin=True, autohelp=True)
+async def g_ctcp(client, data):
+    """
+    .ctcp <target> <command> [message] -- Sends CTCP command to the target,
+     with optional message.
+    """
+    message = data.message.strip()
+    if ' ' not in message:
+        doc = ' '.join(g_ctcp.__doc__.split())
+        asyncio.create_task(client.notice(data.nickname, f'{doc}'))
+        return
+    message = message.split()
+    if len(message) == 2:
+        print(message[0], message[1], '')
+        asyncio.create_task(client.ctcp(message[0], message[1], ''))
+    elif len(message) == 3:
+        msg = ' '.join(message[2:])
+        asyncio.create_task(client.ctcp(message[0], message[1], msg))
+    else:
+        doc = ' '.join(g_ctcp.__doc__.split())
+        asyncio.create_task(client.notice(data.nickname, f'{doc}'))
+        return
+
+
+@hook.hook('command', ['dbcache'], gadmin=True)
+async def dbcache(client, data):
+    """
+    .dbcache -- Lists all the get caches for the db, order is hits,
+    misses, currsize.
+    """
+    cell = db.get_cell.cache_info()
+    cell = f'{cell.hits}, {cell.misses}, {cell.currsize}'
+    row = db.get_row.cache_info()
+    row = f'{row.hits}, {row.misses}, {row.currsize}'
+    row = db.get_row.cache_info()
+    row = f'{row.hits}, {row.misses}, {row.currsize}'
+    column = db.get_column.cache_info()
+    column = f'{column.hits}, {column.misses}, {column.currsize}'
+    column_names = db.get_column_names.cache_info()
+    column_names = (f'{column_names.hits}, {column_names.misses}, '
+                    f'{column_names.currsize}')
+    table = db.get_table.cache_info()
+    table = f'{table.hits}, {table.misses}, {table.currsize}'
+    table_names = db.get_table_names.cache_info()
+    table_names = (f'{table_names.hits}, {table_names.misses}, '
+                   f'{table_names.currsize}')
+    add_column = db.add_column.cache_info()
+    add_column = (f'{add_column.hits}, {add_column.misses}, '
+                  f'{add_column.currsize}')
+
+    message = (f'Cell: \x02{cell}\x02, Row: \x02{row}\x02 Columns: '
+               f'\x02{column}\x02, Column Names: \x02{column_names}\x02, '
+               f'Tables: \x02{table}\x02, Table Names: \x02{table_names}\x02, '
+               f'Add Column: \x02{add_column}\x02')
+    asyncio.create_task(client.notice(data.nickname, message))
