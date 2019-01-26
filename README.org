@@ -34,6 +34,16 @@
 | remove          | core_admin_channel |
 | add             | datafiles          |
 | storyofpomfface | stupid             |
+** events
+| Events                                                         | File      |
+|----------------------------------------------------------------+-----------|
+| greet users and abuse kimi on join                             | core_misc |
+| Say set responces when appopriate                              | ai        |
+| Update seen when users join                                    | seen      |
+| Show tells when users talk                                     | tell      |
+| If rejoin set, rejoin chan on kick, else remove from conf      | core_misc |
+| If auto ban enabled and user on list then ban them             | core_misc |
+| If auto op/hop/voice enabled and user on list then take actian | core_misc |
 * Maybe
 ** gadmin
 | Command   | File               |
@@ -48,6 +58,15 @@
 | Command | Description                     |
 |---------+---------------------------------|
 | bot     | Gives bot info like memory size |
+** events
+| Event    | Description                       |
+|----------+-----------------------------------|
+| badwords | kick or ban users using bad words |
+** sieves
+| Command                    | Description                    |
+|----------------------------+--------------------------------|
+| masshighlight_input_sieve  | Bans users masshighlighting    |
+| masshighlight_output_sieve | Stops the bot masshighlighting |
 * Finished
 ** gadmin
 | Command   | File              | New Command            | New File     |
@@ -84,6 +103,23 @@
 | badwords | core_admin_channel | badwords             | badwords     |
 | flood    | core_admin_channel | flood                | flood        |
 | cmdflood | core_admin_channel | flood                | flood        |
+** events
+| Event        | File      | New Event    | New File |
+|--------------+-----------+--------------+----------|
+| invite       | core_misc | invite/whois | admin    |
+| log          | log       | logger       | log      |
+| ctcp replies | core_ctcp | ctcp replies | ctcp     |
+** sieves
+| Sieve       | File       | New Sieve                                  | New File    |
+|-------------+------------+--------------------------------------------+-------------|
+| sieve_suite | core_sieve | flood_input_sieve                          | flood       |
+| sieve_suite | core_sieve | badwords_input_sieve/badwords_output_sieve | badwords    |
+| sieve_suite | core_sieve | ignore_sieve                               | ignore      |
+| sieve_suite | core_sieve | parse_destination_sieve                    | gadmin      |
+| sieve_suite | core_sieve | enabling and disabling plugins             | bot         |
+| sieve_suite | core_sieve | access control list for channels           | join/invite |
+| sieve_suite | core_sieve | admin/gadmin commands                      | bot         |
+| ignoresieve | core_sieve | ignore_sieve                               | ignore      |
 * No Add
 ** gadmin
 | Command        | File              | Reason                                                    |
@@ -101,4 +137,20 @@
 | Command    | File               | Reason               |
 |------------+--------------------+----------------------|
 | testdamnit | core_admin_channel | Useless test command |
+
+** events
+| Event                         | File              | Reason                                     |
+|-------------------------------+-------------------+--------------------------------------------|
+| onnames/onjoined_addhighlight | masshighlight     | Different masshighlight system             |
+| christisthegay                | core_admin_channl | He is still gay but this is useless        |
+| onmode                        | core_misc         | Shit specific to #defect                   |
+| onjoin                        | core_misc         | All the nickserv/joining is done in bot.py |
+| onpart                        | core_misc         | Adding masks to db is done in bot.py       |
+| onnick                        | core_misc         | Useless                                    |
+| keep_alive                    | core_misc         | Useless                                    |
+| onjoined                      | core_misc         | Adding masks to db is done in bot.py       |
+** sieves
+| Event       | File       | Reason                                   |
+|-------------+------------+------------------------------------------|
+| sieve_suite | core_sieve | Useless counters for people are left out |
 
