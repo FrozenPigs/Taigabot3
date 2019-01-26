@@ -1,0 +1,100 @@
+* TODO
+** gadmin
+| Command   | File               |
+|-----------+--------------------|
+| pingip    | core_ctcp          |
+| checkhost | _junk              |
+| shutup    | _junk              |
+| speak     | _junk              |
+| mask      | core_admin_channel |
+| forget    | hashtags           |
+** admin
+| Command         | File               |
+|-----------------+--------------------|
+| match           | core_admin_channel |
+| admins          | core_admin_channel |
+| admin           | core_admin_channel |
+| autoop          | core_admin_channel |
+| disabled        | core_admin_channel |
+| disable         | core_admin_channel |
+| enable          | core_admin_channel |
+| disablehash     | core_admin_channel |
+| disabledhashes  | core_admin_channel |
+| enablehash      | core_admin_channel |
+| trim            | core_admin_channel |
+| topic           | core_admin_channel |
+| mute            | core_admin_channel |
+| unmute          | core_admin_channel |
+| lock            | core_admin_channel |
+| unlock          | core_admin_channel |
+| bans            | core_admin_channel |
+| unban           | core_admin_channel |
+| kick            | core_admin_channel |
+| op              | core_admin_channel |
+| deop            | core_admin_channel |
+| hop             | core_admin_channel |
+| dehop           | core_admin_channel |
+| voice           | core_admin_channel |
+| devoice         | core_admin_channel |
+| remove          | core_admin_channel |
+| add             | datafiles          |
+| storyofpomfface | stupid             |
+* Aditions
+** gadmin
+| Command | Description                     |
+|---------+---------------------------------|
+| bot     | Gives bot info like memory size |
+* DONE
+** gadmin
+| Command   | File              | New Command            | New File     |
+|-----------+-------------------+------------------------+--------------|
+| gignored  | core_admin_global | gignore/gunignore list | ignore       |
+| gignore   | core_admin_global | gignore                | ignore       |
+| gunignore | core_admin_global | gunignore              | ignore       |
+| join      | core_admin_global | join                   | gadmin       |
+| part      | core_admin_global | part                   | gadmin       |
+| cycle     | core_admin_global | cycle                  | gadmin       |
+| gadmins   | core_admin_global | gadmins                | gadmin       |
+| gadmin    | core_admin_global | gadmins                | gadmin       |
+| stop      | core_admin_global | stop                   | gadmin       |
+| restart   | core_admin_global | stop                   | gadmin       |
+| gdisabled | core_admin_global | gdisable/genable list  | gadmin       |
+| gdisable  | core_admin_global | gdisable               | gadmin       |
+| genable   | core_admin_global | genable                | gadmin       |
+| nick      | core_admin_global | nick                   | gadmin       |
+| say       | core_admin_global | say                    | gadmin       |
+| msg       | core_admin_global | msg                    | gadmin       |
+| me        | core_admin_global | me                     | gadmin       |
+| raw       | core_admin_global | raw                    | gadmin       |
+| set       | core_admin_global | set                    | gadmin       |
+| system    | system            | system                 | gadmin       |
+| memory    | system            | system                 | gadmin       |
+| pid       | system            | bot                    | gadmin       |
+| ctcp      | core_ctcp         | ctcp                   | gadmin       |
+** admin
+| Command  | File               | New Command          | New File     |
+|----------+--------------------+----------------------+--------------|
+| ignored  | core_admin_channel | ignore/unignore list | ignore       |
+| ignore   | core_admin_channel | ignore               | ignore       |
+| unignore | core_admin_channel | unignore             | ignore       |
+| badwords | core_admin_channel | badwords             | badwords     |
+| flood    | core_admin_channel | flood                | flood        |
+| cmdflood | core_admin_channel | flood                | flood        |
+* IGNORE
+** gadmin
+| Command        | File              | Reason                                                    |
+|----------------+-------------------+-----------------------------------------------------------|
+| getusers       | masshighlight     | Not needed for our masshighlight system                   |
+| users          | masshighlight     | Lists tracked users, not needed with our system           |
+| clearlogs      | core_admin_global | Might implement something different                       |
+| db             | core_admin_global | Our database dosent need updating like this, might change |
+| pomf           | pomf              | Command was for infinity to do stuff                      |
+| pomfremember   | pomf              | Command was for infinity to do stuff                      |
+| pomfadd        | pomf              | Command was for infinity to do stuff                      |
+| test           | _junk             | Just some kind of hostname test                           |
+| migrate_old_db | _junk             | One of my old commands for stealing uguus db              |
+** admin
+| Command    | File               | Reason               |
+|------------+--------------------+----------------------|
+| testdamnit | core_admin_channel | Useless test command |
+
