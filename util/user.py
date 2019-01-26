@@ -72,8 +72,8 @@ async def parse_masks(client: Any, conn: Connection, inp: str) -> List[str]:
     else:
         split_inp = [inp]
     masks: List[str] = [
-        get_mask(client, user)
+        await get_mask(client, user)
         for user in split_inp
-        if is_user(client, conn, user)]
+        if await is_user(client, conn, user)]
     masks.extend(mask for mask in split_inp if '@' in mask)
     return masks
