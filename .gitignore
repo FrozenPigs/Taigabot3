@@ -1,0 +1,22 @@
+GPATH
+GTAGS
+GRTAGS
+
+persist/
+
+setup.cfg
+
+.pytest_cache/
+.ropecache/
+.ropeproject/
+
+### Python ###
+__pycache__/
+*.py[cod]
+*$py.class
+persist/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
