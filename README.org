@@ -1,4 +1,4 @@
-* TODO
+* Maybe Add
 ** gadmin
 | Command   | File               |
 |-----------+--------------------|
@@ -39,12 +39,12 @@
 | remove          | core_admin_channel |
 | add             | datafiles          |
 | storyofpomfface | stupid             |
-* Aditions
+* New Additions
 ** gadmin
 | Command | Description                     |
 |---------+---------------------------------|
 | bot     | Gives bot info like memory size |
-* DONE
+* Finished
 ** gadmin
 | Command   | File              | New Command            | New File     |
 |-----------+-------------------+------------------------+--------------|
@@ -80,7 +80,7 @@
 | badwords | core_admin_channel | badwords             | badwords     |
 | flood    | core_admin_channel | flood                | flood        |
 | cmdflood | core_admin_channel | flood                | flood        |
-* IGNORE
+* No Add
 ** gadmin
 | Command        | File              | Reason                                                    |
 |----------------+-------------------+-----------------------------------------------------------|
