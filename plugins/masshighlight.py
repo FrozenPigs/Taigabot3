@@ -2,7 +2,6 @@
 # Standard Libs
 import re
 import sched
-import threading
 import time
 import asyncio
 
@@ -19,6 +18,12 @@ async def _detect_highlight(users, message):
     if len(set(matches)) > 5:
         return True
     False
+
+
+async def _start_sched(client, target, nick):
+    s = sched.scheduler(time.perf_counter, time.sleep)
+    s.enter(60, 1, asyncio.create_task, (client.unban(target, nick), ))
+    s.run()
 
 
 @hook.hook('sieve', ['03-masshighlight-output'])
@@ -47,11 +52,6 @@ async def masshighlight_input_sieve(client, data):
                 data.nickname,
                 reason=('No mass'
                         'highlighting, come back in 1 minute.')))
-        s = sched.scheduler(time.perf_counter, time.sleep)
-        s.enter(60, 1, asyncio.create_task,
-                (client.unban(data.target, data.nickname)))
-        thread = threading.Thread(target=s.run)
-        thread.daemon = True
-        thread.start()
+        asyncio.create_task(_start_sched(client, data.target, data.nickname))
         return None
     return data
