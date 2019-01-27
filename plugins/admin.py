@@ -89,8 +89,13 @@ async def c_admins(client, data):
         for mask in masks:
             if mask in admins:
                 admins.remove(mask)
-                db.set_cell(conn, 'channels', 'admins', ' '.join(admins),
-                            'channel', data.target)
+                if len(admins) > 1:
+                    db.set_cell(conn, 'channels', 'admins', ' '.join(admins),
+                                'channel', data.target)
+                else:
+                    db.set_cell(conn, 'channels', 'admins', admins, 'channel',
+                                data.target)
+
                 asyncio.create_task(
                     client.notice(data.nickname,
                                   f'Removing {mask} from gadmins.'))
@@ -105,8 +110,12 @@ async def c_admins(client, data):
                                   f'{mask} is already a admin.'))
             else:
                 admins.append(mask)
-                db.set_cell(conn, 'channels', 'admins', ' '.join(admins),
-                            'channel', data.target)
+                if len(admins) > 1:
+                    db.set_cell(conn, 'channels', 'admins', ' '.join(admins),
+                                'channel', data.target)
+                else:
+                    db.set_cell(conn, 'channels', 'admins', admins, 'channel',
+                                data.target)
 
                 asyncio.create_task(
                     client.notice(data.nickname, f'Adding {mask} to admins.'))
@@ -114,3 +123,142 @@ async def c_admins(client, data):
         asyncio.create_task(
             client.notice(data.nickname, 'admins are: ' + ', '.join(admins)))
         return
+
+
+async def _non_valid_disable(plugin, data, sieves, events, commands):
+    """Is for checking if the input is an actual sieve, event or command."""
+    sieve = plugin not in sieves
+    event = plugin not in events
+    command = plugin not in commands
+    is_list = plugin != 'list'
+
+    if sieve and event and command and is_list:
+        return True
+    return False
+
+
+async def _valid_disables(sieves, events, commands, nodisable):
+    for event in list(events):
+        if event in nodisable:
+            events.remove(event)
+    for sieve in list(sieves):
+        if sieve in nodisable:
+            sieves.remove(sieve)
+    for command in list(commands):
+        if command in nodisable:
+            commands.remove(command)
+    sieves = ', '.join(sieves)
+    events = ', '.join(events)
+    commands = ', '.join(commands)
+    return sieves, events, commands
+
+
+async def _disable_enable_lists(client, data, disabled, nodisable, sieves,
+                                events, commands):
+    """Is for displaying a list of valid disables or enables."""
+    if data.command == 'disable':
+        sieves, events, commands = await _valid_disables(
+            sieves, events, commands, nodisable)
+        if sieves != '':
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'Valid sieves to disable: {sieves}'))
+        if events != '':
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'Valid events to disable: {events}'))
+        if commands != '':
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'Valid commands to disable: {commands}'))
+    else:
+        if not disabled:
+            asyncio.create_task(
+                client.notice(data.nickname, 'Nothing disabled.'))
+        else:
+            if len(disabled) > 1:
+                disabled = ', '.join(disabled)
+            else:
+                disabled = disabled[0]
+            asyncio.create_task(
+                client.notice(data.nickname, f'Disabled: {disabled}'))
+
+
+@hook.hook('command', ['disable', 'enable'], admin=True, autohelp=True)
+async def c_enable_disable(client, data):
+    """
+    .enable/.disable <list/commands/events/sieves> -- Lists, enables or
+    disables commands, events and sieves.
+    """
+    event_vals = list(client.bot.plugs['event'].values())
+    events = [func[0].__name__ for func in (event for event in event_vals)]
+    commands = list(client.bot.plugs['command'])
+    sieves = list(client.bot.plugs['sieve'])
+
+    nodisable = client.bot.config['servers'][data.server]['no_disable']
+    conn = client.bot.dbs[data.server]
+    disabled = db.get_cell(conn, 'channels', 'disabled', 'channel',
+                           data.target)[0][0]
+
+    message = data.message
+
+    if ' ' in message:
+        message = message.split(' ')
+    else:
+        message = [message]
+
+    if disabled and ' ' in disabled:
+        disabled = disabled.split()
+    else:
+        if not disabled:
+            disabled = []
+        else:
+            disabled = [disabled]
+
+    if message[0] == 'list':
+        await _disable_enable_lists(client, data, disabled, nodisable, sieves,
+                                    events, commands)
+        return
+
+    for plugin in message:
+        plugin = plugin.lower().strip()
+        if await _non_valid_disable(plugin, data, sieves, events, commands):
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'{plugin} is not a sieve, command or event.'))
+        elif data.command == 'enable':
+            if plugin not in disabled:
+                asyncio.create_task(
+                    client.notice(data.nickname, f'{plugin} is not disabled.'))
+            else:
+                asyncio.create_task(
+                    client.notice(data.nickname, f'enabling {plugin}.'))
+                disabled.remove(plugin)
+                await _enable_disable(client, data.target, conn, disabled,
+                                      'disabled')
+
+        elif data.command == 'disable':
+            if plugin in disabled:
+                asyncio.create_task(
+                    client.notice(data.nickname,
+                                  f'{plugin} is already disabled.'))
+            elif plugin in nodisable:
+                asyncio.create_task(
+                    client.notice(data.nickname,
+                                  f'You cannot disable {plugin}.'))
+            else:
+                asyncio.create_task(
+                    client.notice(data.nickname, f'disabling {plugin}.'))
+                disabled.append(plugin)
+                await _enable_disable(client, data.target, conn, disabled,
+                                      'disabled')
+
+
+async def _enable_disable(client, target, conn, value, cell):
+    if len(value) > 1:
+        db.set_cell(conn, 'channels', cell, ' '.join(value), 'channel', target)
+    else:
+        if not value:
+            db.set_cell(conn, 'channels', cell, '', 'channel', target)
+        else:
+            db.set_cell(conn, 'channels', cell, value[0], 'channel', target)
