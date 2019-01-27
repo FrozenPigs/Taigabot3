@@ -5,7 +5,7 @@
 # Standard Libs
 import asyncio
 import os
-import signal  # type: ignore
+import signal
 import sys
 from sqlite3 import Connection
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
@@ -32,21 +32,22 @@ FuncUnion = Union[InputSieveList, OutputSieveList, CommandEventList]
 AllPlugsDict = Dict[str, FuncUnion]
 DBResult = Optional[List[Tuple[Optional[str], ...]]]
 
-PydleClient = pydle.featurize(    # type: ignore
-    pydle.features.RFC1459Support,    # type: ignore
-    pydle.features.IRCv3Support,    # type: ignore
-    pydle.features.AccountSupport,    # type: ignore
-    pydle.features.CTCPSupport,    # type: ignore
-    pydle.features.ISUPPORTSupport,    # type: ignore
-    pydle.features.TLSSupport)    # type: ignore
+PydleClient = pydle.featurize(
+    pydle.features.RFC1459Support, pydle.features.IRCv3Support,
+    pydle.features.AccountSupport, pydle.features.CTCPSupport,
+    pydle.features.ISUPPORTSupport, pydle.features.TLSSupport)
 
 
-class Client(PydleClient):    # type: ignore
+class Client(PydleClient):
     """Taigabot Client."""
 
-    # custom functions
-    async def message_handler(self, data: 'ParsedRaw') -> None:
+    async def stop(self, reset: bool = False) -> None:
+        """Is used to stop or restart the bot."""
+        global restarted
+        restarted = reset
+        os.kill(os.getpid(), signal.SIGINT)
 
+    async def message_handler(self, data: 'ParsedRaw') -> None:
         """
         Is used for running sieves, events and commands if applicable.
 
@@ -83,12 +84,6 @@ class Client(PydleClient):    # type: ignore
                 self.notice(data.nickname, f'{data.command} is gdisabled.'))
             return
         asyncio.create_task(self._run_commands(data))
-
-    async def stop(self, reset: bool = False) -> None:
-        """Is used to stop or restart the bot."""
-        global restarted
-        restarted = reset
-        os.kill(os.getpid(), signal.SIGINT)
 
     async def _update_user(self, user: str, mask: str) -> None:
         """
@@ -224,6 +219,7 @@ class Client(PydleClient):    # type: ignore
 
     # changing defaults
     async def join(self, channel: str, password: str = None) -> None:
+        """Overwrite the join channel funcion to block channels."""
         no_join = self.bot.config['servers'][self.server_tag]['no_channels']
         if ',' in channel:
             chans = channel.split(',')
