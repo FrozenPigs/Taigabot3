@@ -8,9 +8,6 @@
 |-----------------+--------------------|
 | match           | core_admin_channel |
 | autoop          | core_admin_channel |
-| disabled        | core_admin_channel |
-| disable         | core_admin_channel |
-| enable          | core_admin_channel |
 | disablehash     | core_admin_channel |
 | disabledhashes  | core_admin_channel |
 | enablehash      | core_admin_channel |
@@ -103,6 +100,9 @@
 | cmdflood | core_admin_channel | flood                | flood    |
 | admins   | core_admin_channel | admins               | admin    |
 | admin    | core_admin_channel | admins               | admin    |
+| disabled | core_admin_channel | disable/enable list  | admin    |
+| disable  | core_admin_channel | disable              | admin    |
+| enable   | core_admin_channel | enable               | admin    |
 ** events
 | Event        | File      | New Event    | New File |
 |--------------+-----------+--------------+----------|
