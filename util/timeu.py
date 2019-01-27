@@ -1,12 +1,13 @@
+"""Uils for dealing with time."""
 import time
 import sched
 import asyncio
-from Typing import Callable, List, Dict, Any
+from Typing import Callable, Tuple, Dict, Any
 
 
 async def asyncsched(sched_time: int,
                      func: Callable,
-                     args: List[Any],
+                     args: Tuple[Any],
                      kwargs: Dict[str, Any] = None) -> None:
     """
     Schedule func to be run in sched_time.
