@@ -1,7 +1,7 @@
 """Test penis commands."""
 # Standard Libs
-import time
 import asyncio
+import time
 
 # First Party
 from core import hook

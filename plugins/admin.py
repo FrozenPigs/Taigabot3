@@ -1,7 +1,10 @@
 """Events, sieves, and commands for channel admins."""
-# First Party
+# Standard Libs
 import asyncio
+
+# First Party
 from core import db, hook
+from util import user
 
 last_invite: str = ''
 
@@ -58,3 +61,45 @@ async def chan_join(client, data):
 
 # if banlist not disabled check if user should be banned and ban them
 # if autoop enabled and user should be oped then op them
+
+
+@hook.hook('command', ['admins'], admin=True, autohelp=True)
+async def c_admins(client, data):
+    """
+    .admins <list/add/del> [user/mask] -- Lists, adds or deletes users or
+    masks from admins.
+    """
+    gadmins = client.bot.config['servers'][data.server]['admins']
+    message = data.message.replace(',', ' ')
+    conn = client.bot.dbs[data.server]
+
+    if ' ' in message:
+        message = message.split(' ')
+        masks = await user.parse_masks(conn, conn, ' '.join(message[1:]))
+    else:
+        message = [message]
+
+    if message[0] == 'del':
+        for mask in masks:
+            if mask in gadmins:
+                gadmins.remove(mask)
+                asyncio.create_task(
+                    client.notice(data.nickname,
+                                  f'Removing {mask} from gadmins.'))
+            else:
+                asyncio.create_task(
+                    client.notice(data.nickname, f'{mask} is not a gadmin.'))
+    elif message[0] == 'add':
+        for mask in masks:
+            if mask in gadmins:
+                asyncio.create_task(
+                    client.notice(data.nickname,
+                                  f'{mask} is already a gadmin.'))
+            else:
+                gadmins.append(mask)
+                asyncio.create_task(
+                    client.notice(data.nickname, f'Adding {mask} to gadmins.'))
+    elif message[0] == 'list':
+        asyncio.create_task(
+            client.notice(data.nickname, 'gadmins are: ' + ', '.join(gadmins)))
+        return

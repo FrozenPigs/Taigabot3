@@ -1,14 +1,14 @@
 """Sieves and commands for global admins."""
 # Standard Libs
+import asyncio
 import itertools
 import platform
 import time
-import asyncio
 from datetime import datetime
 from sqlite3 import OperationalError
 
 # First Party
-import psutil    # type: ignore
+import psutil  # type: ignore
 from core import db, hook
 from util import messaging, user
 

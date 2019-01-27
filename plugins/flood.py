@@ -1,9 +1,9 @@
 """Events, sieves, and commands for flood control."""
 # Standard Libs
+import asyncio
 import sched
 import threading
 import time
-import asyncio
 from typing import Dict, List
 
 # First Party
@@ -175,8 +175,8 @@ async def c_flood(client, data):
             asyncio.create_task(
                 client.notice(
                     data.nickname,
-                    f'Changing message flood to {message[1]} {secs} {message[3]}.'
-                ))
+                    f'Changing message flood to {message[1]} {secs}'
+                    f'{message[3]}.'))
             db.set_cell(conn, 'channels', 'msgflood',
                         f'{message[1]} {secs} {message[3]}', 'channel',
                         data.target)
@@ -190,8 +190,8 @@ async def c_flood(client, data):
             asyncio.create_task(
                 client.notice(
                     data.nickname,
-                    f'Changing command flood to {message[1]} {secs} {message[3]}.'
-                ))
+                    f'Changing command flood to {message[1]} {secs}'
+                    f'{message[3]}.'))
             db.set_cell(conn, 'channels', 'cmdflood',
                         f'{message[1]} {secs} {message[3]}', 'channel',
                         data.target)

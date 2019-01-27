@@ -1,11 +1,11 @@
 """Events and commands for kick and banwords."""
 # Standard Libs
-import re
 import asyncio
+import re
 
 # First Party
 from core import db, hook
-from util import user, timeu
+from util import timeu, user
 
 
 @hook.hook('sieve', ['04-censor-badwords-output'])

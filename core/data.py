@@ -1,9 +1,12 @@
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Optional, Dict, Any, List, Set, Union, Callable, Tuple
-from sqlite3 import Connection
+# Standard Libs
 import re
 import threading
+from dataclasses import dataclass, field
+from pathlib import Path
+from sqlite3 import Connection
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+
+# First Party
 from core import config, db, plugins
 
 InputSieveList = List[Callable[['Client', 'ParsedRaw'], 'ParsedRaw']]

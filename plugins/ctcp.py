@@ -1,7 +1,7 @@
 """Events for handling ctcp replies."""
 # Standard Libs
-import time
 import asyncio
+import time
 
 # First Party
 from core import hook

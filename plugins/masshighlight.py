@@ -1,7 +1,7 @@
 """Sieves and events for preventing masshighlighting."""
 # Standard Libs
-import re
 import asyncio
+import re
 
 # First Party
 from core import hook

@@ -3,18 +3,17 @@
 """Main file for running bot."""
 
 # Standard Libs
-import os
-import signal    # type: ignore
-import sys
-
 import asyncio
+import os
+import signal  # type: ignore
+import sys
 from sqlite3 import Connection
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 
 # First Party
 import pydle
 from core import config, db, plugins
-from core.data import ParsedRaw, Bot
+from core.data import Bot, ParsedRaw
 from util import user
 
 InputSieveList = List[Callable[['Client', 'ParsedRaw'], 'ParsedRaw']]
