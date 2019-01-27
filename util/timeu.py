@@ -2,7 +2,7 @@
 import time
 import sched
 import asyncio
-from Typing import Callable, Tuple, Dict, Any
+from typing import Callable, Tuple, Dict, Any
 
 
 async def asyncsched(sched_time: int,

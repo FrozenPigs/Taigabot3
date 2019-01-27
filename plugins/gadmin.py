@@ -280,11 +280,6 @@ async def g_join_part_cycle(client, data):
 
         if channel[0] != '#':
             continue
-        elif channel in no_join:
-            asyncio.create_task(
-                client.notice(data.nickname,
-                              f'I\'m not allowed in {channel}.'))
-            continue
 
         if command == 'part' or command == 'cycle':
             if channel not in channels:

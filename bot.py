@@ -224,6 +224,22 @@ class Client(PydleClient):    # type: ignore
         return prefix
 
     # changing defaults
+    async def join(self, channel: str, password: str = None) -> None:
+        no_join = self.bot.config['servers'][self.server_tag]['no_channels']
+        if ',' in channel:
+            chans = channel.split(',')
+            for chan in no_join:
+                if chan in chans:
+                    chans.remove(chan)
+            if not chans:
+                return
+            channel = ','.join(chans)
+        else:
+            for chan in no_join:
+                if chan == channel:
+                    return
+        await super().join(channel, password)
+
     async def on_capability_away_notify_available(self, value: Any) -> False:
         """Disable away-notify."""
         return False
