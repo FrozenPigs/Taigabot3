@@ -117,7 +117,7 @@
 | sieve_suite | core_sieve | ignore_sieve                               | ignore      |
 | sieve_suite | core_sieve | parse_destination_sieve                    | gadmin      |
 | sieve_suite | core_sieve | enabling and disabling plugins             | bot         |
-| sieve_suite | core_sieve | access control list for channels           | join/invite |
+| sieve_suite | core_sieve | access control list for channels           | bot         |
 | sieve_suite | core_sieve | admin/gadmin commands                      | bot         |
 | ignoresieve | core_sieve | ignore_sieve                               | ignore      |
 * Don't Add
