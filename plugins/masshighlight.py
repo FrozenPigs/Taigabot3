@@ -1,12 +1,11 @@
 """Sieves and events for preventing masshighlighting."""
 # Standard Libs
 import re
-import sched
-import time
 import asyncio
 
 # First Party
 from core import hook
+from util import timeu
 
 
 async def _detect_highlight(users, message):
@@ -20,15 +19,9 @@ async def _detect_highlight(users, message):
     False
 
 
-async def _start_sched(client, target, nick):
-    s = sched.scheduler(time.perf_counter, time.sleep)
-    s.enter(60, 1, asyncio.create_task, (client.unban(target, nick), ))
-    s.run()
-
-
 @hook.hook('sieve', ['03-masshighlight-output'])
 async def masshighlight_output_sieve(client, server, command, args, kwargs):
-    """Is for preventing the bot from mass highligting"""
+    """Is for preventing the bot from mass highligting."""
     if command == 'PRIVMSG':
         message = args[1]
         if ' ' not in message:
@@ -52,6 +45,8 @@ async def masshighlight_input_sieve(client, data):
                 data.nickname,
                 reason=('No mass'
                         'highlighting, come back in 1 minute.')))
-        asyncio.create_task(_start_sched(client, data.target, data.nickname))
+        asyncio.create_task(
+            timeu.asyncsched(60, client.unban,
+                             (data.target, data.nickname)))
         return None
     return data

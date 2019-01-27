@@ -1,13 +1,11 @@
 """Events and commands for kick and banwords."""
 # Standard Libs
 import re
-import sched
-import time
 import asyncio
 
 # First Party
 from core import db, hook
-from util import user
+from util import user, timeu
 
 
 @hook.hook('sieve', ['04-censor-badwords-output'])
@@ -80,12 +78,6 @@ async def badwords_input_sieve(client, data):
     return data
 
 
-async def _start_sched(client, ban_time, target, nick):
-    s = sched.scheduler(time.perf_counter, time.sleep)
-    s.enter(ban_time, 1, asyncio.create_task, (client.unban(target, nick), ))
-    s.run()
-
-
 @hook.hook('event', ['PRIVMSG'])
 async def badwords(client, data):
     """Is an event for kicking or banning users using bad words."""
@@ -125,7 +117,8 @@ async def badwords(client, data):
                             f'You\'re not allowed to say {word}, banned for'
                             f' {ban_time} seconds.')))
                 asyncio.create_task(
-                    _start_sched(client, ban_time, data.target, data.nickname))
+                    timeu.asyncsched(ban_time, client.unban,
+                                     (data.target, data.nickname)))
 
 
 async def _add_words(client, data, conn, words, message, ban=False):
