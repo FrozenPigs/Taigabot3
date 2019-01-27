@@ -21,7 +21,7 @@ async def is_admin(client: Any, conn: Connection, nick: str,
     if admins:
         nadmins: Optional[str] = admins[0][0]
         if nadmins:
-            if mask in nadmins:
+            if mask in nadmins.split():
                 return True
     return False
 

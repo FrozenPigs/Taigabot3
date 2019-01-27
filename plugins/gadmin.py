@@ -8,7 +8,7 @@ from datetime import datetime
 from sqlite3 import OperationalError
 
 # First Party
-import psutil  # type: ignore
+import psutil
 from core import db, hook
 from util import messaging, user
 
@@ -169,7 +169,7 @@ async def g_gadmins(client, data):
 
     if ' ' in message:
         message = message.split(' ')
-        masks = await user.parse_masks(conn, conn, ' '.join(message[1:]))
+        masks = await user.parse_masks(client, conn, ' '.join(message[1:]))
     else:
         message = [message]
 

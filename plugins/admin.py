@@ -69,20 +69,28 @@ async def c_admins(client, data):
     .admins <list/add/del> [user/mask] -- Lists, adds or deletes users or
     masks from admins.
     """
-    gadmins = client.bot.config['servers'][data.server]['admins']
     message = data.message.replace(',', ' ')
     conn = client.bot.dbs[data.server]
+    admins = db.get_cell(conn, 'channels', 'admins', 'channel',
+                         data.target)[0][0]
 
     if ' ' in message:
         message = message.split(' ')
-        masks = await user.parse_masks(conn, conn, ' '.join(message[1:]))
+        masks = await user.parse_masks(client, conn, ' '.join(message[1:]))
     else:
         message = [message]
 
+    if ' ' in admins:
+        admins = admins.split()
+    else:
+        admins = [admins]
+
     if message[0] == 'del':
         for mask in masks:
-            if mask in gadmins:
-                gadmins.remove(mask)
+            if mask in admins:
+                admins.remove(mask)
+                db.set_cell(conn, 'channels', 'admins', ' '.join(admins),
+                            'channel', data.target)
                 asyncio.create_task(
                     client.notice(data.nickname,
                                   f'Removing {mask} from gadmins.'))
@@ -91,15 +99,18 @@ async def c_admins(client, data):
                     client.notice(data.nickname, f'{mask} is not a gadmin.'))
     elif message[0] == 'add':
         for mask in masks:
-            if mask in gadmins:
+            if mask in admins:
                 asyncio.create_task(
                     client.notice(data.nickname,
-                                  f'{mask} is already a gadmin.'))
+                                  f'{mask} is already a admin.'))
             else:
-                gadmins.append(mask)
+                admins.append(mask)
+                db.set_cell(conn, 'channels', 'admins', ' '.join(admins),
+                            'channel', data.target)
+
                 asyncio.create_task(
-                    client.notice(data.nickname, f'Adding {mask} to gadmins.'))
+                    client.notice(data.nickname, f'Adding {mask} to admins.'))
     elif message[0] == 'list':
         asyncio.create_task(
-            client.notice(data.nickname, 'gadmins are: ' + ', '.join(gadmins)))
+            client.notice(data.nickname, 'admins are: ' + ', '.join(admins)))
         return

@@ -7,8 +7,6 @@
 | Command         | File               |
 |-----------------+--------------------|
 | match           | core_admin_channel |
-| admins          | core_admin_channel |
-| admin           | core_admin_channel |
 | autoop          | core_admin_channel |
 | disabled        | core_admin_channel |
 | disable         | core_admin_channel |
@@ -95,14 +93,16 @@
 | pid       | system            | bot                    | gadmin       |
 | ctcp      | core_ctcp         | ctcp                   | gadmin       |
 ** admin
-| Command  | File               | New Command          | New File     |
-|----------+--------------------+----------------------+--------------|
-| ignored  | core_admin_channel | ignore/unignore list | ignore       |
-| ignore   | core_admin_channel | ignore               | ignore       |
-| unignore | core_admin_channel | unignore             | ignore       |
-| badwords | core_admin_channel | badwords             | badwords     |
-| flood    | core_admin_channel | flood                | flood        |
-| cmdflood | core_admin_channel | flood                | flood        |
+| Command  | File               | New Command          | New File |
+|----------+--------------------+----------------------+----------|
+| ignored  | core_admin_channel | ignore/unignore list | ignore   |
+| ignore   | core_admin_channel | ignore               | ignore   |
+| unignore | core_admin_channel | unignore             | ignore   |
+| badwords | core_admin_channel | badwords             | badwords |
+| flood    | core_admin_channel | flood                | flood    |
+| cmdflood | core_admin_channel | flood                | flood    |
+| admins   | core_admin_channel | admins               | admin    |
+| admin    | core_admin_channel | admins               | admin    |
 ** events
 | Event        | File      | New Event    | New File |
 |--------------+-----------+--------------+----------|
