@@ -4,7 +4,7 @@ import asyncio
 
 # First Party
 from core import db, hook
-from util import user
+from util import timeu, user
 
 last_invite: str = ''
 
@@ -53,7 +53,7 @@ async def chan_join(client, data):
     conn = client.bot.dbs[data.server]
     if data.nickname == client.nickname:
         db.add_column(conn, 'channels', 'disabled')
-        db.add_column(conn, 'channels', 'autoban')
+        db.add_column(conn, 'channels', 'ban')
         db.add_column(conn, 'channels', 'op')
         db.add_column(conn, 'channels', 'hop')
         db.add_column(conn, 'channels', 'vop')
@@ -401,3 +401,113 @@ async def c_kick(client, data):
         else:
             reason = reason[0]
     await client.kick(data.target, message[0], reason)
+
+
+@hook.hook(
+    'command', ['ban', 'unban', 'unban', 'kickban'], admin=True, autohelp=True)
+async def c_ban_unban(client, data):
+    """.ban [add/del/list] [user] [timer]/.kickban [add/del]
+       [user] [reason] [timer]/.unban [del] [user] --
+       Ban/kickban/unban the user. User can be banned for [timer]"""
+    message = data.split_message
+    conn = client.bot.dbs[data.server]
+    bans = db.get_cell(conn, 'channels', 'ban', 'channel', data.target)[0][0]
+
+    if not bans:
+        bans = []
+    elif ' ' in bans:
+        bans = bans.split()
+    else:
+        bans = [bans]
+
+    info = {
+        'add': False,
+        'del': False,
+        'list': False,
+        'user': '',
+        'reason': '',
+        'timer': 0}
+
+    try:
+        info['timer'] = int(message[-1])
+    except ValueError:
+        pass
+
+    if message[0] in {'add', 'del', 'list'}:
+        info[message[0]] = True
+        if not info['list']:
+            info['user'] = message[1]
+            if data.command == 'kickban':
+                if info['timer']:
+                    info['reason'] = message[2:-1]
+                else:
+                    info['reason'] = message[2]
+    elif not info['list']:
+        info['user'] = message[0]
+        if data.command == 'kickban':
+            if len(message) > 1:
+                if info['timer']:
+                    info['reason'] = message[1:-1]
+                else:
+                    info['reason'] = message[1]
+    if len(info['reason']) > 1:
+        info['reason'] = ' '.join(info['reason'])
+
+    if info['del']:
+        if info['user'] in bans:
+            bans.remove(info['user'])
+            if len(bans) > 1:
+                db.set_cell(conn, 'channels', 'ban', ' '.join(bans), 'channel',
+                            data.target)
+            else:
+                if len(bans) == 1:
+                    db.set_cell(conn, 'channels', 'ban', bans[0], 'channel',
+                                data.target)
+                else:
+                    db.set_cell(conn, 'channels', 'ban', '', 'channel',
+                                data.target)
+
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'Removing {info["user"]} from bans.'))
+        else:
+            asyncio.create_task(
+                client.notice(data.nickname, f'{user} is not banned.'))
+    elif data.command != 'unban' and info['add']:
+        if info['user'] in bans:
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'info["user"] is already auto banned.'))
+        else:
+            bans.append(info['user'])
+            print(bans)
+            if len(bans) > 1:
+                db.set_cell(conn, 'channels', 'ban', ' '.join(bans), 'channel',
+                            data.target)
+            else:
+                db.set_cell(conn, 'channels', 'ban', bans[0], 'channel',
+                            data.target)
+
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'Adding {info["user"]} to bans.'))
+    elif info['list']:
+        asyncio.create_task(
+            client.notice(data.nickname, 'bans are: ' + ', '.join(bans)))
+        return
+
+    if data.command == 'unban':
+        await client.unban(data.target, info['user'])
+    elif data.command == 'ban':
+        print(info['user'])
+        await client.ban(data.target, info['user'])
+        if info['timer']:
+            asyncio.create_task(
+                timeu.asyncsched(info['timer'], client.unban,
+                                 (data.target, info['user'])))
+    elif data.command == 'kickban':
+        await client.kickban(data.target, info['user'])
+        if info['timer']:
+            asyncio.create_task(
+                timeu.asyncsched(info['timer'], client.unban,
+                                 (data.target, info['user'])))

@@ -78,6 +78,7 @@ class Client(PydleClient):
             return
 
         data.message = data.message.replace(data.command, '').strip()
+        data.split_message.remove(data.command)
         data.command = data.command[1:]
         if data.command.lower() in gdisabled:
             asyncio.create_task(

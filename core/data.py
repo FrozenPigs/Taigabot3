@@ -48,6 +48,7 @@ class ParsedRaw:
 
     raw_command: str = field(default_factory=str)
     message: str = field(default_factory=str)
+    split_message: List[str] = field(default_factory=list)
     command: Optional[str] = field(default_factory=str)
     mask: Optional[str] = field(default_factory=str)
     nickname: Optional[str] = field(default_factory=str)
@@ -87,6 +88,10 @@ class ParsedRaw:
                 self.command = args[1]
                 if ' ' in self.command and self.command != ' ':
                     self.command = self.command.split()[0]
+        if ' ' in self.message:
+            self.split_message = self.message.split()
+        else:
+            self.split_message = [self.message]
 
 
 @dataclass()
