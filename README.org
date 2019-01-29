@@ -6,9 +6,9 @@
 ** admin
 | Command         | File               |
 |-----------------+--------------------|
+| ban             | core_admin_channel |
 | bans            | core_admin_channel |
 | unban           | core_admin_channel |
-| kick            | core_admin_channel |
 | add             | datafiles          |
 | storyofpomfface | stupid             |
 | match           | core_admin_channel |
@@ -103,6 +103,7 @@
 | lock     | core_admin_channel | lock                 | admin    |
 | unlock   | core_admin_channel | unlock               | admin    |
 | remove   | core_admin_channel | remave               | admin    |
+| kick     | core_admin_channel | kick                 | admin    |
 ** events
 | Event        | File      | New Event    | New File |
 |--------------+-----------+--------------+----------|

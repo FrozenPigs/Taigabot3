@@ -383,3 +383,21 @@ async def c_lock(client, data):
 async def c_remove(client, data):
     """.remove -- Makes a user part from the channel."""
     await client.rawmsg("REMOVE", data.target, data.message)
+
+
+@hook.hook('command', ['kick'], admin=True)
+async def c_kick(client, data):
+    """.kick <user> [message] -- Kicks a user from the channel."""
+    reason = 'bye bye'
+    message = data.message
+    if ' ' in message:
+        message = message.split(' ')
+    else:
+        message = [message]
+    if len(message) > 1:
+        reason = message[1:]
+        if len(reason) > 1:
+            reason = ' '.join(reason)
+        else:
+            reason = reason[0]
+    await client.kick(data.target, message[0], reason)
