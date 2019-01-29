@@ -359,3 +359,12 @@ async def c_topic(client, data):
     else:
         await client.set_topic(
             data.target, client.channels[data.target]['topic'] + data.message)
+
+
+@hook.hook('command', ['mute', 'unmute'], admin=True)
+async def c_mute(client, data):
+    """.mute/.unmute -- Mutes or unmutes the channel."""
+    if data.command == 'mute':
+        await client.rawmsg("MODE", data.target, "+m")
+    else:
+        await client.rawmsg("MODE", data.target, "-m")
