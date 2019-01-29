@@ -102,7 +102,7 @@
 | unmute   | core_admin_channel | unmute               | admin    |
 | lock     | core_admin_channel | lock                 | admin    |
 | unlock   | core_admin_channel | unlock               | admin    |
-| remove   | core_admin_channel | remave               | admin    |
+| remove   | core_admin_channel | remove               | admin    |
 | kick     | core_admin_channel | kick                 | admin    |
 ** events
 | Event        | File      | New Event    | New File |
