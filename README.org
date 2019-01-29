@@ -6,8 +6,6 @@
 ** admin
 | Command         | File               |
 |-----------------+--------------------|
-| match           | core_admin_channel |
-| autoop          | core_admin_channel |
 | disablehash     | core_admin_channel |
 | disabledhashes  | core_admin_channel |
 | enablehash      | core_admin_channel |
@@ -20,15 +18,10 @@
 | bans            | core_admin_channel |
 | unban           | core_admin_channel |
 | kick            | core_admin_channel |
-| op              | core_admin_channel |
-| deop            | core_admin_channel |
-| hop             | core_admin_channel |
-| dehop           | core_admin_channel |
-| voice           | core_admin_channel |
-| devoice         | core_admin_channel |
 | remove          | core_admin_channel |
 | add             | datafiles          |
 | storyofpomfface | stupid             |
+| match           | core_admin_channel |
 ** events
 | Events                                                         | File      |
 |----------------------------------------------------------------+-----------|
@@ -103,6 +96,13 @@
 | disabled | core_admin_channel | disable/enable list  | admin    |
 | disable  | core_admin_channel | disable              | admin    |
 | enable   | core_admin_channel | enable               | admin    |
+| autoop   | core_admin_channel | op add               | admin    |
+| op       | core_admin_channel | op                   | admin    |
+| deop     | core_admin_channel | deop                 | admin    |
+| hop      | core_admin_channel | hop                  | admin    |
+| dehop    | core_admin_channel | dehop                | admin    |
+| voice    | core_admin_channel | voice                | admin    |
+| devoice  | core_admin_channel | devoice              | admin    |
 ** events
 | Event        | File      | New Event    | New File |
 |--------------+-----------+--------------+----------|

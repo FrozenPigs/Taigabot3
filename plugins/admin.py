@@ -54,13 +54,24 @@ async def chan_join(client, data):
     if data.nickname == client.nickname:
         db.add_column(conn, 'channels', 'disabled')
         db.add_column(conn, 'channels', 'autoban')
-        db.add_column(conn, 'channels', 'autoop')
+        db.add_column(conn, 'channels', 'op')
+        db.add_column(conn, 'channels', 'hop')
+        db.add_column(conn, 'channels', 'vop')
     elif data.nickname in client.users:
-        pass
+        ops = db.get_cell(conn, 'channels', 'op', 'channel', data.target)[0][0]
+        hops = db.get_cell(conn, 'channels', 'hop', 'channel',
+                           data.target)[0][0]
+        vops = db.get_cell(conn, 'channels', 'vop', 'channel',
+                           data.target)[0][0]
+        if ops and data.mask in ops.split():
+            await client.rawmsg('MODE', data.target, '+o', f'{data.nickname}')
+        elif hops and data.mask in hops.split():
+            await client.rawmsg('MODE', data.target, '+h', f'{data.nickname}')
+        elif vops and data.mask in vops.split():
+            await client.rawmsg('MODE', data.target, '+v', f'{data.nickname}')
 
 
 # if banlist not disabled check if user should be banned and ban them
-# if autoop enabled and user should be oped then op them
 
 
 @hook.hook('command', ['admins'], admin=True, autohelp=True)
@@ -262,3 +273,79 @@ async def _enable_disable(client, target, conn, value, cell):
             db.set_cell(conn, 'channels', cell, '', 'channel', target)
         else:
             db.set_cell(conn, 'channels', cell, value[0], 'channel', target)
+
+
+@hook.hook(
+    'command', ['op', 'hop', 'vop', 'deop', 'dehop', 'devop'],
+    admin=True,
+    autohelp=True)
+async def c_op(client, data):
+    """.op [add/list] <masks/users> -- Ops masks/users and can add to autoop
+    list."""
+    print(data.command)
+    message = data.message.replace(',', ' ')
+
+    if ' ' in message:
+        message = message.split(' ')
+    else:
+        message = [message]
+
+    if data.command in ('deop', 'dehop', 'devop'):
+        if data.command == 'deop':
+            await client.rawmsg('MODE', data.target, '-o',
+                                f'{" ".join(message)}')
+        elif data.command == 'dehop':
+            await client.rawmsg('MODE', data.target, '-h',
+                                f'{" ".join(message)}')
+        elif data.command == 'devop':
+            await client.rawmsg('MODE', data.target, '-v',
+                                f'{" ".join(message)}')
+        return
+
+    conn = client.bot.dbs[data.server]
+    dbmasks = db.get_cell(conn, 'channels', data.command, 'channel',
+                          data.target)[0][0]
+
+    if message[0] == 'add':
+        message = message[1:]
+        masks = await user.parse_masks(client, conn, ' '.join(message))
+        if dbmasks:
+            dbmasks = dbmasks.split()
+            dbmasks.extend(masks)
+        else:
+            if len(masks) > 1:
+                dbmasks = ' '.join(masks)
+            else:
+                dbmasks = masks
+            await _enable_disable(client, data.target, conn, dbmasks,
+                                  data.command)
+    elif message[0] == 'del':
+        message = message[1:]
+        masks = await user.parse_masks(client, conn, ' '.join(message))
+        if dbmasks:
+            dbmasks = dbmasks.split()
+            for mask in masks:
+                if mask in dbmasks:
+                    dbmasks.remove(mask)
+        else:
+            if len(masks) > 1:
+                dbmasks = ' '.join(masks)
+            else:
+                dbmasks = masks
+            await _enable_disable(client, data.target, conn, dbmasks,
+                                  data.command)
+    elif message[0] == 'list':
+        if dbmasks:
+            asyncio.create_task(
+                client.notice(data.nickname,
+                              f'{data.command}s are: {dbmasks}.'))
+        else:
+            asyncio.create_task(
+                client.notice(data.nickname, 'There are no {data.command}s.'))
+        return
+    if data.command == 'op':
+        await client.rawmsg('MODE', data.target, '+o', f'{" ".join(message)}')
+    elif data.command == 'hop':
+        await client.rawmsg('MODE', data.target, '+h', f'{" ".join(message)}')
+    elif data.command == 'vop':
+        await client.rawmsg('MODE', data.target, '+v', f'{" ".join(message)}')
