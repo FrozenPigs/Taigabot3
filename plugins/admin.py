@@ -349,3 +349,13 @@ async def c_op(client, data):
         await client.rawmsg('MODE', data.target, '+h', f'{" ".join(message)}')
     elif data.command == 'vop':
         await client.rawmsg('MODE', data.target, '+v', f'{" ".join(message)}')
+
+
+@hook.hook('command', ['topic'], admin=True, autohelp=True)
+async def c_topic(client, data):
+    """.topic [|] <message> -- Changes topic, adds if message starts with |."""
+    if data.message[0] != '|':
+        await client.set_topic(data.target, data.message)
+    else:
+        await client.set_topic(
+            data.target, client.channels[data.target]['topic'] + data.message)

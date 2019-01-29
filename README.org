@@ -6,11 +6,6 @@
 ** admin
 | Command         | File               |
 |-----------------+--------------------|
-| disablehash     | core_admin_channel |
-| disabledhashes  | core_admin_channel |
-| enablehash      | core_admin_channel |
-| trim            | core_admin_channel |
-| topic           | core_admin_channel |
 | mute            | core_admin_channel |
 | unmute          | core_admin_channel |
 | lock            | core_admin_channel |
@@ -22,6 +17,10 @@
 | add             | datafiles          |
 | storyofpomfface | stupid             |
 | match           | core_admin_channel |
+| disablehash     | core_admin_channel |
+| disabledhashes  | core_admin_channel |
+| enablehash      | core_admin_channel |
+| trim            | core_admin_channel |
 ** events
 | Events                                                         | File      |
 |----------------------------------------------------------------+-----------|
@@ -103,6 +102,7 @@
 | dehop    | core_admin_channel | dehop                | admin    |
 | voice    | core_admin_channel | voice                | admin    |
 | devoice  | core_admin_channel | devoice              | admin    |
+| topic    | core_admin_channel | topic                | admin    |
 ** events
 | Event        | File      | New Event    | New File |
 |--------------+-----------+--------------+----------|
