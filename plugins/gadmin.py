@@ -10,7 +10,7 @@ from sqlite3 import OperationalError
 # First Party
 import psutil
 from core import db, hook
-from util import messaging, user
+from util import botu, messaging, user
 
 
 @hook.hook('sieve', ['02-parse-destination-input'])
@@ -46,62 +46,6 @@ async def parse_destination_sieve(client, data):
     return data
 
 
-async def _non_valid_disable(plugin, data, sieves, events, commands):
-    """Is for checking if the input is an actual sieve, event or command."""
-    sieve = plugin not in sieves
-    event = plugin not in events
-    command = plugin not in commands
-    is_list = plugin != 'list'
-
-    if sieve and event and command and is_list:
-        return True
-    return False
-
-
-async def _valid_disables(sieves, events, commands, nodisable):
-    for event in list(events):
-        if event in nodisable:
-            events.remove(event)
-    for sieve in list(sieves):
-        if sieve in nodisable:
-            sieves.remove(sieve)
-    for command in list(commands):
-        if command in nodisable:
-            commands.remove(command)
-    sieves = ', '.join(sieves)
-    events = ', '.join(events)
-    commands = ', '.join(commands)
-    return sieves, events, commands
-
-
-async def _disable_enable_lists(client, data, gdisabled, nodisable, sieves,
-                                events, commands):
-    """Is for displaying a list of valid gdisables or genables."""
-    if data.command == 'gdisable':
-        sieves, events, commands = _valid_disables(sieves, events, commands,
-                                                   nodisable)
-        if sieves != '':
-            asyncio.create_task(
-                client.notice(data.nickname,
-                              f'Valid sieves to disable: {sieves}'))
-        if events != '':
-            asyncio.create_task(
-                client.notice(data.nickname,
-                              f'Valid events to disable: {events}'))
-        if commands != '':
-            asyncio.create_task(
-                client.notice(data.nickname,
-                              f'Valid commands to disable: {commands}'))
-    else:
-        if not gdisabled:
-            asyncio.create_task(
-                client.notice(data.nickname, 'Nothing gdisabled.'))
-        else:
-            gdisabled = ', '.join(gdisabled)
-            asyncio.create_task(
-                client.notice(data.nickname, f'Disabled: {gdisabled}'))
-
-
 @hook.hook('command', ['gdisable', 'genable'], gadmin=True, autohelp=True)
 async def g_genable_gdisable(client, data):
     """
@@ -123,13 +67,14 @@ async def g_genable_gdisable(client, data):
     else:
         message = [message]
     if message[0] == 'list':
-        await _disable_enable_lists(client, data, gdisabled, nodisable, sieves,
-                                    events, commands)
+        await botu.cmd_event_sieve_lists(client, data, gdisabled, nodisable,
+                                         sieves, events, commands)
         return
 
     for plugin in message:
         plugin = plugin.lower().strip()
-        if await _non_valid_disable(plugin, data, sieves, events, commands):
+        if await botu.is_cmd_event_sieve(plugin, data, sieves, events,
+                                         commands):
             asyncio.create_task(
                 client.notice(data.nickname,
                               f'{plugin} is not a sieve, command or event.'))

@@ -53,13 +53,17 @@ async def is_user(client: Any, conn: Connection, nick: str) -> bool:
     return True
 
 
-async def get_mask(client: Any, nick: str) -> str:
+async def get_mask(client: Any, conn: Connection, nick: str) -> str:
     """Is used to combine user information into a mask."""
     user: Dict[str, str]
     try:
         user = client.users[nick]
     except KeyError:
-        return ''
+        db_user = db.get_cell(conn, 'users', 'mask', 'nick', nick)
+        if db_user:
+            return db_user[0][0]
+        else:
+            return ''
     mask: str = f'{user["nickname"]}!{user["username"]}@{user["hostname"]}'
     return mask
 
@@ -71,8 +75,9 @@ async def parse_masks(client: Any, conn: Connection, inp: str) -> List[str]:
         split_inp = inp.split(' ')
     else:
         split_inp = [inp]
+    print(inp)
     masks: List[str] = [
-        await get_mask(client, user)
+        await get_mask(client, conn, user)
         for user in split_inp
         if await is_user(client, conn, user)]
     masks.extend(mask for mask in split_inp if '@' in mask)

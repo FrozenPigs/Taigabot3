@@ -13,11 +13,11 @@ async def logger(client, data):
     """Is for ignoring messages from globally or channel ignored users."""
     bot = client.bot
     nolog = client.bot.config['servers'][data.server]['no_log']
-
+    conn = client.bot.dbs[data.server]
     server = client.bot.config['servers'][data.server]['server']
 
     if data.nickname is not None:
-        host = await user.get_mask(client, data.nickname)
+        host = await user.get_mask(client, conn, data.nickname)
     else:
         host = data.nickname
 
