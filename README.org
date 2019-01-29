@@ -6,8 +6,6 @@
 ** admin
 | Command         | File               |
 |-----------------+--------------------|
-| lock            | core_admin_channel |
-| unlock          | core_admin_channel |
 | bans            | core_admin_channel |
 | unban           | core_admin_channel |
 | kick            | core_admin_channel |
@@ -103,6 +101,8 @@
 | topic    | core_admin_channel | topic                | admin    |
 | mute     | core_admin_channel | mute                 | admin    |
 | unmute   | core_admin_channel | unmute               | admin    |
+| lock     | core_admin_channel | lock                 | admin    |
+| unlock   | core_admin_channel | unlock               | admin    |
 ** events
 | Event        | File      | New Event    | New File |
 |--------------+-----------+--------------+----------|

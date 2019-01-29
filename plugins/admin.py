@@ -368,3 +368,12 @@ async def c_mute(client, data):
         await client.rawmsg("MODE", data.target, "+m")
     else:
         await client.rawmsg("MODE", data.target, "-m")
+
+
+@hook.hook('command', ['lock', 'unlock'], admin=True)
+async def c_lock(client, data):
+    """.lock/.unlock -- Locks or unlocks the channel."""
+    if data.command == 'lock':
+        await client.rawmsg("MODE", data.target, "+i")
+    else:
+        await client.rawmsg("MODE", data.target, "-i")
