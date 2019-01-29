@@ -377,3 +377,9 @@ async def c_lock(client, data):
         await client.rawmsg("MODE", data.target, "+i")
     else:
         await client.rawmsg("MODE", data.target, "-i")
+
+
+@hook.hook('command', ['remove'], admin=True)
+async def c_remove(client, data):
+    """.remove -- Makes a user part from the channel."""
+    await client.rawmsg("REMOVE", data.target, data.message)
