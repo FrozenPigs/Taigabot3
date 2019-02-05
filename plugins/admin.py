@@ -30,6 +30,7 @@ async def whois(client, data):
     if last_invite:
         invite = last_invite.split()
         nick = invite[0]
+        data.nickname = nick
         channel = invite[1]
         if message[1] == invite[0]:
             privilages = [
@@ -37,14 +38,12 @@ async def whois(client, data):
             if len([priv for priv in privilages if priv in message]) > 0:
                 channels = client.bot.config['servers'][data
                                                         .server]['channels']
-                if channel not in channels:
-                    channels.append(channel)
-                    asyncio.create_task(client.join(channel))
-                    asyncio.create_task(
-                        client.notice(nick, f'Joining {channel}.'))
-                else:
-                    asyncio.create_task(
-                        client.notice(nick, f'Already in {channel}.'))
+                channels.append(channel)
+                asyncio.create_task(
+                    botu.add_to_conf(client, data, channel, channels,
+                                     f'Joining {channel}.',
+                                     f'{channel} is already in the config.'))
+                asyncio.create_task(client.join(channel))
 
 
 @hook.hook('event', ['JOIN'])

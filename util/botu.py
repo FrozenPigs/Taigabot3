@@ -46,6 +46,25 @@ async def del_from_channels(
         asyncio.create_task(client.notice(data.nickname, notin_msg))
 
 
+async def add_to_conf(client: Any, data: data.ParsedRaw, adding: str,
+                      conf_value: List[str], added_msg: str, already_msg: str):
+    if adding in conf_value:
+        asyncio.create_task(client.notice(data.nickname, already_msg))
+    else:
+        asyncio.create_task(client.notice(data.nickname, added_msg))
+        conf_value.append(adding)
+
+
+async def remove_from_conf(client: Any, data: data.ParsedRaw, removing: str,
+                           conf_value: List[str], removed_msg: str,
+                           notin_msg: str):
+    if removing not in conf_value:
+        asyncio.create_task(client.notice(data.nickname, notin_msg))
+    else:
+        asyncio.create_task(client.notice(data.nickname, removed_msg))
+        conf_value.remove(removing)
+
+
 async def make_list(value):
     if not value:
         return []

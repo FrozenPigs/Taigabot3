@@ -31,18 +31,12 @@ async def parse_destination_sieve(client, data):
                 if not adminonly and not gadminonly:
                     return data
 
-                new_message = data.message.replace(data.command, '').strip()
-                if len(new_message) > 0:
-                    if ' ' in new_message:
-                        new_message = new_message.split(' ')
-                        if new_message[0][0] == '#':
-                            data.target = new_message[0]
-                            data.message = data.command + ' '.join(
-                                new_message[1:])
-                    else:
-                        if new_message[0] == '#':
-                            data.target = new_message
-                            data.message = data.command
+                message = data.split_message
+
+                if message[1][0] == '#':
+                    data.target = message[1]
+                    data.split_message = message.remove(data.target)
+                    data.message = ' '.join(data.split_message)
     return data
 
 
@@ -60,15 +54,12 @@ async def g_genable_gdisable(client, data):
     nodisable = client.bot.config['servers'][data.server]['no_disable']
     gdisabled = client.bot.config['servers'][data.server]['disabled']
 
-    message = data.message
+    message = data.split_message
 
-    if ' ' in message:
-        message = message.split(' ')
-    else:
-        message = [message]
     if message[0] == 'list':
-        await botu.cmd_event_sieve_lists(client, data, gdisabled, nodisable,
-                                         sieves, events, commands)
+        asyncio.create_task(
+            botu.cmd_event_sieve_lists(client, data, gdisabled, nodisable,
+                                       sieves, events, commands))
         return
 
     for plugin in message:
@@ -79,27 +70,20 @@ async def g_genable_gdisable(client, data):
                 client.notice(data.nickname,
                               f'{plugin} is not a sieve, command or event.'))
         elif data.command == 'genable':
-            if plugin not in gdisabled:
-                asyncio.create_task(
-                    client.notice(data.nickname,
-                                  f'{plugin} is not gdisabled.'))
-            else:
-                asyncio.create_task(
-                    client.notice(data.nickname, f'genabling {plugin}.'))
-                gdisabled.remove(plugin)
+            asyncio.create_task(
+                botu.remove_from_conf(client, data, plugin, gdisabled,
+                                      f'Genabling {plugin}.',
+                                      f'{plugin} is not gdisabled.'))
         elif data.command == 'gdisable':
-            if plugin in gdisabled:
-                asyncio.create_task(
-                    client.notice(data.nickname,
-                                  f'{plugin} is already gdisabled.'))
-            elif plugin in nodisable:
+            if plugin in nodisable:
                 asyncio.create_task(
                     client.notice(data.nickname,
                                   f'You cannot gdisable {plugin}.'))
             else:
                 asyncio.create_task(
-                    client.notice(data.nickname, f'gdisabling {plugin}.'))
-                gdisabled.append(plugin)
+                    botu.add_to_conf(client, data, plugin, gdisabled,
+                                     f'Gdisabling {plugin}.',
+                                     f'{plugin} is already gdisabled.'))
 
 
 @hook.hook('command', ['gadmins'], gadmin=True, autohelp=True)
@@ -109,39 +93,25 @@ async def g_gadmins(client, data):
     masks from gadmins.
     """
     gadmins = client.bot.config['servers'][data.server]['admins']
-    message = data.message.replace(',', ' ')
-    conn = client.bot.dbs[data.server]
-
-    if ' ' in message:
-        message = message.split(' ')
-        masks = await user.parse_masks(client, conn, ' '.join(message[1:]))
-    else:
-        message = [message]
-
-    if message[0] == 'del':
-        for mask in masks:
-            if mask in gadmins:
-                gadmins.remove(mask)
-                asyncio.create_task(
-                    client.notice(data.nickname,
-                                  f'Removing {mask} from gadmins.'))
-            else:
-                asyncio.create_task(
-                    client.notice(data.nickname, f'{mask} is not a gadmin.'))
-    elif message[0] == 'add':
-        for mask in masks:
-            if mask in gadmins:
-                asyncio.create_task(
-                    client.notice(data.nickname,
-                                  f'{mask} is already a gadmin.'))
-            else:
-                gadmins.append(mask)
-                asyncio.create_task(
-                    client.notice(data.nickname, f'Adding {mask} to gadmins.'))
-    elif message[0] == 'list':
+    message = data.split_message
+    if message[0] == 'list':
         asyncio.create_task(
             client.notice(data.nickname, 'gadmins are: ' + ', '.join(gadmins)))
         return
+    conn = client.bot.dbs[data.server]
+    masks = await user.parse_masks(client, conn, ' '.join(message[1:]))
+
+    for mask in masks:
+        if message[0] == 'del':
+            asyncio.create_task(
+                botu.del_from_conf(client, data, mask, gadmins,
+                                   f'Removing {mask} from gadmins.',
+                                   f'{mask} is not a gadmin.'))
+        elif message[0] == 'add':
+            asyncio.create_task(
+                botu.add_to_conf(client, data, mask, gadmins,
+                                 f'Adding {mask} to gadmins..',
+                                 f'{mask} is already a gadmin.'))
 
 
 @hook.hook('command', ['stop', 'restart'], gadmin=True)
@@ -156,8 +126,8 @@ async def g_stop_restart(client, data):
 @hook.hook('command', ['nick'], gadmin=True, autohelp=True)
 async def g_nick(client, data):
     """.nick <nick> -- Changes the bots nick."""
-    new_nick = data.message.strip()
-    if ' ' in new_nick:
+    new_nick = data.split_message
+    if len(new_nick) > 1:
         asyncio.create_task(
             client.notice(data.nickname, 'Nicknames cannot contain spaces.'))
         return
@@ -172,7 +142,7 @@ async def g_say_me_raw(client, data):
     .say/.me/.raw <target/rawcmd> <message> -- Say or action to target or
     execute raw command.
     """
-    message = data.message.split(' ')
+    message = data.split_message
     target = message[0]
     msg = message[1:]
     command = data.command
@@ -206,22 +176,15 @@ async def g_join_part_cycle(client, data):
     channel.
     """
     channels = client.bot.config['servers'][data.server]['channels']
-    message = data.message.replace(',', ' ')
+    message = [msg.lower() for msg in data.split_message]
     command = data.command
     no_join = client.bot.config['servers'][data.server]['no_channels']
-
-    if ' ' in message:
-        tmp = message.split(' ')
-        message = [message.lower() for message in tmp]
-
-    else:
-        message = [message.lower()]
 
     if not message[0]:
         message = [data.target]
 
     for channel in message:
-        channel = channel.strip()
+        channel = channel
 
         if channel[0] != '#':
             continue
@@ -290,14 +253,16 @@ async def _get_set_column(client, data, conn, message, table, columns):
     try:
         set_column = message[3]
     except IndexError:
-        await _list_columns(
-            client, data, conn, table, setting=True, cols=columns)
+        asyncio.create_task(
+            _list_columns(
+                client, data, conn, table, setting=True, cols=columns))
         set_column = ''
         return
     finally:
         if set_column not in columns and set_column != '':
-            await _list_columns(
-                client, data, conn, table, setting=True, cols=columns)
+            asyncio.create_task(
+                _list_columns(
+                    client, data, conn, table, setting=True, cols=columns))
             return None
         return set_column
 
@@ -314,24 +279,24 @@ async def g_set(client, data):
     if not data.message:
         doc = ' '.join(g_set.__doc__.split())
         asyncio.create_task(client.notice(data.nickname, f'{doc}'))
-        await _list_tables(client, data, conn)
+        asyncio.create_task(_list_tables(client, data, conn))
         return
 
-    message = data.message.split(' ')
+    message = data.split_message
     table = message[0]
     columns = await _list_columns(None, data, conn, table)
 
     table_exists = db.get_table(conn, table)
     if isinstance(table_exists, OperationalError):
-        await _list_tables(client, data, conn)
+        asyncio.create_task(_list_tables(client, data, conn))
         return
     if len(message) == 1:
-        await _list_columns(client, data, conn, table)
+        asyncio.create_task(_list_columns(client, data, conn, table))
         return
 
     match_col = message[1]
     if match_col not in columns:
-        await _list_columns(client, data, conn, table)
+        asyncio.create_task(_list_columns(client, data, conn, table))
         return
 
     match_value = await _get_match_value(client, data, message)
@@ -490,12 +455,11 @@ async def g_ctcp(client, data):
     .ctcp <target> <command> [message] -- Sends CTCP command to the target,
      with optional message.
     """
-    message = data.message.strip()
-    if ' ' not in message:
+    message = data.split_message
+    if len(message) <= 1:
         doc = ' '.join(g_ctcp.__doc__.split())
         asyncio.create_task(client.notice(data.nickname, f'{doc}'))
         return
-    message = message.split()
     if len(message) == 2:
         print(message[0], message[1], '')
         asyncio.create_task(client.ctcp(message[0], message[1], ''))
