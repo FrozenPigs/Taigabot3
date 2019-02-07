@@ -16,7 +16,7 @@ import random
 import requests
 
 # import core db functions
-from core import db
+from core import db, hook
 
 # db table definition
 quote_columns: List[str] = [
@@ -38,29 +38,28 @@ def display_quote(client, data, quotelist, target, arg):
     output a quote, given a tuple list of all avalable quotes, and possibly
     a number (for selection of a specific quote)
     """
-    print('func_test')
 
     outquotes = []
     quotenums = []
     wordarg = None
     numarg = None
 
+    # if not searching, pick random quote
     if not arg:
-        #pick a random number from the quotelist if there is no argument provided
         numarg = random.randint(0, len(quotelist) - 1)
     else:
         try:
             numarg = int(arg)
             if numarg > 0:
                 numarg -= 1
-        except:
+        except ValueError:
             wordarg = arg
 
     quotelist = remove_quotes(quotelist)
 
     if len(quotelist) < 1:
         asyncio.create_task(
-            client.message(data.target, 'I have no quotes for ' + target))
+            client.message(data.target, f'I have no quotes for {target}'))
         return
 
     print('t2')
@@ -77,12 +76,13 @@ def display_quote(client, data, quotelist, target, arg):
             if len(quotelist) == 1:
                 asyncio.create_task(
                     client.message(data.target,
-                                   'I only have 1 quote for ' + target))
+                                   f'I only have 1 quote for {target}'))
             else:
                 asyncio.create_task(
                     client.message(
-                        data.target, 'I only have ' + str(len(quotelist)) +
-                        ' quotes for ' + target))
+                        data.target,
+                        (f'I only have {str(len(quotelist))} quotes for'
+                         f'{target}')))
     elif wordarg is not None:
         for i in range(len(quotelist)):
             quote = quotelist[i]
@@ -91,31 +91,25 @@ def display_quote(client, data, quotelist, target, arg):
                 quotenums.append(i + 1)
 
     # if we have more than five quotes....
-    if len(outquotes) > 5:
-        # append each quote with '\n', smack it right into hastebin
-        out = ''
+    if outquotes:
+        quote = outquotes[i]
         for i in range(len(outquotes)):
-            quote = outquotes[i]
-            out += '[' + str(quotenums[i]) + '/' + str(len(quotelist)) + ']'
-            out += ' <' + quote[1] + '> ' + quote[3] + '\n'
+            out = f'[{quotenums[i]}/{len(quotelist)}] <{quote[1]}> {quote[3]}'
+            if len(outquotes) > 5:
+                response = requests.post(
+                    'https://hastebin.com/documents', data=out)
+                if response.status_code == 200:
+                    d = response.json()['key']
+                    link = 'https://hastebin.com/' + str(d)
+                    asyncio.create_task(client.message(data.target, link))
+                else:
+                    asyncio.create_task(
+                        client.message(
+                            data.target,
+                            'Failed to upload quotes onto pastebin.'))
 
-        response = requests.post('https://hastebin.com/documents', data=out)
-        if response.status_code == 200:
-            d = response.json()['key']
-            link = 'https://hastebin.com/' + str(d)
-            asyncio.create_task(client.message(data.target, link))
-        else:
-            asyncio.create_task(
-                client.message(data.target,
-                               'Failed to upload quotes onto pastebin.'))
-
-    elif len(outquotes) > 0:
-        # if not, send each quote as a seperate message
-        for i in range(len(outquotes)):
-            quote = outquotes[i]
-            out = '[' + str(quotenums[i]) + '/' + str(len(quotelist)) + ']'
-            out += ' <' + quote[1] + '> ' + quote[3]
-            asyncio.create_task(client.message(data.target, out))
+            else:
+                asyncio.create_task(client.message(data.target, out))
     else:
         asyncio.create_task(client.message(data.target, 'No results.'))
 
@@ -126,7 +120,7 @@ async def quoteinit(client, data):
     on every quote(even though the db functions account for that) is kinda
     wasteful"""
     conn = client.bot.dbs[data.server]
-    print('Initializing quote table in /persist/db/' + data.server + '.db...')
+    print(f'Initializing quote table in /persist/db/{data.server}.db...')
     db.init_table(conn, 'quotes', quote_columns)
     db.ccache()
     print('Initialization complete.')
@@ -146,7 +140,7 @@ async def quotes(client, data):
                 ('Quote table uninitialized. Please ask your nearest bot'
                  'admin to run .qinit.')))
 
-    # TODO: fix weird ass edgecase with users when a nick that corresponds to a command
+    # TODO: fix edgecase with users when a nick that corresponds to a command
 
     if len(split) > 1:
         if split[0] == 'add':
@@ -169,7 +163,7 @@ async def quotes(client, data):
                 numarg = int(split[1])
                 if numarg > 0:
                     numarg -= 1
-            except:
+            except ValueError:
                 asyncio.create_task(
                     client.message(
                         data.target,
@@ -179,9 +173,9 @@ async def quotes(client, data):
             nickquotes = remove_quotes(nickquotes)
             if len(nickquotes) > 0:
                 try:
-                    #get quote to delete
+                    # get quote to delete
                     quote = nickquotes[numarg]
-                except:
+                except ValueError:
                     if len(nickquotes) == 1:
                         asyncio.create_task(
                             client.message(data.target,
@@ -189,14 +183,11 @@ async def quotes(client, data):
                     else:
                         asyncio.create_task(
                             client.message(
-                                data.target, 'You only have ' + str(
-                                    len(nickquotes)) + ' quote(s).'))
+                                data.target,
+                                (f'You only have {str(len(nickquotes))} '
+                                 'quote(s).')))
                     return
-                """gotta do custom query since i couldn't find anything in db.py that suits my needs.
-				i'm using both the time and the quote itself because it's the quickest sure way to know that that quote is unique
-				afaik it's very unlikely that the bot is fast enough to process two or more inputs within a second
-				"""
-
+                # TODO: Do quote deletion better
                 cur = conn.cursor()
                 cur.execute(
                     "UPDATE quotes SET deleted='1' WHERE msg=? AND time=?",
