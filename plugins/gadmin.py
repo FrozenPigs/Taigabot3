@@ -32,11 +32,13 @@ async def parse_destination_sieve(client, data):
                     return data
 
                 message = data.split_message
-
-                if message[1][0] == '#':
-                    data.target = message[1]
-                    data.split_message = message.remove(data.target)
-                    data.message = ' '.join(data.split_message)
+                try:
+                    if message[1][0] == '#':
+                        data.target = message[1]
+                        data.split_message = message.remove(data.target)
+                        data.message = ' '.join(data.split_message)
+                except IndexError:
+                    pass
     return data
 
 
