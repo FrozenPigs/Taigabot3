@@ -92,8 +92,8 @@ def display_quote(client, data, quotelist, target, arg):
 
     # if we have more than five quotes....
     if outquotes:
-        quote = outquotes[i]
         for i in range(len(outquotes)):
+            quote = outquotes[i]
             out = f'[{quotenums[i]}/{len(quotelist)}] <{quote[1]}> {quote[3]}'
             if len(outquotes) > 5:
                 response = requests.post(
@@ -216,7 +216,7 @@ async def quotes(client, data):
                 chanquotes = db.get_row(conn, 'quotes', 'chan', split[0])
                 try:
                     display_quote(client, data, chanquotes, split[0], split[1])
-                except:
+                except IndexError:
                     display_quote(client, data, chanquotes, split[0], None)
 
             else:
@@ -230,7 +230,7 @@ async def quotes(client, data):
                 nickquotes = db.get_row(conn, 'quotes', 'nick', split[0])
                 try:
                     display_quote(client, data, nickquotes, split[0], split[1])
-                except:
+                except IndexError:
                     display_quote(client, data, nickquotes, split[0], None)
             else:
                 asyncio.create_task(
