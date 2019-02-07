@@ -222,7 +222,7 @@ async def quotes(client, data):
             else:
                 asyncio.create_task(
                     client.message(data.target,
-                                   'No quotes found for ' + split[0] + '.'))
+                                   'No quotes found for {split[0]}.'))
         else:
             users = db.get_column(conn, 'quotes', 'nick')
 
@@ -235,4 +235,4 @@ async def quotes(client, data):
             else:
                 asyncio.create_task(
                     client.message(data.target,
-                                   'No quotes found for ' + split[0] + '.'))
+                                   f'No quotes found for {split[0]}.'))
