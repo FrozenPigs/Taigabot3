@@ -14,6 +14,7 @@
 # TODO: make a util for hastebin
 # TODO: rewrite docstrings
 # TODO: Do quote deletion better
+# TODO: Add min length to the search string
 
 from typing import List
 import time
