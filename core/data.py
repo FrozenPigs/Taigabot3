@@ -124,7 +124,11 @@ class Bot:
         self.config_file: Path = self.base_dir / 'config.json'
 
         config.reload(self)
-        self.plugs: AllPlugsDict = {'sieve': {}, 'event': {}, 'command': {}}
+        self.plugs: AllPlugsDict = {
+            'sieve': {},
+            'event': {},
+            'command': {},
+            'init': {}}
         plugins.reload(self)
         for server in self.config['servers']:
             db.connect(self, server)    # populates self.dbs

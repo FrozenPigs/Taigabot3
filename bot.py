@@ -16,6 +16,9 @@ from core import config, db, plugins
 from core.data import Bot, ParsedRaw
 from util import user
 
+# TODO: Take another look at the disable code
+# TODO: finish cleaning admin.py
+
 InputSieveList = List[Callable[['Client', 'ParsedRaw'], 'ParsedRaw']]
 InputSievePlugDict = Dict[str, InputSieveList]
 
@@ -28,7 +31,11 @@ CommandEventFunc = Callable[['Client', 'ParsedRaw'], None]
 CommandEventList = List[CommandEventFunc]
 CommandEventPlugsDict = Dict[str, CommandEventList]
 
-FuncUnion = Union[InputSieveList, OutputSieveList, CommandEventList]
+InitFunc = Callable[['Client'], None]
+InitList = List[CommandEventFunc]
+InitDict = Dict[str, CommandEventList]
+
+FuncUnion = Union[InputSieveList, OutputSieveList, CommandEventList, InitList]
 AllPlugsDict = Dict[str, FuncUnion]
 DBResult = Optional[List[Tuple[Optional[str], ...]]]
 
@@ -126,6 +133,14 @@ class Client(PydleClient):
             for func in events['*']:
                 if func.__name__.lower() not in gdisabled:
                     asyncio.create_task(func(self, data))
+
+    async def _run_inits(self, gdisabled: List[Optional[str]]) -> None:
+        """IS used for running all the events if not disabled."""
+        inits: InitDict = self.bot.plugs['init']
+        for init in inits.values():
+            for func in init:
+                if func.__name__.lower() not in gdisabled:
+                    asyncio.create_task(func(self))
 
     async def _run_commands(self, data: 'ParsedRaw') -> None:
         """
@@ -311,6 +326,8 @@ class Client(PydleClient):
             asyncio.create_task(self.join(','.join(server_conf['channels'])))
         except KeyError:
             print('Warning: No channels to join.')
+        gdisabled = self.bot.config['servers'][self.server_tag]['disabled']
+        asyncio.create_task(self._run_inits(gdisabled))
 
     # were unhandled
     async def on_raw_479(self, message: Any) -> None:

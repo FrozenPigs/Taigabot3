@@ -46,17 +46,21 @@ async def whois(client, data):
                 asyncio.create_task(client.join(channel))
 
 
+@hook.hook('init', ['init_channel_dbs'])
+async def init_channel_dbs(client):
+    conn = client.bot.dbs[client.server_tag]
+    db.add_column(conn, 'channels', 'disabled')
+    db.add_column(conn, 'channels', 'ban')
+    db.add_column(conn, 'channels', 'op')
+    db.add_column(conn, 'channels', 'hop')
+    db.add_column(conn, 'channels', 'vop')
+
+
 @hook.hook('event', ['JOIN'])
 async def chan_join(client, data):
     """Is called on channel join."""
     conn = client.bot.dbs[data.server]
-    if data.nickname == client.nickname:
-        db.add_column(conn, 'channels', 'disabled')
-        db.add_column(conn, 'channels', 'ban')
-        db.add_column(conn, 'channels', 'op')
-        db.add_column(conn, 'channels', 'hop')
-        db.add_column(conn, 'channels', 'vop')
-    elif data.nickname in client.users:
+    if data.nickname in client.users:
         ops = await botu.make_list(
             db.get_cell(conn, 'channels', 'op', 'channel', data.target)[0][0])
         hops = await botu.make_list(

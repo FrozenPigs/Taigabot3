@@ -52,6 +52,7 @@ async def g_genable_gdisable(client, data):
     events = [func[0].__name__ for func in (event for event in event_vals)]
     commands = list(client.bot.plugs['command'])
     sieves = list(client.bot.plugs['sieve'])
+    init = list(client.bot.plugs['init'])
 
     nodisable = client.bot.config['servers'][data.server]['no_disable']
     gdisabled = client.bot.config['servers'][data.server]['disabled']
@@ -60,14 +61,14 @@ async def g_genable_gdisable(client, data):
 
     if message[0] == 'list':
         asyncio.create_task(
-            botu.cmd_event_sieve_lists(client, data, gdisabled, nodisable,
-                                       sieves, events, commands))
+            botu.cmd_event_sieve_init_lists(client, data, gdisabled, nodisable,
+                                            sieves, events, commands, init))
         return
 
     for plugin in message:
         plugin = plugin.lower().strip()
-        if await botu.is_cmd_event_sieve(plugin, data, sieves, events,
-                                         commands):
+        if await botu.is_cmd_event_sieve_init(plugin, data, sieves, events,
+                                              commands, init):
             asyncio.create_task(
                 client.notice(data.nickname,
                               f'{plugin} is not a sieve, command or event.'))
