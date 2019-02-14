@@ -1,15 +1,5 @@
 # last.fm plugin
 #
-# usage:
-# .np [lastfm_nickname] --- check what is playing right now for an user
-# NOTE: this bot saves the last lastfm nick you used. You *really* only
-# need to use this command like that once, afterwards you can just do
-# .np , and the bot will remember the lastfm nick associated with your
-# irc nick.
-# .np @[irc_username] --- check what's playing for an another user (if
-# they have their nicks saved)
-#
-#
 # TODO:
 # .compat [lastfm_nickname] [lastfm_nickname] --- get compatiblity
 # between two lastfm users.
@@ -29,35 +19,31 @@ from datetime import datetime
 # import core db functions
 from core import db, hook
 
-# db table definition
-quote_columns: List[str] = [
-    'irc_nick', 'lastfm_nick']
-
 api_url = 'http://ws.audioscrobbler.com/2.0/?format=json'
 
 
 def _get_lastfm_nick(conn, irc_nick):
-    nicks = db.get_row(conn, 'lastfm', 'irc_nick', irc_nick)
+    names = db.get_column_names(conn, 'users')
+
+    nicks = db.get_row(conn, 'users', 'nick', irc_nick)
     try:
-        return nicks[0][1]
+        for i, name in enumerate(names):
+            if name == 'lastfm':
+                if nicks[0][i] == '':
+                    return None
+                else:
+                    return nicks[0][i]
     except IndexError:
-        pass
+        return None
 
 
 def _add_lastfm_nick(conn, irc_nick, lastfm_nick):
-    nick_check = None
     nick_check = _get_lastfm_nick(conn, irc_nick)
-
-    if nick_check is None:
-        nickdata = (irc_nick, lastfm_nick)
-        db.set_row(conn, 'lastfm', nickdata)
-    else:
-        db.set_cell(conn, 'lastfm',
-                    'lastfm_nick', lastfm_nick,
-                    'irc_nick', irc_nick)
+    db.set_cell(conn, 'users',
+                    'lastfm', lastfm_nick,
+                    'nick', irc_nick)
 
     return lastfm_nick
-
 
 def _pull_latest_track(api_key, lastfm_nick):
     url = api_url+f'&method=user.getrecenttracks'
@@ -68,7 +54,7 @@ def _pull_latest_track(api_key, lastfm_nick):
             track = response.json()['recenttracks']['track'][0]
             return track
         except IndexError:
-            pass
+            return None
 
 
 def _pull_track_tags(api_key, track_title, track_artist):
@@ -84,47 +70,8 @@ def _pull_track_tags(api_key, track_title, track_artist):
         if len(tags_json) < 1:
             return 'none'
 
-        tags = []
-        for tag in tags_json:
-            tags.append(tag['name'])
-        tags = ', '.join(tags)
+        tags = ', '.join(tag['name'] for tag in tags_json)
         return tags
-
-
-def _get_when_played(track):
-    """returns the time difference between right now and the time the
-    track was played in text format"""
-
-    """i decided to not include this in the output since the API
-     is either buggy, or is reacting too slowly to changes. i.e a track
-     i had just scrobbled shows up as 'played one hour ago' """
-    try:
-        listened = datetime.strptime(track['date']['#text'], '%d %b %Y, %H:%M')
-        curtime = datetime.fromtimestamp(time.time())
-        curtime = datetime.strptime(str(curtime), '%Y-%m-%d %H:%M:%S.%f')
-        diff = str((curtime - listened))
-        listened = diff.split('.')[0]
-        if listened[0:2] == '-1':
-            listened = listened[8:-6] + ' seconds'
-        elif listened[0] == '0':
-            if listened[2:4] == '01':
-                listened = listened[3:-3] + ' minute'
-            elif listened[2:3] == '0':
-                if listened[2:4] == '00':
-                    listened = '1 minute'
-                else:
-                    listened = listened[3:-3] + ' minutes'
-            else:
-                listened = listened[2:-3] + ' minutes'
-        else:
-            if listened[-8:-6] == ' 1' or listened[0:2] == '1:':
-                listened = listened[:-6] + ' hour'
-            else:
-                listened = listened[:-6] + ' hours'
-        return listened
-    except KeyError:
-        pass
-
 
 def _pull_track_plays(api_key, track_title, track_artist, lastfm_nick):
     url = api_url+f'&method=track.getinfo&username={lastfm_nick}'
@@ -141,9 +88,10 @@ def _pull_track_plays(api_key, track_title, track_artist, lastfm_nick):
 
 def _output_nowplaying(client, data, lastfm_nick,
                        title, artist,album, plays, tags):
+
     out = f'{lastfm_nick} is listening to "{title}" by {artist} from '
     if album == 'an unknown album':
-        out += 'an unknown album'
+        out += album
     else:
         out += f'the album {album}'
 
@@ -158,24 +106,25 @@ def _output_nowplaying(client, data, lastfm_nick,
 
 @hook.hook('command', ['lastfminit'], admin=True)
 async def lfminit(client, data):
-    """admin only table initiation hook """
+    """admin only table initiation hook.
+       Run this once before use of .np """
     conn = client.bot.dbs[data.server]
-    print(f'Initializing lastfm table in /persist/db/{data.server}.db...')
-    db.init_table(conn, 'lastfm', quote_columns)
+    print(f'Initializing lastfm column in \'users\' in /persist/db/{data.server}.db...')
+    db.add_column(conn, 'users', 'lastfm')
     db.ccache()
     print('Initialization complete.')
 
-
 @hook.hook('command', ['np'])
 async def nowplaying(client, data):
-    """gets the current song that's playing."""
+    """.np [@irc nick/lastfm nick] --- Find out what is currently
+    playing for an user."""
 
     conn = client.bot.dbs[data.server]
-    split = data.message.split()
+    split = data.split_message
+
 
     try:
-        api_keys = client.bot.config['api_keys']
-        lastfm_key = api_keys['last_fm']
+        lastfm_key = client.bot.config['api_keys']['last_fm']
     except KeyError:
         asyncio.create_task(
             client.message(
@@ -185,7 +134,6 @@ async def nowplaying(client, data):
 
     # deal with getting the last.fm nickname
 
-    lastfm_nick = None
 
     if len(split) > 0:
         arg = split[0]
@@ -211,7 +159,6 @@ async def nowplaying(client, data):
                     'No associated last.fm nickname found.'))
             return
 
-    track = None
     track = _pull_latest_track(lastfm_key, lastfm_nick)
 
     if track is None:
