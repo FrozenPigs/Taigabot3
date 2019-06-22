@@ -1,18 +1,24 @@
 * To Add
-** gadmin
-| Command   | File               |
-|-----------+--------------------|
-| forget    | hashtags           |
-** admin
-| Command         | File               |
-|-----------------+--------------------|
-| add             | datafiles          |
-| storyofpomfface | stupid             |
-| match           | core_admin_channel |
-| disablehash     | core_admin_channel |
-| disabledhashes  | core_admin_channel |
-| enablehash      | core_admin_channel |
-| trim            | core_admin_channel |
+** util
+| Command         | File      |
+| 4ch             | 4chan     |
+| calc, wa        | wolfram   |
+| choose          | misc      |
+| countdown       | misc      |
+| dict, define    | dict      |
+| ddg             | search    |
+| g, google       | search    |
+| #word           | hashtag   |
+| ping            | misc      |
+| spotify, sp     | music     |
+| soundcloud, sc  | music     |
+| tell            | misc      |
+| url titles      | url       |
+| vim, vimeo      | video     |
+| weather, w      | weather   |
+| yt, youtube     | video     |
+| wiki            | wiki      |
+
 ** events
 | Events                                                         | File      |
 |----------------------------------------------------------------+-----------|
