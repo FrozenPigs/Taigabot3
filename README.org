@@ -1,6 +1,7 @@
 * To Add
 ** util
 | Command         | File      |
+|-----------------+-----------|
 | 4ch             | 4chan     |
 | calc, wa        | wolfram   |
 | choose          | misc      |
