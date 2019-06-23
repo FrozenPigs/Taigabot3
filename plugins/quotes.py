@@ -146,7 +146,7 @@ async def quotes(client, data):
             db.ccache()
             return
 
-        elif split[0] == 'delete':
+        elif split[0] == 'delete' or split[0] == 'r' or split[0] == 'remove':
             nickquotes = db.get_row(conn, 'quotes', 'nick', data.nickname)
             numarg = None
 
