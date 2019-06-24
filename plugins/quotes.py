@@ -46,8 +46,12 @@ def display_quote(client, data, quotelist, target, arg):
     if not arg:
         # pick a random number from the quotelist
         # if no argument is provided
-        numarg = random.randint(0, len(quotelist)-2)
-        print (numarg)
+
+        if len(quotelist)-2 > 0:
+            numarg = random.randint(0, len(quotelist)-2)
+        else:
+            numarg = random.randint(0, len(quotelist)-1)
+
     else:
         try:
             numarg = int(arg)
