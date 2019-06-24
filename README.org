@@ -9,7 +9,6 @@
 | dict, define    | dict      |
 | ddg             | search    |
 | g, google       | search    |
-| #word           | hashtag   |
 | ping            | misc      |
 | spotify, sp     | music     |
 | soundcloud, sc  | music     |
@@ -112,12 +111,20 @@
 | bans     | core_admin_channel | ban list             | admin    |
 | unban    | core_admin_channel | unban                | admin    |
 
+** all
+| Command  | File               | New Command          | New File       |
+|----------+--------------------+----------------------+----------------|
+| r        | reminders          | r                    | reminders      |
+| q        | quotes             | q                    | quotes         |
+
 ** events
 | Event        | File      | New Event    | New File |
 |--------------+-----------+--------------+----------|
 | invite       | core_misc | invite/whois | admin    |
 | log          | log       | logger       | log      |
 | ctcp replies | core_ctcp | ctcp replies | ctcp     |
+| #reminder    | reminders | #reminder    | reminders|
+
 ** sieves
 | Sieve       | File       | New Sieve                                  | New File    |
 |-------------+------------+--------------------------------------------+-------------|
