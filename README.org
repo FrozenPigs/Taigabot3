@@ -3,7 +3,6 @@
 | Command         | File      |
 |-----------------+-----------|
 | 4ch             | 4chan     |
-| calc, wa        | wolfram   |
 | choose          | misc      |
 | countdown       | misc      |
 | dict, define    | dict      |
@@ -116,7 +115,7 @@
 |----------+--------------------+----------------------+----------------|
 | r        | reminders          | r                    | reminders      |
 | q        | quotes             | q                    | quotes         |
-
+| calc, wa | wolframalpha       | calc, math, wa,      | wolfram        |
 ** events
 | Event        | File      | New Event    | New File |
 |--------------+-----------+--------------+----------|
