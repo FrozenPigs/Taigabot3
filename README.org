@@ -2,10 +2,13 @@
 - clone this repository
 - edit config.json to suit your needs (change nick, server, etc)
 - remove any plugins (in /plugins) you don't feel like you need (every plugin has a description in the top)
--- NOTE: do not remove admin.py, gadmin.py, ctcp.py
+    - NOTE: do not remove admin.py, gadmin.py, ctcp.py
 - install pydle via pip
 - run bot.py in the root directory
 
+* Contributing
+If you want to contribute, feel free to pick from any of the plugins listed below.
+My only requirements are that the code is efficient, and follows PEP-8 (I do have an exception for line length, though)
 
 * To Add
 ** general commands
