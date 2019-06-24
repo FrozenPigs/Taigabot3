@@ -1,5 +1,14 @@
+* Installation/Running
+- clone this repository
+- edit config.json to suit your needs (change nick, server, etc)
+- remove any plugins (in /plugins) you don't feel like you need (every plugin has a description in the top)
+-- NOTE: do not remove admin.py, gadmin.py, ctcp.py
+- install pydle via pip
+- run bot.py in the root directory
+
+
 * To Add
-** util
+** general commands
 | Command         | File      |
 |-----------------+-----------|
 | 4ch             | 4chan     |
@@ -110,7 +119,7 @@
 | bans     | core_admin_channel | ban list             | admin    |
 | unban    | core_admin_channel | unban                | admin    |
 
-** all
+** general commands
 | Command  | File               | New Command          | New File       |
 |----------+--------------------+----------------------+----------------|
 | r        | reminders          | r                    | reminders      |
