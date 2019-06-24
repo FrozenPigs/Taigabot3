@@ -28,11 +28,11 @@ reminder_columns: List[str] = [
 
 def _get_reminder_text(conn, reminder_name):
     """Finds reminder text if reminder has any"""
-    
+
     out = ''
-    
-    rem_row = db.get_row(conn, 'reminders', 'name', reminder_name) 
-    
+
+    rem_row = db.get_row(conn, 'reminders', 'name', reminder_name)
+
     if len(rem_row) == 0:
         return out
     else:
@@ -42,7 +42,7 @@ def _get_reminder_text(conn, reminder_name):
 
 def _create_new_reminder(conn, rem_name, rem_text):
     """Is for creating new reminders in the db"""
-    
+
     rem_text_trunc = rem_text[:max_reminder_len]
     rem_data = (rem_name, rem_text_trunc, str(int(time.time())), str(int(time.time())), )
     db.set_row(conn, 'reminders', rem_data)
@@ -52,10 +52,10 @@ def _append_reminder(conn, rem_name, rem_text):
     """Is for appending to old reminders in the db"""
     old_rem_text = _get_reminder_text(conn, rem_name);
     new_rem_text = f'{old_rem_text} and {rem_text}'
-    
+
     rem_text_trunc = new_rem_text[:max_reminder_len]
-    
-    
+
+
     db.set_cell(conn, 'reminders', 'msg', rem_text_trunc, 'name', rem_name)
     db.set_cell(conn, 'reminders', 'last_updated', str(int(time.time())), 'name', rem_name)
     db.ccache();
@@ -63,21 +63,23 @@ def _append_reminder(conn, rem_name, rem_text):
 
 @hook.hook('command', ['reminit'], admin=True)
 async def reminit(client, data):
-    """Admin only db init hook, run once before using this plugin"""
+    """Admin only db init command, run once before using this plugin"""
     conn = client.bot.dbs[data.server]
     print(f'Initializing reminder database table in /persist/db/{data.server}.db...')
     db.init_table(conn, 'reminders', reminder_columns)
     db.ccache()
     print('Initialization complete.')
 
-   
+
 
 @hook.hook('command', ['r'])
 async def addrem(client, data):
-    """Is for adding new reminders"""
+    """Is a command for adding new reminders"""
     conn = client.bot.dbs[data.server]
     split = data.message.split()
-    
+
+    if len(split) <= 0:
+        return 
 
     tables = db.get_table_names(conn)
     if 'reminders' not in tables:
@@ -88,8 +90,8 @@ async def addrem(client, data):
     rem_name = split[0]
     rem_name = rem_name[:max_rem_name_len]
     rem_user_text = ' '.join(split[1:])
-    rem_text = _get_reminder_text(conn, rem_name)    
-    
+    rem_text = _get_reminder_text(conn, rem_name)
+
     print(f'REMINDER_DEBUG: rem_name: {rem_name}, rem_user_text: {rem_user_text}, rem_text: {rem_text}')
 
     if rem_text == '':
@@ -101,12 +103,17 @@ async def addrem(client, data):
 
 @hook.hook('event', ['PRIVMSG'])
 async def remind(client, data):
-    """Is an event for posting reminders"""
+    """Is an event that listens for reminder triggers"""
     conn = client.bot.dbs[data.server]
     split = data.message.split()
+    
+    if len(split) <= 0:
+        return
     
     if split[0][0] == reminder_trigger_char:
         rem_name = split[0][1:]
         rem_text = _get_reminder_text(conn, rem_name)
+        if rem_text == '':
+            return
         asyncio.create_task(client.message(data.target, f'{rem_name} {rem_text}'))
-    
+
