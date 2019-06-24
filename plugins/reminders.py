@@ -76,10 +76,10 @@ async def reminit(client, data):
 async def addrem(client, data):
     """Is a command for adding new reminders"""
     conn = client.bot.dbs[data.server]
-    split = data.message.split()
+    split = data.split_message
 
     if len(split) <= 0:
-        return 
+        return
 
     tables = db.get_table_names(conn)
     if 'reminders' not in tables:
@@ -105,11 +105,11 @@ async def addrem(client, data):
 async def remind(client, data):
     """Is an event that listens for reminder triggers"""
     conn = client.bot.dbs[data.server]
-    split = data.message.split()
-    
+    split = data.split_message
+
     if len(split) <= 0:
         return
-    
+
     if split[0][0] == reminder_trigger_char:
         rem_name = split[0][1:]
         rem_text = _get_reminder_text(conn, rem_name)

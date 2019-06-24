@@ -19,7 +19,7 @@ from datetime import datetime
 # import core db functions
 from core import db, hook
 
-api_url = 'http://ws.audioscrobbler.com/2.0/?format=json'
+api_url = 'https://ws.audioscrobbler.com/2.0/?format=json'
 
 
 def _get_lastfm_nick(conn, irc_nick):
@@ -116,7 +116,7 @@ async def lfminit(client, data):
 
 @hook.hook('command', ['np'])
 async def nowplaying(client, data):
-    """.np [@irc nick/lastfm nick] --- Find out what is currently
+    """.np [@irc nick OR lastfm nick] --- Find out what is currently
     playing for an user."""
 
     conn = client.bot.dbs[data.server]
