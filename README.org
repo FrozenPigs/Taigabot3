@@ -23,7 +23,6 @@ My only requirements are that the code is efficient, and follows PEP-8 (I do hav
 | ping            | misc      |
 | spotify, sp     | music     |
 | soundcloud, sc  | music     |
-| tell            | misc      |
 | url titles      | url       |
 | vim, vimeo      | video     |
 | weather, w      | weather   |
@@ -128,6 +127,7 @@ My only requirements are that the code is efficient, and follows PEP-8 (I do hav
 | r        | reminders          | r                    | reminders      |
 | q        | quotes             | q                    | quotes         |
 | calc, wa | wolframalpha       | calc, math, wa,      | wolfram        |
+| tell     | tell               | tell, showtells      | tell           |
 ** events
 | Event        | File      | New Event    | New File |
 |--------------+-----------+--------------+----------|
