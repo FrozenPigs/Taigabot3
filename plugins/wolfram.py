@@ -16,7 +16,8 @@ from core import hook
 import asyncio
 import requests
 
-wolfram_api_url='https://api.wolframalpha.com/v1/result'
+wolfram_api_url = 'https://api.wolframalpha.com/v1/result'
+
 
 def _get_wa_api_key(client):
     """This function tries to get the wolfram alpha appID from config"""
@@ -41,7 +42,10 @@ async def wolfram(client, data):
     print(f'WOLFRAM_DEBUG: wa_key: {wa_key}')
 
     if wa_key == '':
-        asyncio.create_task(client.message(data.target, 'No WolframAlpha appID found. Ask your nearest bot admin to get one and add it into the config.'))
+        asyncio.create_task(client.message(data.target,
+                            ('No WolframAlpha appID found. '
+                             'Ask your nearest bot admin to '
+                             'get one and add it into the config.')))
         return
 
     query = ' '.join(split)
@@ -56,9 +60,14 @@ async def wolfram(client, data):
     if r.status_code == 200:
         asyncio.create_task(client.message(data.target, r.text))
     elif r.status_code == 501:
-        asyncio.create_task(client.message(data.target, 'Wolfram Alpha returned an error. Did you phrase your question correclty?'))
+        asyncio.create_task(client.message(data.target,
+                            ('Wolfram Alpha returned an error. '
+                             'Did you phrase your question correclty?')))
     elif r.status_code == 400:
-        asyncio.create_task(client.message(data.target, 'Wolfram Alpha returned an error. Did you enter a question?'))
+        asyncio.create_task(client.message(data.target,
+                            ('Wolfram Alpha returned an error. '
+                             'Did you enter a question?')))
     else:
         print(f'WOLFRAM_ERROR: response_code: {r.status_code}')
-        asyncio.create_task(client.message(data.target, 'Unknown network error occured.'))
+        asyncio.create_task(client.message(data.target,
+                            'Unknown network error occured.'))
