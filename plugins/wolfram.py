@@ -16,7 +16,7 @@ from core import hook
 import asyncio
 import requests
 
-api_url='https://api.wolframalpha.com/v1/result'
+wolfram_api_url='https://api.wolframalpha.com/v1/result'
 
 def _get_wa_api_key(client):
     """This function tries to get the wolfram alpha appID from config"""
@@ -48,7 +48,7 @@ async def wolfram(client, data):
 
     req_data = {'appid': wa_key, 'i': query, 'units': 'metric'}
 
-    r = requests.get(api_url, req_data)
+    r = requests.get(wolfram_api_url, req_data)
     print(f'WOLFRAM_DEBUG: final url of request: {r.url}')
     print(f'WOLFRAM_DEBUG: response: {r}')
     print(f'WOLFRAM_DEBUG: actual awnser: {r.text}')
