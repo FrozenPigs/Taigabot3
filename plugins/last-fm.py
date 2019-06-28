@@ -40,10 +40,11 @@ def _get_lastfm_nick(conn, irc_nick):
 def _add_lastfm_nick(conn, irc_nick, lastfm_nick):
     nick_check = _get_lastfm_nick(conn, irc_nick)
     db.set_cell(conn, 'users',
-                    'lastfm', lastfm_nick,
-                    'nick', irc_nick)
+                'lastfm', lastfm_nick,
+                'nick', irc_nick)
 
     return lastfm_nick
+
 
 def _pull_latest_track(api_key, lastfm_nick):
     url = lfm_api_url+f'&method=user.getrecenttracks'
@@ -74,6 +75,7 @@ def _pull_track_tags(api_key, track_title, track_artist):
         tags = ', '.join(tag['name'] for tag in tags_json)
         return tags
 
+
 def _pull_track_plays(api_key, track_title, track_artist, lastfm_nick):
     url = lfm_api_url+f'&method=track.getinfo&username={lastfm_nick}'
     url += f'&track={track_title}&artist={track_artist}'
@@ -88,7 +90,7 @@ def _pull_track_plays(api_key, track_title, track_artist, lastfm_nick):
 
 
 def _output_nowplaying(client, data, lastfm_nick,
-                       title, artist,album, plays, tags):
+                       title, artist, album, plays, tags):
 
     out = f'{lastfm_nick} is listening to "{title}" by {artist} from '
     if album == 'an unknown album':
@@ -109,10 +111,12 @@ def _output_nowplaying(client, data, lastfm_nick,
 async def lfminit(client):
     """Is used for initializing the database for this plugin"""
     conn = client.bot.dbs[client.server_tag]
-    print(f'Initializing lastfm column in \'users\' in /persist/db/{client.server_tag}.db...')
+    print(('Initializing lastfm column in \'users\''
+           f' in /persist/db/{client.server_tag}.db...'))
     db.add_column(conn, 'users', 'lastfm')
     db.ccache()
     print('Last.fm initialization complete.')
+
 
 @hook.hook('command', ['np'])
 async def nowplaying(client, data):
@@ -122,18 +126,18 @@ async def nowplaying(client, data):
     conn = client.bot.dbs[data.server]
     split = data.split_message
 
-
     try:
         lastfm_key = client.bot.config['api_keys']['last_fm']
     except KeyError:
         asyncio.create_task(
             client.message(
                 data.target,
-                'No last.fm API key found. Please create an API account, add it\'s API key to \'api_keys\' in config.json with the tag \'last_fm\''))
+                ('No last.fm API key found. Please create an API account, '
+                 'add it\'s API key to \'api_keys\' in config.json with '
+                 'the tag \'last_fm\'')))
         return
 
     # deal with getting the last.fm nickname
-
 
     if len(split) > 0:
         arg = split[0]
