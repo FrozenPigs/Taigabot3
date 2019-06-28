@@ -19,7 +19,7 @@ from datetime import datetime
 # import core db functions
 from core import db, hook
 
-api_url = 'https://ws.audioscrobbler.com/2.0/?format=json'
+lfm_api_url = 'https://ws.audioscrobbler.com/2.0/?format=json'
 
 
 def _get_lastfm_nick(conn, irc_nick):
@@ -46,19 +46,20 @@ def _add_lastfm_nick(conn, irc_nick, lastfm_nick):
     return lastfm_nick
 
 def _pull_latest_track(api_key, lastfm_nick):
-    url = api_url+f'&method=user.getrecenttracks'
+    url = lfm_api_url+f'&method=user.getrecenttracks'
     url += f'&user={lastfm_nick}&api_key={api_key}'
     response = requests.get(url)
     if response.status_code == 200:
         try:
             track = response.json()['recenttracks']['track'][0]
             return track
-        except IndexError:
+        except:
+            print(f'LASTFM_DEBUG: WEBSITE RESPONSE: {response.text}')
             return None
 
 
 def _pull_track_tags(api_key, track_title, track_artist):
-    url = api_url+f'&method=track.gettoptags&track={track_title}'
+    url = lfm_api_url+f'&method=track.gettoptags&track={track_title}'
     url += f'&artist={track_artist}&api_key={api_key}'
     response = requests.get(url)
     if response.status_code == 200:
@@ -74,7 +75,7 @@ def _pull_track_tags(api_key, track_title, track_artist):
         return tags
 
 def _pull_track_plays(api_key, track_title, track_artist, lastfm_nick):
-    url = api_url+f'&method=track.getinfo&username={lastfm_nick}'
+    url = lfm_api_url+f'&method=track.getinfo&username={lastfm_nick}'
     url += f'&track={track_title}&artist={track_artist}'
     url += f'&api_key={api_key}'
     response = requests.get(url)
