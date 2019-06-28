@@ -104,15 +104,14 @@ def _output_nowplaying(client, data, lastfm_nick,
     return
 
 
-@hook.hook('command', ['lastfminit'], admin=True)
-async def lfminit(client, data):
-    """admin only table initiation hook.
-       Run this once before use of .np """
-    conn = client.bot.dbs[data.server]
-    print(f'Initializing lastfm column in \'users\' in /persist/db/{data.server}.db...')
+@hook.hook('init', ['lfminit'])
+async def lfminit(client):
+    """Is used for initializing the database for this plugin"""
+    conn = client.bot.dbs[client.server_tag]
+    print(f'Initializing lastfm column in \'users\' in /persist/db/{client.server_tag}.db...')
     db.add_column(conn, 'users', 'lastfm')
     db.ccache()
-    print('Initialization complete.')
+    print('Last.fm initialization complete.')
 
 @hook.hook('command', ['np'])
 async def nowplaying(client, data):

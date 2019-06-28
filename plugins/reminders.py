@@ -36,7 +36,7 @@ def _get_reminder_text(conn, reminder_name):
     if len(rem_row) == 0:
         return out
     else:
-        print(rem_row)
+        print(f'REMINDER_DEBUG: {rem_row}')
         out = rem_row[0][1]
         return out
 
@@ -61,14 +61,14 @@ def _append_reminder(conn, rem_name, rem_text):
     db.ccache();
 
 
-@hook.hook('command', ['reminit'], admin=True)
-async def reminit(client, data):
+@hook.hook('init', ['reminit'])
+async def reminit(client):
     """Admin only db init command, run once before using this plugin"""
-    conn = client.bot.dbs[data.server]
-    print(f'Initializing reminder database table in /persist/db/{data.server}.db...')
+    conn = client.bot.dbs[client.server_tag]
+    print(f'Initializing reminder database table in /persist/db/{client.server_tag}.db...')
     db.init_table(conn, 'reminders', reminder_columns)
     db.ccache()
-    print('Initialization complete.')
+    print('Reminder initialization complete.')
 
 
 

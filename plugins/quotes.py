@@ -8,7 +8,7 @@
 # .q add [nick] [quote]                        --- for adding quotes
 # .q delete [quote number]                     --- for deleting quotes (you can only delete your own quotes)
 #
-#made by kelp
+
 
 from typing import Optional, Dict, Any, List, Set, Union, Callable, Tuple
 from dataclasses import dataclass, field
@@ -19,6 +19,7 @@ import requests
 
 #import core db functions
 from core import db
+
 
 #db table definition
 quote_columns: List[str] = ['chan', 'nick', 'add_nick', 'msg', 'time', 'deleted']
@@ -117,15 +118,14 @@ def display_quote(client, data, quotelist, target, arg):
         asyncio.create_task(client.message(data.target, 'No results.'))
 
 
-@hook.hook('command', ['qinit'], admin=True)
-async def quoteinit(client, data):
-    """admin only quote db table initiation hook, since trying to init
-    on every quote(even though the db functions account for that) is kinda wasteful"""
-    conn = client.bot.dbs[data.server]
-    print (f'Initializing quote table in /persist/db/{data.server}.db...')
+@hook.hook('init', ['qinit'])
+async def quoteinit(client):
+    """quote initialization function, run once upon startup"""
+    conn = client.bot.dbs[client.server_tag]
+    print (f'Initializing quote table in /persist/db/{client.server_tag}.db...')
     db.init_table(conn, 'quotes', quote_columns)
     db.ccache()
-    print ('Initialization complete.')
+    print ('Quote initialization complete.')
 
 @hook.hook('command', ['q'])
 async def quotes(client, data):
