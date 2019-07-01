@@ -35,11 +35,18 @@ unseen_tell_timeout = 604800  # equals to a week
 seen_tell_timeout = 86400  # equals to a day
 
 async def _check_if_recipient_online(client, recipient):
-    """ Is used to check if a user is currently online on the server """
+    """
+        Is used to check if a user is currently
+        online and active on the server
+    """
     whois = None
     try:
         whois = await client.whois(recipient)
-        return True
+        print(whois)
+        if whois['idle'] < 600 and whois['away'] is False:
+            return True
+        else:
+            return False
     except:
         return False
 
@@ -121,7 +128,7 @@ def _show_user_latest_tell(client, conn, recipient):
     tells = db.get_row(conn, 'tells', 'nick', recipient)
 
     # small sanity check
-    if len(tells) < 1:
+    if len(tells) < 0:
         return
 
     # sort and get the newest tell
@@ -139,28 +146,35 @@ def _show_user_latest_tell(client, conn, recipient):
 
 def _show_user_recent_tells(client, conn, recipient, show_only_unseen):
     tells = db.get_row(conn, 'tells', 'nick', recipient)
-
     # small sanity check
-    if len(tells) < 1:
+
+    print(f'TELL_DEBUG: len(tells): {len(tells)}')
+
+    if len(tells) <= 0:
         if show_only_unseen is False:
-            asyncio.create_task(client.notice(recipient,
-                                'You have no pending tells.'))
+            asyncio.create_task(client.notice(recipient, 'You have no pending tells.'))
         return
 
     # sort tells
     tells.sort(key=_get_tell_time, reverse=True)
 
     if show_only_unseen is True:
-        asyncio.create_task(client.notice(recipient, f'You have new tells!'))
+
+        unseen_tell_found = 0
+
         for tell in tells:
             if str(tell[4]) == '0':
+                if unseen_tell_found == 0:
+                    asyncio.create_task(client.notice(recipient, 'You have new tells!'))
+                    unseen_tell_found = 1
+
                 _set_tell_seen(conn, tell)
                 _send_tell_notice(client, recipient, tell)
 
     else:
         for tell in tells:
-                _set_tell_seen(conn, tell)
-                _send_tell_notice(client, recipient, tell)
+            _set_tell_seen(conn, tell)
+            _send_tell_notice(client, recipient, tell)
 
 
 @hook.hook('init', ['tell_garbage_collector'])
@@ -186,8 +200,28 @@ async def tellgc(client):
         await asyncio.sleep(600)
 
 
+@hook.hook('init', ['tell_notifier'])
+async def notify_tells(client):
+    """Looks for active users and notifies them on any tells that are unseen"""
+    conn = client.bot.dbs[client.server_tag]
+    print('Starting tell notifier...')
+    while client.connected is True:
+        print('Notifying users of their tells...')
+        users_to_notify = db.get_column(conn, 'tells', 'nick')
+        unique_users = list(set(users_to_notify))
+
+        for user in unique_users:
+            print(f'USER: {user[0]}')
+            if await _check_if_recipient_online(client, user[0]) is True:
+                _show_user_recent_tells(client, conn, user[0], True)
+        print('Done.')
+
+        await asyncio.sleep(600)
+
+
 @hook.hook('init', ['tellinit'])
 async def inittell(client):
+    """Is used to initialize the tell database"""
     conn = client.bot.dbs[client.server_tag]
     print (f'Initializing tell table in /persist/db/{client.server_tag}.db...')
     db.init_table(conn, 'tells', tell_columns)
@@ -197,6 +231,7 @@ async def inittell(client):
 
 @hook.hook('command', ['tell'])
 async def tell(client, data):
+    """.tell - send a message to an user which is currently inactive"""
     conn = client.bot.dbs[data.server]
     split = data.split_message
 
@@ -206,6 +241,7 @@ async def tell(client, data):
 
     if len(split) > 1:
         recipient = split[0]
+        recipient = recipient.lower()
         message = ' '.join(split[1:])
     else:
         return
@@ -225,13 +261,17 @@ async def tell(client, data):
         _show_user_latest_tell(client, conn, recipient)
 
 
-@hook.hook('command', ['showtells'])
+@hook.hook('command', ['showtells', 'st'])
 async def showtells(client, data):
     conn = client.bot.dbs[data.server]
-    _show_user_recent_tells(client, conn, data.nickname, False)
+    nick = data.nickname
+    nick = nick.lower()
+    _show_user_recent_tells(client, conn, nick, False)
 
 
 @hook.hook('event', ['JOIN'])
 async def onconnectshowtells(client, data):
     conn = client.bot.dbs[data.server]
-    _show_user_recent_tells(client, conn, data.nickname, True)
+    nick = data.nickname
+    nick = nick.lower
+    _show_user_recent_tells(client, conn, nick, True)

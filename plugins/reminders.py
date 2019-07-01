@@ -17,8 +17,8 @@ from core import db, hook
 
 # plugin config
 
-max_reminder_len = 180  # maximum length of reminders
-max_rem_name_len = 20
+max_reminder_len = 550  # maximum length of reminders
+max_rem_name_len = 50
 reminder_trigger_char = '$'  # chararcter to look for
 
 
@@ -89,7 +89,7 @@ async def addrem(client, data):
     if 'reminders' not in tables:
         asyncio.create_task(client.message(data.target,
                             ('Reminder table uninitialized. Please ask your'
-                             'nearest bot admin to run .qinit.')))
+                             'nearest bot admin to fix the issue.')))
 
     print ("REMINDER_DEBUG: running func")
 
