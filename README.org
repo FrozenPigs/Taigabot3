@@ -3,7 +3,8 @@
 - edit config.json to suit your needs (change nick, server, etc)
 - remove any plugins (in /plugins) you don't feel like you need (every plugin has a description in the top)
     - NOTE: do not remove admin.py, gadmin.py, ctcp.py
-- install pydle via pip
+- install dependencies:
+    $pip install requests pydle sqlite3 functools
 - run bot.py in the root directory
 
 * Contributing
