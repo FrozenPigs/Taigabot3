@@ -34,22 +34,6 @@ tell_columns: List[str] = ['nick', 'add_nick', 'msg',
 unseen_tell_timeout = 604800  # equals to a week
 seen_tell_timeout = 86400  # equals to a day
 
-async def _check_if_recipient_online(client, recipient):
-    """
-        Is used to check if a user is currently
-        online and active on the server
-    """
-    whois = None
-    try:
-        whois = await client.whois(recipient)
-        print(whois)
-        if whois['idle'] < 600 and whois['away'] is False:
-            return True
-        else:
-            return False
-    except:
-        return False
-
 
 def _set_tell_seen(conn, tell):
     """ Is used to set a tell's status to seen """
@@ -115,40 +99,16 @@ def _get_time_since_tell_send(tell):
 def _send_tell_notice(client, recipient, tell):
     relative_time = _get_time_since_tell_send(tell)
     asyncio.create_task(client.notice(recipient,
-                        f'{tell[1]} sent you a message {relative_time}:\n {tell[2]}'))
+                        f'{tell[1]} sent you a message {relative_time}: {tell[2]}'))
 
 
 def _get_tell_time(elem):
     """ Tiny helper function used to sort tells """
     return int(elem[3])
 
-
-def _show_user_latest_tell(client, conn, recipient):
-    """is used to send the recipient their newest tell/message """
-    tells = db.get_row(conn, 'tells', 'nick', recipient)
-
-    # small sanity check
-    if len(tells) < 0:
-        return
-
-    # sort and get the newest tell
-    tells.sort(key=_get_tell_time, reverse=True)
-    tell = tells[0]
-
-    _set_tell_seen(conn, tell)
-
-    # get relative time since tell was sent in human readable format
-    relative_time = _get_time_since_tell_send(tell)
-
-    asyncio.create_task(client.notice(recipient,
-                        f'{tell[1]} sent you a message {relative_time}:\n {tell[2]}'))
-
-
 def _show_user_recent_tells(client, conn, recipient, show_only_unseen):
     tells = db.get_row(conn, 'tells', 'nick', recipient)
     # small sanity check
-
-    print(f'TELL_DEBUG: len(tells): {len(tells)}')
 
     if len(tells) <= 0:
         if show_only_unseen is False:
@@ -172,6 +132,7 @@ def _show_user_recent_tells(client, conn, recipient, show_only_unseen):
                 _send_tell_notice(client, recipient, tell)
 
     else:
+        asyncio.create_task(client.notice(recipient, 'Here are your recent tells:'))
         for tell in tells:
             _set_tell_seen(conn, tell)
             _send_tell_notice(client, recipient, tell)
@@ -198,26 +159,6 @@ async def tellgc(client):
                 _delete_tell(conn, tell)
         print('Done.')
         await asyncio.sleep(600)
-
-
-@hook.hook('init', ['tell_notifier'])
-async def notify_tells(client):
-    """Looks for active users and notifies them on any tells that are unseen"""
-    conn = client.bot.dbs[client.server_tag]
-    print('Starting tell notifier...')
-    while client.connected is True:
-        print('Notifying users of their tells...')
-        users_to_notify = db.get_column(conn, 'tells', 'nick')
-        unique_users = list(set(users_to_notify))
-
-        for user in unique_users:
-            print(f'USER: {user[0]}')
-            if await _check_if_recipient_online(client, user[0]) is True:
-                _show_user_recent_tells(client, conn, user[0], True)
-        print('Done.')
-
-        await asyncio.sleep(600)
-
 
 @hook.hook('init', ['tellinit'])
 async def inittell(client):
@@ -253,12 +194,7 @@ async def tell(client, data):
     db.ccache()
     print('TELL_DEBUG: tell added.')
 
-    usrchk = await _check_if_recipient_online(client, recipient)
-
     asyncio.create_task(client.notice(data.nickname, 'Your message will be sent.'))
-
-    if usrchk is True:
-        _show_user_latest_tell(client, conn, recipient)
 
 
 @hook.hook('command', ['showtells', 'st'])
@@ -269,9 +205,10 @@ async def showtells(client, data):
     _show_user_recent_tells(client, conn, nick, False)
 
 
-@hook.hook('event', ['JOIN'])
+@hook.hook('event', ['JOIN', 'PRIVMSG'])
 async def onconnectshowtells(client, data):
     conn = client.bot.dbs[data.server]
     nick = data.nickname
-    nick = nick.lower
+    nick = nick.lower()
     _show_user_recent_tells(client, conn, nick, True)
+
