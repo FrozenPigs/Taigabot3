@@ -12,7 +12,7 @@
 #
 #  note: the same usage and syntax applies for:
 #        .waifu, .desktop, .battlestation, .selfie, .husbando
-#  note: you can change the modifable user stats/attributes by adding 
+#  note: you can change the modifable user stats/attributes by adding
 #        or removing values from usr_attributes
 
 from typing import List
@@ -32,7 +32,7 @@ def _update_user_attribute(conn, attr_name, attr_value, username):
 
 def _get_user_attribute(conn, attr_name, username):
     attr = db.get_cell(conn, 'users', attr_name, 'nick', username)
-    
+
     if attr[0][0] is None:
         print('returning error str')
         return f'No {attr_name} found for {username}.'
@@ -55,30 +55,30 @@ async def statinit(client):
 @hook.hook('command', usr_attributes)
 async def stat(client, data):
     conn = client.bot.dbs[data.server]
-    
+
     message = data.split_message
     command = data.command
-    
+
     if len(message) < 1:
-        user_attr = _get_user_attribute(conn, data.command, 
+        user_attr = _get_user_attribute(conn, data.command,
                                         data.nickname)
         print(user_attr)
         asyncio.create_task(client.message(data.target, user_attr))
         return
-    
+
     # check if user is trying to find another user's attribute
     if message[0][0] == '@':
         user_to_look_for = message[0][1:]
-        user_attr = _get_user_attribute(conn, data.command, 
+        user_attr = _get_user_attribute(conn, data.command,
                                         user_to_look_for)
-        
+
         asyncio.create_task(client.message(data.target, user_attr))
         return
-    
-    _update_user_attribute(conn, data.command, 
+
+    _update_user_attribute(conn, data.command,
                            data.message, data.nickname)
-    
+
     asyncio.create_task(client.notice(
-                        data.target, 
+                        data.target,
                         f'Updated {data.command} for {data.nickname}'))
 
