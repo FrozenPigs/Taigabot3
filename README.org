@@ -4,8 +4,13 @@
 - remove any plugins (in /plugins) you don't feel like you need (every plugin has a description in the top)
     - NOTE: do not remove admin.py, gadmin.py, ctcp.py
 - install dependencies:
-    $pip install requests pydle sqlite3 functools
+    #+BEGIN_SRC 
+    $pip install requests pydle sqlite3 functools beautifulsoup
+    #+END_SRC
 - run bot.py in the root directory
+    #+BEGIN_SRC 
+    $python bot.py
+    #+END_SRC
 
 * Contributing
 If you want to contribute, feel free to pick from any of the plugins listed below.
@@ -123,12 +128,15 @@ My only requirements are that the code is efficient, and follows PEP-8 (I do hav
 | unban    | core_admin_channel | unban                | admin    |
 
 ** general commands
-| Command  | File               | New Command          | New File       |
-|----------+--------------------+----------------------+----------------|
-| r        | reminders          | r                    | reminders      |
-| q        | quotes             | q                    | quotes         |
-| calc, wa | wolframalpha       | calc, math, wa,      | wolfram        |
-| tell     | tell               | tell, showtells      | tell           |
+| Command                       | File               | New Command                  | New File        |
+|-------------------------------+--------------------+------------------------------+-----------------|
+| r                             | reminders          | r                            | reminders       |
+| q                             | quotes             | q                            | quotes          |
+| calc, wa                      | wolframalpha       | calc, math, wa,              | wolfram         |
+| tell                          | tell               | tell, showtells              | tell            |
+| g, gi,                        | google             | g, gi, sp, spi               | startpage       |
+| homescreen, waifu, desktop    | ???                | homescreen, waifu, desktop   | user-attributes |
+
 ** events
 | Event        | File      | New Event    | New File |
 |--------------+-----------+--------------+----------|
