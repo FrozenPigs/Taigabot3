@@ -33,7 +33,8 @@ def _update_user_attribute(conn, attr_name, attr_value, username):
 def _get_user_attribute(conn, attr_name, username):
     attr = db.get_cell(conn, 'users', attr_name, 'nick', username)
     
-    if attr is None or len(attr) == 0:
+    if attr[0][0] is None:
+        print('returning error str')
         return f'No {attr_name} found for {username}.'
     else:
         return attr[0][0]
@@ -61,6 +62,7 @@ async def stat(client, data):
     if len(message) < 1:
         user_attr = _get_user_attribute(conn, data.command, 
                                         data.nickname)
+        print(user_attr)
         asyncio.create_task(client.message(data.target, user_attr))
         return
     
@@ -69,6 +71,7 @@ async def stat(client, data):
         user_to_look_for = message[0][1:]
         user_attr = _get_user_attribute(conn, data.command, 
                                         user_to_look_for)
+        
         asyncio.create_task(client.message(data.target, user_attr))
         return
     
