@@ -5,7 +5,7 @@
     - NOTE: do not remove admin.py, gadmin.py, ctcp.py
 - install dependencies:
     #+BEGIN_SRC 
-    $pip install requests pydle sqlite3 functools beautifulsoup
+    $pip install requests pydle beautifulsoup
     #+END_SRC
 - run bot.py in the root directory
     #+BEGIN_SRC 
