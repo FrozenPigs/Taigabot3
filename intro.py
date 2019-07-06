@@ -1,18 +1,17 @@
 # intro plugin
 #
 # usage:
-# .introinit --- database initialization command (admin only)
-# .intro [intro message] --- set your intro message
-# .intro @[IRC NICK] --- check out a user's intro message
+# .introinit                   --- database initialization command (admin only)
+# .intro [intro message]       --- set your intro message
+# .intro @[IRC NICK]           --- check out a user's intro message
 # .intro -del OR .intro delete --- deletes intro message (configurable in intro_clear)
-
-from typing import List
 
 # import core db functions
 from core import db, hook
 
 intro_name = 'intro'
 intro_clear = ['delete', '-del']
+
 
 def _update_user_intro(conn, intro_name, intro_value, username):
     """Deleting intro"""
@@ -24,6 +23,7 @@ def _update_user_intro(conn, intro_name, intro_value, username):
     db.set_cell(conn, 'users', intro_name, intro_value, 'nick', username)
     db.ccache()
     return
+
 
 def _get_user_intro(conn, intro_name, username, join):
     intro = db.get_cell(conn, 'users', intro_name, 'nick', username)
@@ -40,15 +40,17 @@ def _get_user_intro(conn, intro_name, username, join):
             return f'No {intro_name} saved for {username}.'
         return username + ": " + intro_msg
 
+
 @hook.hook('init', ['introinit'])
 async def introinit(client):
     """Is used for initializing the database for this plugin"""
     conn = client.bot.dbs[client.server_tag]
     print(('Initializing intro column in \'users\''
-        f' in /persist/db/{client.server_tag}.db...'))
+          f' in /persist/db/{client.server_tag}.db...'))
     db.add_column(conn, 'users', intro_name)
     db.ccache()
     print('User intro initialization complete.')
+
 
 @hook.hook('command', ['intro'])
 async def intro(client, data):
@@ -79,6 +81,7 @@ async def intro(client, data):
             return
     asyncio.create_task(client.notice(data.target, f'Updated {data.command} for {data.nickname}'))
     return
+
 
 @hook.hook('event', ['JOIN'])
 async def on_connect_show_intro(client, data):
