@@ -60,7 +60,6 @@ def _get_time_since_tell_send(tell):
        Is used to get a human readable representation of the time since
        the message was sent.
     """
-    print(tell)
     tell_time_sent = int(tell[3])
 
     current_time = int(time.time())
@@ -148,14 +147,13 @@ async def tellgc(client):
         current_time = int(time.time())
 
         all_tells = db.get_table(conn, 'tells')
-        print(all_tells)
         for tell in all_tells:
-            print (f'TELL_DEBUG: seen: {tell[4]}, diff of send time {current_time - int(tell[3])}, diff of seen time {current_time - int(tell[5])}')
+            print (f'    TELL_DEBUG: seen: {tell[4]}, diff of send time {current_time - int(tell[3])}, diff of seen time {current_time - int(tell[5])}')
             if str(tell[4]) == '1' and (current_time - int(tell[5])) > seen_tell_timeout:
-                print('TELL_DEBUG: deleting tell due to seen timeout')
+                print('    TELL_DEBUG: deleting tell due to seen timeout')
                 _delete_tell(conn, tell)
             if str(tell[4]) == '0' and (current_time - int(tell[3])) > unseen_tell_timeout:
-                print('TELL_DEBUG: deleting tell due to unseen timeout')
+                print('    TELL_DEBUG: deleting tell due to unseen timeout')
                 _delete_tell(conn, tell)
         print('Done.')
         await asyncio.sleep(600)
@@ -186,13 +184,10 @@ async def tell(client, data):
         message = ' '.join(split[1:])
     else:
         return
-
-    print('TELL_DEBUG: adding new tell to db')
+        
     telldata = (recipient, data.nickname, message, int(time.time()), '0', '0')
-    print(f'TELL_DEBUG: telldata: {telldata}')
     db.set_row(conn, 'tells', telldata)
     db.ccache()
-    print('TELL_DEBUG: tell added.')
 
     asyncio.create_task(client.notice(data.nickname, 'Your message will be sent.'))
 
