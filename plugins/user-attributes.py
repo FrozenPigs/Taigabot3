@@ -54,11 +54,13 @@ async def statinit(client):
 
 @hook.hook('command', usr_attributes)
 async def stat(client, data):
+    """Is used for setting and viewing user attributes"""
     conn = client.bot.dbs[data.server]
 
     message = data.split_message
     command = data.command
-
+    
+    """ if command has no other arguments, show the user's attribute """
     if len(message) < 1:
         user_attr = _get_user_attribute(conn, data.command,
                                         data.nickname)
@@ -66,7 +68,7 @@ async def stat(client, data):
         asyncio.create_task(client.message(data.target, user_attr))
         return
 
-    # check if user is trying to find another user's attribute
+    """ check if user is trying to find another user's attribute """
     if message[0][0] == '@':
         user_to_look_for = message[0][1:]
         user_attr = _get_user_attribute(conn, data.command,
@@ -79,6 +81,6 @@ async def stat(client, data):
                            data.message, data.nickname)
 
     asyncio.create_task(client.notice(
-                        data.target,
+                        data.nickname,
                         f'Updated {data.command} for {data.nickname}'))
 

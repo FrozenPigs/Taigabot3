@@ -1,4 +1,5 @@
 # intro plugin
+# author: afloat
 #
 # usage:
 # .introinit                   --- database initialization command (admin only)
