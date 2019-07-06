@@ -79,7 +79,7 @@ async def intro(client, data):
         if data.message.startswith(intro_clearer):
             asyncio.create_task(client.notice(data.target, f'Deleted your intro'))
             return
-    asyncio.create_task(client.notice(data.target, f'Updated {data.command} for {data.nickname}'))
+    asyncio.create_task(client.notice(data.nickname, f'Updated {data.command} for {data.nickname}'))
     return
 
 
