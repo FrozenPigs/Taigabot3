@@ -1,0 +1,83 @@
+# intro plugin
+#
+# usage:
+# .introinit --- database initialization command (admin only)
+# .intro [intro message] --- set your intro message
+# .intro @[IRC NICK] --- check out a user's intro message
+# .intro -del OR .intro delete --- deletes intro message (configurable in intro_clear)
+
+from typing import List
+
+# import core db functions
+from core import db, hook
+
+intro_name = 'intro'
+intro_clear = ['delete', '-del']
+
+def _update_user_intro(conn, intro_name, intro_value, username):
+    """Deleting intro"""
+    for intro_clearer in intro_clear:
+        if intro_value.startswith(intro_clearer):
+            db.set_cell(conn, 'users', intro_name, None, 'nick', username)
+            db.ccache()
+            return
+    db.set_cell(conn, 'users', intro_name, intro_value, 'nick', username)
+    db.ccache()
+    return
+
+def _get_user_intro(conn, intro_name, username, join):
+    intro = db.get_cell(conn, 'users', intro_name, 'nick', username)
+    if intro[0][0] is None:
+        print('returning error str')
+        return f'No {intro_name} saved for {username}.'
+    """Checking intro through JOIN"""
+    if join:
+        return intro[0][0]
+    """Checking intro through PRIVMSG"""
+    return username + ": " + intro[0][0]
+
+@hook.hook('init', ['introinit'])
+async def introinit(client):
+    """Is used for initializing the database for this plugin"""
+    conn = client.bot.dbs[client.server_tag]
+    print(('Initializing intro column in \'users\''
+        f' in /persist/db/{client.server_tag}.db...'))
+    db.add_column(conn, 'users', intro_name)
+    db.ccache()
+    print('User intro initialization complete.')
+
+@hook.hook('command', ['intro'])
+async def intro(client, data):
+    """Set or delete intro, check other users' intros"""
+
+    conn = client.bot.dbs[data.server]
+    message = data.split_message
+    command = data.command
+
+    """User is checking own intro"""
+    if len(message) < 1:
+        intro_attr = _get_user_intro(conn, data.command, data.nickname, False)
+        asyncio.create_task(client.message(data.target, intro_attr))
+        return
+
+    """User is checking another user's intro"""
+    if message[0][0] == '@':
+        user_to_look_for = message[0][1:]
+        intro_attr = _get_user_intro(conn, data.command, user_to_look_for, False)
+        asyncio.create_task(client.message(data.target, intro_attr))
+        return
+
+    """User is setting an intro for self"""
+    _update_user_intro(conn, data.command, data.message, data.nickname)
+    for intro_clearer in intro_clear:
+        if data.message.startswith(intro_clearer):
+            asyncio.create_task(client.notice(data.target, f'Deleted your intro'))
+            return
+    asyncio.create_task(client.notice(data.target, f'Updated {data.command} for {data.nickname}'))
+
+@hook.hook('event', ['JOIN'])
+async def onconnectshowintro(client, data):
+    conn = client.bot.dbs[data.server]
+    intro_attr = _get_user_intro(conn, intro_name, data.nickname, True)
+    asyncio.create_task(client.message(data.target, intro_attr))
+    return
