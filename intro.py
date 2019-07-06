@@ -81,7 +81,7 @@ async def intro(client, data):
     return
 
 @hook.hook('event', ['JOIN'])
-async def onconnectshowintro(client, data):
+async def on_connect_show_intro(client, data):
     conn = client.bot.dbs[data.server]
     intro_attr = _get_user_intro(conn, intro_name, data.nickname, True)
     if intro_attr is not None:
