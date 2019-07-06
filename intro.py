@@ -78,6 +78,7 @@ async def intro(client, data):
             asyncio.create_task(client.notice(data.target, f'Deleted your intro'))
             return
     asyncio.create_task(client.notice(data.target, f'Updated {data.command} for {data.nickname}'))
+    return
 
 @hook.hook('event', ['JOIN'])
 async def onconnectshowintro(client, data):
