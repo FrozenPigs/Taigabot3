@@ -37,7 +37,7 @@ async def ignore_sieve(client, data):
 
 async def _parse_masks(client, data, conn, message):
     masks = await user.parse_masks(client, conn, message)
-    bot_mask = await user.get_mask(client, client.nickname)
+    bot_mask = await user.get_mask(client, conn, client.nickname)
     if data.command in {'gignore', 'ignore'}:
         no_ignore = client.bot.config['servers'][data.server]['no_ignore']
         for mask in masks:
