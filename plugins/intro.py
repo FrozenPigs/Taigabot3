@@ -88,6 +88,6 @@ async def intro(client, data):
 async def on_connect_show_intro(client, data):
     conn = client.bot.dbs[data.server]
     intro_attr = _get_user_intro(conn, intro_name, data.nickname, True)
-    if intro_attr is not None:
+    if intro_attr is not None and len(intro_attr) > 0:
         asyncio.create_task(client.message(data.target, intro_attr))
     return
