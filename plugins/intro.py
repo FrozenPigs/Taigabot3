@@ -2,10 +2,10 @@
 # author: afloat
 #
 # usage:
-# .introinit                   --- database initialization command (admin only)
-# .intro [intro message]       --- set your intro message
-# .intro @[IRC NICK]           --- check out a user's intro message
-# .intro -del OR .intro delete --- deletes intro message (configurable in intro_clear)
+# .introinit                    -- database initialization command (admin only)
+# .intro [intro message]        -- set your intro message
+# .intro @[IRC NICK]            -- check out a user's intro message
+# .intro -del OR .intro delete  -- deletes intro message (configurable in intro_clear)
 
 # import core db functions
 from core import db, hook

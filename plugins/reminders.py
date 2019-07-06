@@ -19,7 +19,7 @@ from core import db, hook
 
 max_reminder_len = 550  # maximum length of reminders
 max_rem_name_len = 50
-reminder_trigger_char = '$'  # chararcter to look for
+reminder_trigger_char = '#'  # chararcter to look for
 
 
 # db column def; dont touch
@@ -67,7 +67,7 @@ def _append_reminder(conn, rem_name, rem_text):
 
 @hook.hook('init', ['reminit'])
 async def reminit(client):
-    """Admin only db init command, run once before using this plugin"""
+    """Db init command, run once on startup"""
     conn = client.bot.dbs[client.server_tag]
     print(('Initializing reminder database table'
            f'in /persist/db/{client.server_tag}.db...'))
