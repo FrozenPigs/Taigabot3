@@ -27,14 +27,17 @@ def _update_user_intro(conn, intro_name, intro_value, username):
 
 def _get_user_intro(conn, intro_name, username, join):
     intro = db.get_cell(conn, 'users', intro_name, 'nick', username)
-    if intro[0][0] is None:
-        print('returning error str')
-        return f'No {intro_name} saved for {username}.'
     """Checking intro through JOIN"""
+    is_intro_none = intro is None
     if join:
-        return intro[0][0]
-    """Checking intro through PRIVMSG"""
-    return username + ": " + intro[0][0]
+        if not is_intro_none:
+            return intro[0][0]
+        return None
+    elif not join:
+        if is_intro_none:
+            return f'No {intro_name} saved for {username}.'
+        """Checking intro through PRIVMSG"""
+        return username + ": " + intro[0][0]
 
 @hook.hook('init', ['introinit'])
 async def introinit(client):
@@ -79,5 +82,6 @@ async def intro(client, data):
 async def onconnectshowintro(client, data):
     conn = client.bot.dbs[data.server]
     intro_attr = _get_user_intro(conn, intro_name, data.nickname, True)
-    asyncio.create_task(client.message(data.target, intro_attr))
+    if intro_attr is not None:
+        asyncio.create_task(client.message(data.target, intro_attr))
     return
