@@ -27,17 +27,18 @@ def _update_user_intro(conn, intro_name, intro_value, username):
 
 def _get_user_intro(conn, intro_name, username, join):
     intro = db.get_cell(conn, 'users', intro_name, 'nick', username)
-    """Checking intro through JOIN"""
-    is_intro_none = intro is None
+    intro_msg = intro[0][0]
+
     if join:
-        if not is_intro_none:
-            return intro[0][0]
+        """Checking intro through JOIN"""
+        if intro_msg is not None:
+            return intro_msg
         return None
     elif not join:
-        if is_intro_none:
-            return f'No {intro_name} saved for {username}.'
         """Checking intro through PRIVMSG"""
-        return username + ": " + intro[0][0]
+        if intro_msg is None:
+            return f'No {intro_name} saved for {username}.'
+        return username + ": " + intro_msg
 
 @hook.hook('init', ['introinit'])
 async def introinit(client):
