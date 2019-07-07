@@ -28,7 +28,7 @@ is_gd_link = 'https://is.gd/create.php'
 def _shorten_url(link):
     """ Is used to shorten a link via is.gd"""
     
-    #https://is.gd/create.php?format=simple&url=www.example.com.
+
     req_data = {'format': 'simple', 'url': link }
     r = requests.get(is_gd_link, req_data)
     if r.status_code == 200:
