@@ -62,6 +62,9 @@ def _get_first_img_result(req_data):
 async def startpage_search(client, data):
     split = data.split_message
     
+    if len(split) < 1:
+        return
+    
     req_data = {'query': ' '.join(split)}
     
     
@@ -87,6 +90,9 @@ async def startpage_search(client, data):
 @hook.hook('command', ['gi'])
 async def startpage_img_search(client, data):
     split = data.split_message
+    
+    if len(split) < 1:
+        return
     
     req_data = {'cat': 'pics', 'query': ' '.join(split)}
     
