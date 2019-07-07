@@ -3,6 +3,10 @@
 # author: afloat
 #
 # usage:
+#  .w [LOCATION]                 -- check the weather in a specific
+#                                   location
+
+
 
 # import core db functions
 from core import db, hook
@@ -34,6 +38,8 @@ def _update_user_location(conn, location_column, location_value, username):
 
 def _get_user_location(conn, location_column, username):
     location = db.get_cell(conn, 'users', location_column, 'nick', username)
+    if location[0][0] is None or len(location[0][0]) == 0:
+        return None
     return location[0][0]
 
 
@@ -105,12 +111,16 @@ async def weather(client, data):
             test_url = CURRENT_WEATHER_URL + urllib.parse.quote(_get_user_location(conn, location_column, data.nickname)) + "&days=" + str(forecast_days)
 
     else:
+        loc = _get_user_location(conn, location_column, data.nickname)
+        if loc is None:
+            asyncio.create_task(client.message(data.target, "Invalid or unset location."))
+            return
         test_url = CURRENT_WEATHER_URL + urllib.parse.quote(_get_user_location(conn, location_column, data.nickname)) + "&days=" + str(forecast_days)
 
     try:
         weather_info = urllib.request.urlopen(test_url)
     except urllib.error.HTTPError:
-        asyncio.create_task(client.message(data.target, "Invalid or unset location"))
+        asyncio.create_task(client.message(data.target, "Invalid or unset location."))
         return
 
     weather_info = urllib.request.urlopen(test_url)
