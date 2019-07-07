@@ -5,11 +5,11 @@
     - NOTE: do not remove admin.py, gadmin.py, ctcp.py
 - install dependencies:
     #+BEGIN_SRC 
-    $pip install requests pydle beautifulsoup
+    $ pip install requests pydle beautifulsoup4
     #+END_SRC
 - run bot.py in the root directory
     #+BEGIN_SRC 
-    $python bot.py
+    $ python bot.py
     #+END_SRC
 
 * Contributing
