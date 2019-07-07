@@ -7,7 +7,8 @@
   ],
   "api_keys": {
     "last_fm": "XXXXXXXXXXXXXXXXXXXXXXXXXXXx",
-    "wolfram_alpha": "XXXXXXXXXXXXXXXXX"
+    "wolfram_alpha": "XXXXXXXXXXXXXXXXX",
+    "APIXU": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
   },
   "servers": {
     "rizon": {
