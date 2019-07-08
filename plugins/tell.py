@@ -197,6 +197,18 @@ async def tell(client, data):
     asyncio.create_task(client.notice(data.nickname, 'Your message will be sent.'))
 
 
+@hook.hook('command', ['cleartells', 'ct'])
+async def cleartells(client, data):
+    conn = client.bot.dbs[data.server]
+    tells = db.get_row(conn, 'tells', 'nick', data.nickname.lower())
+    
+    for tell in tells:
+        print(f'TELL_DEBUG: manual tell delete {tell[0]} {tell[2]} {tell[3]} {tell[5]}')
+        _delete_tell(conn, tell)
+    
+    asyncio.create_task(client.notice(data.nickname, 'Your tells have been deleted.'))
+
+
 @hook.hook('command', ['showtells', 'st'])
 async def showtells(client, data):
     conn = client.bot.dbs[data.server]
