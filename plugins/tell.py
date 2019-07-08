@@ -31,8 +31,9 @@ tell_columns: List[str] = ['nick', 'add_nick', 'msg',
                            'time', 'seen', 'seen_time']
 
 # config values
-unseen_tell_timeout = 604800  # equals to a week
+unseen_tell_timeout = 31556926  # equals to a year
 seen_tell_timeout = 86400  # equals to a day
+tell_limit = 10 # amount of tells shown
 
 
 def _set_tell_seen(conn, tell):
@@ -116,6 +117,10 @@ def _show_user_recent_tells(client, conn, recipient, show_only_unseen):
 
     # sort tells
     tells.sort(key=_get_tell_time, reverse=True)
+
+    # limit tells
+    if len(tells) > tell_limit:
+        tells = tells[0:tell_limit]
 
     if show_only_unseen is True:
 
