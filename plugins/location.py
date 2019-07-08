@@ -51,8 +51,8 @@ def _build_weather_response(j_weather):
     high = "High: "
     low = "Low: "
 
-    location = j_weather["location"]["name"] + ", " + j_weather["location"]["region"] + ", " + j_weather["location"]["country"]
-    cur_qualifier = " - Current: "
+    location = "\02" + j_weather["location"]["name"] + ", " + j_weather["location"]["region"] + ", " + j_weather["location"]["country"] + "\02"
+    cur_qualifier = "\02" + " - Current: " + "\02"
     cur_cond = j_weather["current"]["condition"]["text"] + ", " + str(int(j_weather["current"]["temp_c"])) + "C/" + str(int(j_weather["current"]["temp_f"])) + "F, "
     cur_humidity = "Humidity: " + str(j_weather["current"]["humidity"]) + "%, "
     cur_wind = "Wind: " + str(int(j_weather["current"]["wind_kph"])) + "KPH/" + str(int(j_weather["current"]["wind_mph"])) + "MPH, "
@@ -64,7 +64,7 @@ def _build_weather_response(j_weather):
         day_qualifiers = ["Today", "Tomorrow", "Two Days Away", "Three Days Away", "Four Days Away"]
         for i in range(days):
             cond = j_weather["forecast"]["forecastday"][i]["day"]["condition"]["text"] + ", " + high + str(int(j_weather["forecast"]["forecastday"][i]["day"]["maxtemp_c"])) + "C/" + str(int(j_weather["forecast"]["forecastday"][i]["day"]["maxtemp_f"])) + "F, " + low + str(int(j_weather["forecast"]["forecastday"][i]["day"]["mintemp_c"])) + "C/" + str(int(j_weather["forecast"]["forecastday"][i]["day"]["mintemp_f"])) + "F."
-            forecast_responses.append(day_qualifiers[i] + ": " + cond)
+            forecast_responses.append("\02" + day_qualifiers[i] + "\02" + ": " + cond)
         return forecast_responses
 
     forecasts = ' '.join(_build_forecast_response(forecast_days))
