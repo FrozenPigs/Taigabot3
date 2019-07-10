@@ -91,7 +91,7 @@ async def startpage_search(client, data):
     short_link = _shorten_url(link)
 
     body = first_result.find('p', class_='search-item__body')
-    output = f'{short_link} -- {title.text}: \"{body.text}\"'
+    output = f'{short_link} -- \02{title.text}:\02 \"{body.text}\"'
 
     asyncio.create_task(client.message(data.target, output))
 

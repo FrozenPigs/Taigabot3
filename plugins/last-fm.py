@@ -92,11 +92,11 @@ def _pull_track_plays(api_key, track_title, track_artist, lastfm_nick):
 def _output_nowplaying(client, data, lastfm_nick,
                        title, artist, album, plays, tags):
 
-    out = f'{lastfm_nick} is listening to "{title}" by {artist} from '
+    out = f'{lastfm_nick} is listening to "{title}" by \02{artist}\02 from '
     if album == 'an unknown album':
         out += album
     else:
-        out += f'the album {album}'
+        out += f'the album \02{album}\02'
 
     out += f', Play count: {plays}, Tags: {tags}.'
 
