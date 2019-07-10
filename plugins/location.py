@@ -44,7 +44,7 @@ def _get_user_location(conn, location_column, username):
 
 
 def _build_time_response(j_weather):
-    return str(j_weather["location"]["localtime"]) + " in " + j_weather["location"]["name"] + " [" + j_weather["location"]["tz_id"] + "]"
+    return "[" + j_weather["location"]["tz_id"] + "] " + str(j_weather["location"]["localtime"]) + " in " + j_weather["location"]["name"]
 
 
 def _build_weather_response(j_weather):
