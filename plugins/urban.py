@@ -1,4 +1,5 @@
-# wolfram alpha plugin
+# urban dictionary plugin
+# author: adrift
 #
 # usage:
 # .urban, .ud [PHRASE]              -- ask urban dictionary to
