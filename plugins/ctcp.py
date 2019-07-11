@@ -22,7 +22,7 @@ async def version(client, data):
     if data.command == '\x01VERSION\x01':
         asyncio.create_task(
             client.notice(data.nickname,
-                          f'\x01VERSION TaigaBotNet Version 3.7\x01'))
+                          f'\x01VERSION Paprika (rolling release)\x01'))
 
 
 @hook.hook('event', ['PRIVMSG'])
@@ -30,7 +30,7 @@ async def source(client, data):
     """Is for replying to ctcp source messages."""
     if data.command == '\x01SOURCE\x01':
         asyncio.create_task(
-            client.notice(data.nickname, '\x01SOURCE No source yet.\x01'))
+            client.notice(data.nickname, '\x01SOURCE https://github.com/nojusr/paprika\x01'))
 
 
 @hook.hook('event', ['PRIVMSG'])
