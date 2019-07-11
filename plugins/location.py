@@ -72,7 +72,7 @@ def _build_weather_response(j_weather):
     return current + forecasts
 
 
-@hook.hook('init', [''])
+@hook.hook('init', ['locationinit'])
 async def location_init(client):
     """Save a user's location to be used for localized weather info"""
     conn = client.bot.dbs[client.server_tag]
@@ -105,6 +105,8 @@ async def weather(client, data):
     if len(message) > 0:
         if message[0][0] == '@':
             user_to_look_for = message[0][1:]
+            user_to_look_for = user_to_look_for.lower()
+            
             test_url = CURRENT_WEATHER_URL + urllib.parse.quote(_get_user_location(conn, location_column, user_to_look_for)) + "&days=" + str(forecast_days)
         else:
             _update_user_location(conn, location_column, ' '.join(message), data.nickname)

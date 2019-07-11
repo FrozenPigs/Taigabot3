@@ -1,8 +1,15 @@
 # last.fm plugin
+# author: nojusr
+#
+# usage:
+#  .np [@irc nick OR last.fm username ] -- find out what is playing for
+#                                          a last.fm user. Usernames
+#                                          are saved and remembered
+#
 #
 # TODO:
-# .compat [lastfm_nickname] [lastfm_nickname] --- get compatiblity
-# between two lastfm users.
+# .compat [lastfm_nickname] [lastfm_nickname] -- get compatiblity
+#                                                between two lastfm users.
 # NOTE .compat can be used like this too:
 # .compat @[irc_nick] (compares your saved nick with the argument nick)
 # .compat [lastfm_nick] (same as above, but with a lastfm nick)

@@ -59,7 +59,7 @@ async def _detect_flood(client, data, flood_rules, flood_type):
 
 @hook.hook('sieve', ['05-flood-input'])
 async def flood_input_sieve(client, data):
-    """Is for handling users who are flooding in the channel."""
+    #Is for handling users who are flooding in the channel.
     conn = client.bot.dbs[data.server]
     isadmin = await user.is_admin(client, conn, data.nickname, data.mask)
 

@@ -44,10 +44,11 @@ async def sball(client, data):
 
 
 @hook.hook('event', ['JOIN'])
-async def abuse_kimi(client, data):
+async def abuse_kimi_and_ine(client, data):
     nick = data.nickname
     nick = nick.lower()
     
     if nick == 'kimi':
         asyncio.create_task(client.message(data.target, '\x02[QUALITY OF CHANNEL SIGNIFICANTLY DECREASED]\x02'))
+    
     
