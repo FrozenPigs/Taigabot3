@@ -142,7 +142,7 @@ async def quotes(client, data):
 
     if len(split) > 1:
         if split[0] == 'add' or split[0] == 'a':
-            nick = split[1]
+            nick = split[1].lower()
 
             quote = ' '.join(split[2:])
             quotedata = (data.target, nick, data.nickname, quote, int(time.time()), '0',)
@@ -152,7 +152,7 @@ async def quotes(client, data):
             return
 
         elif split[0] == 'delete' or split[0] == 'r' or split[0] == 'remove':
-            nickquotes = db.get_row(conn, 'quotes', 'nick', data.nickname)
+            nickquotes = db.get_row(conn, 'quotes', 'nick', data.nickname.lower())
             numarg = None
 
             try:
