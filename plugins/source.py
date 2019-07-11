@@ -13,7 +13,7 @@ from core import hook
 async def bothelp(client, data):
     out =  'You can find description and usage of every plugin '
     out += 'installed in the source at '
-    out += 'https://github.com/nojusr/paprika/plugins'
+    out += 'https://github.com/nojusr/paprika/tree/master/plugins'
     asyncio.create_task(client.message(data.target, out))
 
 
