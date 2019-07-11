@@ -111,11 +111,13 @@ async def ytsearch(client, data):
 
     if r.status_code == 403:
         asyncio.create_task(client.message(data.target,'Youtube API quota exceeded.'))
+        return
 
     if r.status_code != 200:
         print(f'YOUTUBE_DEBUG: network error: {r.status_code}')
         print(f'YOUTUBE_DEBUG: {r.text}')
         asyncio.create_task(client.message(data.target,'Network error occured.'))
+        return
 
     video_url = 'https://youtu.be/'
 
