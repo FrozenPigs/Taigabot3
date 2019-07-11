@@ -147,7 +147,7 @@ async def quotes(client, data):
             quote = ' '.join(split[2:])
             quotedata = (data.target, nick, data.nickname, quote, int(time.time()), '0',)
             db.set_row(conn, 'quotes', quotedata)
-            asyncio.create_task(client.message(data.target, 'Quote added.'))
+            asyncio.create_task(client.notice(data.nickname, 'Quote added.'))
             db.ccache()
             return
 
@@ -185,7 +185,7 @@ async def quotes(client, data):
                 del cur
                 conn.commit()
                 db.ccache()
-                asyncio.create_task(client.message(data.target, 'Quote deleted.'))
+                asyncio.create_task(client.notice(data.nickname, 'Quote deleted.'))
 
                 return
             else:

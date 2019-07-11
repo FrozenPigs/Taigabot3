@@ -1,11 +1,20 @@
+* About
+This is paprika - a general purpose bot written in python 3.7, using the python library.
+Features:
+ - dynamic plugin support
+ - multiple server support, with support for different nicks, plugins, command triggers for each server and even channel
+ - decent selection of plugins, with lots more to come.
+
 * Installation/Running
 - clone this repository
 - edit config.json to suit your needs (change nick, server, etc)
+    - Make sure that you have added API keys for every plugin that needs one.
 - remove any plugins (in /plugins) you don't feel like you need (every plugin has a description in the top)
+    - NOTE: almost every plugin has a basic description and usage instructions in it's source file.
     - NOTE: do not remove admin.py, gadmin.py, ctcp.py
 - install dependencies:
     #+BEGIN_SRC 
-    $ pip install requests pydle beautifulsoup4
+    $ pip install requests pydle beautifulsoup4 python-dateutil
     #+END_SRC
 - run bot.py in the root directory
     #+BEGIN_SRC 
@@ -18,22 +27,18 @@ My only requirements are that the code is efficient, and follows PEP-8 (I do hav
 
 * To Add
 ** general commands
-| Command         | File      |
-|-----------------+-----------|
-| 4ch             | 4chan     |
-| choose          | misc      |
-| countdown       | misc      |
-| dict, define    | dict      |
-| ddg             | search    |
-| g, google       | search    |
-| ping            | misc      |
-| spotify, sp     | music     |
-| soundcloud, sc  | music     |
-| url titles      | url       |
-| vim, vimeo      | video     |
-| weather, w      | weather   |
-| yt, youtube     | video     |
-| wiki            | wiki      |
+| Command         | File       |
+|-----------------+------------|
+| 4ch             | 4chan      |
+| choose          | misc       |
+| countdown       | misc       |
+| dict, define    | dict       |
+| ping            | misc       |
+| spotify, sp     | spotify    |
+| soundcloud, sc  | soundcloud |
+| url titles      | url        |
+| vim, vimeo      | vimeo      |
+| wiki            | wiki       |
 
 ** events
 | Events                                                         | File      |
@@ -136,6 +141,9 @@ My only requirements are that the code is efficient, and follows PEP-8 (I do hav
 | tell                          | tell               | tell, showtells              | tell            |
 | g, gi,                        | google             | g, gi, sp, spi               | startpage       |
 | homescreen, waifu, desktop    | ???                | homescreen, waifu, desktop   | user-attributes |
+| yt, youtube                   | youtube            | yt, youtube                  | youtube         |
+| w, weather                    | ???                | w, weather                   | location        |
+| t, time                       | ???                | t, time                      | location        |
 
 ** events
 | Event        | File      | New Event    | New File |
