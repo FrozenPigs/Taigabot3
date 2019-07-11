@@ -24,7 +24,7 @@ async def morrr(client, data):
     out += str(random.randint(2, 8))
     out += ' slices of that norwegian goodness on it.'
     out = f'\x01ACTION {out}\x01'
-    asyncio.create_task(messaging.action(client, data.target, out))
+    asyncio.create_task(client.message(data.target, out))
 
 @hook.hook('command', ['s8ball'])#shitty version of 8ball
 async def sball(client, data):
