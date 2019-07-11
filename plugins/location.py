@@ -38,8 +38,12 @@ def _update_user_location(conn, location_column, location_value, username):
 
 def _get_user_location(conn, location_column, username):
     location = db.get_cell(conn, 'users', location_column, 'nick', username)
-    if location[0][0] is None or len(location[0][0]) == 0:
+    try:
+        if location[0][0] is None or len(location[0][0]) == 0:
+                return None
+    except:
         return None
+
     return location[0][0]
 
 
@@ -105,9 +109,13 @@ async def weather(client, data):
     if len(message) > 0:
         if message[0][0] == '@':
             user_to_look_for = message[0][1:]
-            user_to_look_for = user_to_look_for.lower()
             
-            test_url = CURRENT_WEATHER_URL + urllib.parse.quote(_get_user_location(conn, location_column, user_to_look_for)) + "&days=" + str(forecast_days)
+            loc = _get_user_location(conn, location_column, user_to_look_for)
+            if loc is None:
+                asyncio.create_task(client.message(data.target, "No user/location found."))
+                return
+            
+            test_url = CURRENT_WEATHER_URL + urllib.parse.quote(loc) + "&days=" + str(forecast_days)
         else:
             _update_user_location(conn, location_column, ' '.join(message), data.nickname)
             test_url = CURRENT_WEATHER_URL + urllib.parse.quote(_get_user_location(conn, location_column, data.nickname)) + "&days=" + str(forecast_days)
