@@ -38,7 +38,8 @@ def display_quote(client, data, quotelist, target, arg):
     output a quote, given a tuple list of all avalable quotes, and possibly
     a number (for selection of a specific quote)
     """
-
+    usertarg = target
+    
     outquotes = []
     quotenums = []
     wordarg = None
@@ -112,7 +113,7 @@ def display_quote(client, data, quotelist, target, arg):
         for i in range(len(outquotes)):
             quote = outquotes[i]
             out = f'[{str(quotenums[i])}/{str(len(quotelist))}]'
-            out += f' <{quote[1]}> {quote[3]}'
+            out += f' <{target}> {quote[3]}'
             asyncio.create_task(client.message(data.target, out))
     else:
         asyncio.create_task(client.message(data.target, 'No results.'))
@@ -192,7 +193,7 @@ async def quotes(client, data):
                 return
 
     if len(split) > 0 and len(data.message) > 0:
-        argtuple = split[0],
+        argtuple = split[0].lower(),
 
         #convert split[0] (we now know that it needs to be compared with a db) into a tuple, since we get db results in a tuple
 
@@ -200,7 +201,7 @@ async def quotes(client, data):
             channels = db.get_column(conn, 'channels', 'channel')
 
             if argtuple in channels:
-                chanquotes = db.get_row(conn, 'quotes', 'chan', split[0])
+                chanquotes = db.get_row(conn, 'quotes', 'chan', split[0].lower())
                 try:
                     display_quote(client, data, chanquotes, split[0], split[1])
                 except:
@@ -212,7 +213,9 @@ async def quotes(client, data):
             users = db.get_column(conn, 'quotes', 'nick')
 
             if argtuple in users:
-                nickquotes = db.get_row(conn, 'quotes', 'nick', split[0])
+                print(split[0])
+                print(split[0].lower())
+                nickquotes = db.get_row(conn, 'quotes', 'nick', split[0].lower())
                 try:
                     display_quote(client, data, nickquotes, split[0], split[1])
                 except:
