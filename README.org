@@ -144,6 +144,7 @@ My only requirements are that the code is efficient, and follows PEP-8 (I do hav
 | yt, youtube                   | youtube            | yt, youtube                  | youtube         |
 | w, weather                    | ???                | w, weather                   | location        |
 | t, time                       | ???                | t, time                      | location        |
+| ud, nig                       | urban              | ud                           | urban           |
 
 ** events
 | Event        | File      | New Event    | New File |
