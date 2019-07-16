@@ -65,7 +65,7 @@ async def urban(client, data):
     example_no_brackets = example.replace('[', '').replace(']', '')
 
     # api caps at 10 definitions, which is why 10 is hardcoded
-    urban_response = "[" + str(definition_index) + "/10] " + "\02" + definition_list["word"] + ": \02" + definition_no_brackets + " " + example_no_brackets
+    urban_response = "[" + str(definition_index) + "/10] " + "\02" + definition_list["word"] + ": \02" + definition_no_brackets + " - " + example_no_brackets
 
     # trim response length as necessary
     if len(urban_response) > max_response_length:
