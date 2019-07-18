@@ -37,7 +37,7 @@ def _get_video_time(time_str):
         out += f'{date.minute}m '
     if date.second > 0:
         out += f'{date.second}s'
-        
+
 
     print(f'YOUTUBE_DEBUG: datestr: {out}')
     return out
@@ -131,8 +131,7 @@ async def ytsearch(client, data):
     except KeyError:
         print('YOUTUBE_DEBUG: failed to get first item in response ')
         return
-    
-    print(first_item)
+
     vid_id = first_item['id']['videoId']
 
     stats = _get_video_stats(yt_key, vid_id)
