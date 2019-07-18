@@ -191,6 +191,8 @@ async def g_join_part_cycle(client, data):
     for channel in message:
         channel = channel
 
+        channel = channel.lower()
+        
         if channel[0] != '#':
             continue
 

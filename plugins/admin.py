@@ -33,6 +33,7 @@ async def whois(client, data):
         nick = invite[0]
         data.nickname = nick
         channel = invite[1]
+        channel = channel.lower()
         if message[1] == invite[0]:
             privilages = [
                 f'~{channel}', f'&{channel}', f'@{channel}', f'%{channel}']
@@ -57,13 +58,7 @@ async def init_channel_dbs(client):
     db.add_column(conn, 'channels', 'op')
     db.add_column(conn, 'channels', 'hop')
     db.add_column(conn, 'channels', 'vop')
-    db.add_column(conn, 'channels', 'is_in_channel')
 
-# how to handle kicks:
-# add a column to channel db, which says if the bot is actually in the 
-
-
-    
 
 @hook.hook('event', ['JOIN'])
 async def chan_join(client, data):
