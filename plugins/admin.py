@@ -12,6 +12,7 @@ last_invite: str = ''
 @hook.hook('event', ['INVITE'])
 async def invite(client, data):
     """Is for listening for invite events, storing it then triggering whois."""
+    print(f'INVITE_RECIEVED: from: {data.nickname}, to join: {data.message}')
     global last_invite
     last_invite = f'{data.nickname} {data.message}'
     asyncio.create_task(client.whois(data.nickname))
@@ -38,12 +39,14 @@ async def whois(client, data):
             if len([priv for priv in privilages if priv in message]) > 0:
                 channels = client.bot.config['servers'][data
                                                         .server]['channels']
-                channels.append(channel)
+                if channel not in channels:
+                    channels.append(channel)
+                
                 asyncio.create_task(
                     botu.add_to_conf(client, data, channel, channels,
                                      f'Joining {channel}.',
-                                     f'{channel} is already in the config.'))
-                asyncio.create_task(client.join(channel))
+                                     f'{channel} is already in the config, joining regardless.'))
+                asyncio.create_task(client.rawmsg('JOIN', channel))
 
 
 @hook.hook('init', ['init_channel_dbs'])
@@ -54,7 +57,13 @@ async def init_channel_dbs(client):
     db.add_column(conn, 'channels', 'op')
     db.add_column(conn, 'channels', 'hop')
     db.add_column(conn, 'channels', 'vop')
+    db.add_column(conn, 'channels', 'is_in_channel')
 
+# how to handle kicks:
+# add a column to channel db, which says if the bot is actually in the 
+
+
+    
 
 @hook.hook('event', ['JOIN'])
 async def chan_join(client, data):

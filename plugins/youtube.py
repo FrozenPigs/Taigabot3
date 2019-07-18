@@ -131,7 +131,8 @@ async def ytsearch(client, data):
     except KeyError:
         print('YOUTUBE_DEBUG: failed to get first item in response ')
         return
-
+    
+    print(first_item)
     vid_id = first_item['id']['videoId']
 
     stats = _get_video_stats(yt_key, vid_id)

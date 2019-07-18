@@ -1,3 +1,5 @@
+# Global admin commands, this is a core plugin, DO NOT REMOVE.
+
 """Sieves and commands for global admins."""
 # Standard Libs
 import asyncio
@@ -183,7 +185,7 @@ async def g_join_part_cycle(client, data):
     command = data.command
     no_join = client.bot.config['servers'][data.server]['no_channels']
 
-    if not message[0]:
+    if message[0] is None:
         message = [data.target]
 
     for channel in message:
@@ -203,14 +205,16 @@ async def g_join_part_cycle(client, data):
                 channels.remove(channel)
         time.sleep(0.2)
         if command == 'join' or command == 'cycle':
-            if channel not in itertools.chain(channels, no_join):
+            if channel not in itertools.chain(no_join):
                 channels.append(channel)
-                asyncio.create_task(client.join(channel))
+                asyncio.create_task(client.rawmsg('JOIN', channel))
                 asyncio.create_task(
-                    client.notice(data.nickname, f'Joining {channel}.'))
+                    client.notice(data.nickname, 
+                    f'Trying to join/cycle {channel}.'))
             else:
                 asyncio.create_task(
                     client.notice(data.nickname, f'Already in {channel}.'))
+                    
 
 
 async def _list_tables(client, data, conn):
