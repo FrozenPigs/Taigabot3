@@ -103,7 +103,7 @@ def display_quote(client, data, quotelist, target, arg):
         response = requests.post('https://pastie.io/documents', data=out)
         if response.status_code == 200:
             d = response.json()['key']
-            link = 'https://pastie.io/'+str(d)
+            link = f'https://pastie.io/{str(d)}.txt'
             asyncio.create_task(client.message(data.target, link))
         else:
             asyncio.create_task(client.message(data.target, 'Failed to upload quotes onto pastebin.'))
