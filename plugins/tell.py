@@ -173,7 +173,7 @@ async def inittell(client):
     print ('Tell initialization complete.')
 
 
-@hook.hook('command', ['tell'])
+@hook.hook('command', ['tell', 'ask'])
 async def tell(client, data):
     """.tell - send a message to an user which is currently inactive"""
     conn = client.bot.dbs[data.server]
