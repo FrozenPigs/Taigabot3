@@ -102,8 +102,8 @@ class Client(PydleClient):
         data.split_message.remove(data.command)
         data.command = data.command[1:]
         if data.command.lower() in gdisabled:
-            asyncio.create_task(
-                self.notice(data.nickname, f'{data.command} is gdisabled.'))
+            #asyncio.create_task(
+                #self.notice(data.nickname, f'{data.command} is gdisabled.'))
             return
         asyncio.create_task(self._run_commands(data))
 
