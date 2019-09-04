@@ -141,13 +141,21 @@ async def weather(client, data):
             return
         test_url = CURRENT_WEATHER_URL + urllib.parse.quote(_get_user_location(conn, location_column, data.nickname)) + "&days=" + str(forecast_days)
 
+    hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+       'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+       'Accept-Encoding': 'none',
+       'Accept-Language': 'en-US,en;q=0.8',
+       'Connection': 'keep-alive'}
+
+    req = urllib.request.Request(test_url, headers=hdr)
     try:
-        weather_info = urllib.request.urlopen(test_url)
+        weather_info = urllib.request.urlopen(req)
     except urllib.error.HTTPError:
         asyncio.create_task(client.message(data.target, "Invalid or unset location."))
         return
 
-    weather_info = urllib.request.urlopen(test_url)
+    weather_info = urllib.request.urlopen(req)
 
     j_weather = json.load(weather_info)
     if command in ['t', 'time']:
