@@ -1,4 +1,18 @@
 #kelp's assembly of homages to shitbot, which doesen't work due to changes
+# Copyright (C) 2019  Anthony DeDominic <adedomin@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #in bython ;-;
 # Standard Libs
 import time
@@ -24,7 +38,7 @@ async def morrr(client, data):
     out += str(random.randint(2, 8))
     out += ' slices of that norwegian goodness on it.'
     out = f'\x01ACTION {out}\x01'
-    asyncio.create_task(messaging.action(client, data.target, out))
+    asyncio.create_task(client.message(data.target, out))
 
 @hook.hook('command', ['s8ball'])#shitty version of 8ball
 async def sball(client, data):
@@ -41,4 +55,14 @@ async def sball(client, data):
         out += awnser
         out = f'\x01ACTION {out}\x01'
     asyncio.create_task(client.message(data.target, out))
-        
+
+
+@hook.hook('event', ['JOIN'])
+async def abuse_kimi_and_ine(client, data):
+    nick = data.nickname
+    nick = nick.lower()
+    
+    if nick == 'kimi':
+        asyncio.create_task(client.message(data.target, '\x02[QUALITY OF CHANNEL SIGNIFICANTLY DECREASED]\x02'))
+    
+    

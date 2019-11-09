@@ -1,4 +1,18 @@
 """Events, sieves, and commands for flood control."""
+# Copyright (C) 2019  Anthony DeDominic <adedomin@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Standard Libs
 import asyncio
 import sched
@@ -59,7 +73,7 @@ async def _detect_flood(client, data, flood_rules, flood_type):
 
 @hook.hook('sieve', ['05-flood-input'])
 async def flood_input_sieve(client, data):
-    """Is for handling users who are flooding in the channel."""
+    #Is for handling users who are flooding in the channel.
     conn = client.bot.dbs[data.server]
     isadmin = await user.is_admin(client, conn, data.nickname, data.mask)
 

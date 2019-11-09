@@ -1,4 +1,18 @@
 """Sieves and commands for global and channel ignores."""
+# Copyright (C) 2019  Anthony DeDominic <adedomin@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Standard Libs
 import asyncio
 
@@ -37,7 +51,7 @@ async def ignore_sieve(client, data):
 
 async def _parse_masks(client, data, conn, message):
     masks = await user.parse_masks(client, conn, message)
-    bot_mask = await user.get_mask(client, client.nickname)
+    bot_mask = await user.get_mask(client, conn, client.nickname)
     if data.command in {'gignore', 'ignore'}:
         no_ignore = client.bot.config['servers'][data.server]['no_ignore']
         for mask in masks:

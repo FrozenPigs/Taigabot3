@@ -3,15 +3,12 @@
   "log_dir": "./persist/logs/",
   "valid_command_prefixes": [
     ".",
-    ",",
-    "$",
-    "!",
-    "&",
-    "+",
-    "-"
+    "~"
   ],
   "api_keys": {
-    "": ""
+    "last_fm": "XXXXXXXXXXXXXXXXXXXXXXXXXXXx",
+    "wolfram_alpha": "XXXXXXXXXXXXXXXXX",
+    "APIXU": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
   },
   "servers": {
     "rizon": {
@@ -30,7 +27,7 @@
         "*",
         "Global",
         "py-ctcp",
-        "arteries",
+        "paprika",
         "None"
       ],
       "ignored": [
@@ -38,68 +35,25 @@
         "Waifu!Your@waifu.a.shit"
       ],
       "no_ignore": [
-        "arteries!~arteries@Rizon-CD9CCF54.know.cable.virginm.net",
-        "Taigabot!~Taigabot@Taigabot.uguu"
+        "paprika!~nojus@lithuanian.internet.defence.force"
       ],
-      "owner": "wednesday",
+      "owner": "Kali_",
       "admins": [
-        "wednesday!Wednesday@Taiga-Best-Waifu.uguu"
+        "Kali_!~nojus@lithuanian.internet.defence.force"
       ],
       "channels": [
-        "#idlerpg",
-        "#arttest",
-        "#rizonirpg",
-        "#wednesday"
+        "#kelp",
+        "#homescreen"
       ],
       "no_channels": [
         "#chat"
       ],
       "command_prefix": ".",
-      "nick": "arteries",
-      "nickserv_password": "",
+      "nick": "paprika",
+      "nickserv_password": "XXXXXXXXXXXXXXXXXXXXXXXX",
       "nickserv_nick": "nickserv",
       "nickserv_command": "IDENTIFY {}",
       "server": "irc.rizon.net"
-    },
-    "freenode": {
-      "disabled": [
-        ""
-      ],
-      "no_disable": [
-        "logger",
-        "genable",
-        "gdisable",
-        "gadmins"
-      ],
-      "no_log": [
-        "*",
-        "Global",
-        "py-ctcp",
-        "arteries",
-        "None"
-      ],
-      "ignored": [
-        "brobot@s.u.c.c"
-      ],
-      "no_ignore": [
-        "Taigabot"
-      ],
-      "owner": "wednesday",
-      "admins": [
-        "wednesday!wednesday@taiga-best-waifu.uguu"
-      ],
-      "channels": [
-        "#wednesday"
-      ],
-      "no_channels": [
-        "#homescreen"
-      ],
-      "command_prefix": ".",
-      "nick": "arteries",
-      "nickserv_password": "",
-      "nickserv_nick": "nickserv",
-      "nickserv_command": "IDENTIFY {}",
-      "server": "irc.freenode.net"
     }
   }
 }

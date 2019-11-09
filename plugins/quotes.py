@@ -1,36 +1,44 @@
-# quotes
+#quotes
+# Copyright (C) 2019  Anthony DeDominic <adedomin@gmail.com>
 #
-# usage:
-# .qinit --- database initialization command (admin only)
-# .q [nick/channel] [optional quote number] --- for fetching quotes by their
-# number (or a random quote)
-# .q [nick/channel] [search term] --- for fetching quotes by a search term
-# .q add [nick] [quote] --- for adding quotes
-# .q delete [quote number] --- for deleting quotes (you can only delete your
-# own quotes)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# made by kelp
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#author: nojusr
+#
+#usage:
+# .qinit                                       --- database initialization command (admin only)
+# .q [nick/channel] [optional quote number]    --- for fetching quotes by their number (or a random quote)
+# .q [nick/channel] [search term]              --- for fetching quotes by a search term
+# .q add [nick] [quote]                        --- for adding quotes
+# .q delete [quote number]                     --- for deleting quotes (you can only delete your own quotes)
+#
 
-# TODO: make a util for hastebin
-# TODO: rewrite docstrings
-# TODO: Do quote deletion better
-# TODO: Add min length to the search string
 
-from typing import List
+from typing import Optional, Dict, Any, List, Set, Union, Callable, Tuple
+from dataclasses import dataclass, field
 import time
 import asyncio
 import random
 import requests
 
-# import core db functions
-from core import db, hook
-
-# db table definition
-quote_columns: List[str] = [
-    'chan', 'nick', 'add_nick', 'msg', 'time', 'deleted']
+#import core db functions
+from core import db
 
 
-def _remove_quotes(quotelist):
+#db table definition
+quote_columns: List[str] = ['chan', 'nick', 'add_nick', 'msg', 'time', 'deleted']
+
+def remove_quotes(quotelist):
     """removes quotes from a quotelist where deleted == '1' """
     buf = []
     for quote in quotelist:
@@ -39,176 +47,193 @@ def _remove_quotes(quotelist):
 
     return buf
 
-
-def _parse_search(search, quotelist):
-    if not search:
-        search = random.randint(0, len(quotelist) - 1)
-    else:
-        try:
-            search = int(search)
-            if search > 0:
-                search -= 1
-        except ValueError:
-            pass
-    return search
-
-
-def _message_or_paste(client, data, quotenums, quotelist):
-    # if we have more than five quotes....
-    if quotes:
-        for i, quote in enumerate(quotes):
-            out = f'[{quotenums[i]}/{len(quotelist)}] <{quote[1]}> {quote[3]}'
-            if len(quotes) > 5:
-                response = requests.post(
-                    'https://hastebin.com/documents', data=out)
-                if response.status_code == 200:
-                    d = response.json()['key']
-                    link = 'https://hastebin.com/' + str(d)
-                    asyncio.create_task(client.message(data.target, link))
-                else:
-                    asyncio.create_task(
-                        client.message(
-                            data.target,
-                            'Failed to upload quotes onto pastebin.'))
-
-            else:
-                asyncio.create_task(client.message(data.target, out))
-    else:
-        asyncio.create_task(client.message(data.target, 'No results.'))
-
-
-def _display_quote(client, data, quotelist, target, search=None):
+def display_quote(client, data, quotelist, target, arg):
     """
     output a quote, given a tuple list of all avalable quotes, and possibly
     a number (for selection of a specific quote)
     """
-    quotes = []
+    usertarg = target
+    
+    outquotes = []
     quotenums = []
-    quotelist = _remove_quotes(quotelist)
-    search = _parse_search(search, quotelist)
+    wordarg = None
+    numarg = None
+
+    if not arg:
+        # pick a random number from the quotelist
+        # if no argument is provided
+
+        if len(quotelist)-2 > 0:
+            numarg = random.randint(0, len(quotelist)-2)
+        else:
+            numarg = random.randint(0, len(quotelist)-1)
+
+    else:
+        try:
+            numarg = int(arg)
+            if numarg > 0:
+                numarg -= 1
+        except:
+            wordarg = arg
+
+
+    quotelist = remove_quotes(quotelist)
 
     if len(quotelist) < 1:
-        asyncio.create_task(
-            client.message(data.target, f'I have no quotes for {target}'))
+        asyncio.create_task(client.message(data.target, f'I have no quotes for {target}'))
         return
 
-    if isinstance(search, int):
+
+
+    if numarg != None:
         try:
-            quotes.append(quotelist[search])
-            if search < 0:
-                quotenums.append(len(quotelist) + search + 1)
+
+            outquotes.append(quotelist[numarg])
+            if numarg < 0:
+                quotenums.append(len(quotelist)+numarg+1)
             else:
-                quotenums.append(search + 1)
+                quotenums.append(numarg+1)
         except IndexError:
-            asyncio.create_task(
-                client.message(
-                    data.target,
-                    (f'I only have {str(len(quotelist))} quote(s) for'
-                     f'{target}')))
+            if len(quotelist) == 1:
+                asyncio.create_task(client.message(data.target, f'I only have 1 quote for {target}'))
+            else:
+                asyncio.create_task(client.message(data.target, f'I only have {str(len(quotelist))} quotes for {target}'))
+    elif wordarg != None:
+        for i in range(len(quotelist)):
+            quote = quotelist[i]
+            if wordarg in quote[3]:
+                outquotes.append(quote)
+                quotenums.append(i+1)
+
+    #if we have more than five quotes....
+    if len(outquotes) > 5:
+        #append each quote with '\n', smack it right into hastebin
+        out = ''
+        for i in range(len(outquotes)):
+            quote = outquotes[i]
+            out += f'[{str(quotenums[i])}/{str(len(quotelist))}]'
+            out += f' <{quote[1]}> {quote[3]}\n'
+
+        response = requests.post('https://pastie.io/documents', data=out)
+        if response.status_code == 200:
+            d = response.json()['key']
+            link = f'https://pastie.io/{str(d)}.txt'
+            asyncio.create_task(client.message(data.target, link))
+        else:
+            asyncio.create_task(client.message(data.target, 'Failed to upload quotes onto pastebin.'))
+
+    elif len(outquotes) > 0:
+        #if not, send each quote as a seperate message
+        for i in range(len(outquotes)):
+            quote = outquotes[i]
+            out = f'[{str(quotenums[i])}/{str(len(quotelist))}]'
+            out += f' <{target}> {quote[3]}'
+            asyncio.create_task(client.message(data.target, out))
     else:
-        for i, value in enumerate(quotelist):
-            if search in value[3]:
-                quotes.append(value)
-                quotenums.append(i + 1)
-    _message_or_paste(client, data, quotenums, quotelist)
+        asyncio.create_task(client.message(data.target, 'No results.'))
 
 
-def _search_quotes(client, data, conn, message):
-    if len(message) > 0 and len(data.message) > 0:
-
-        if data.message[0] == '#':
-            chansornicks = db.get_column(conn, 'channels', 'channel')
-            quotes = db.get_row(conn, 'quotes', 'chan', message[0])
-        else:
-            print(message, data.message)
-            if data.message[0] == '@':
-                message[0] = message[0][1:]
-                data.message = data.message[1:]
-            print(message, data.message)
-            chansornicks = db.get_column(conn, 'quotes', 'nick')
-            quotes = db.get_row(conn, 'quotes', 'nick', message[0])
-        argtuple = (message[0], )
-        if argtuple in chansornicks:
-            try:
-                _display_quote(client, data, quotes, message[0], message[1])
-            except IndexError:
-                _display_quote(client, data, quotes, message[0], None)
-        else:
-            asyncio.create_task(
-                client.message(data.target,
-                               f'No quotes found for {message[0]}.'))
-
-
-@hook.hook('command', ['qinit'], admin=True)
-async def quoteinit(client, data):
-    """admin only quote db table initiation hook, since trying to init
-    on every quote(even though the db functions account for that) is kinda
-    wasteful"""
-    conn = client.bot.dbs[data.server]
-    print(f'Initializing quote table in /persist/db/{data.server}.db...')
+@hook.hook('init', ['qinit'])
+async def quoteinit(client):
+    """quote initialization function, run once upon startup"""
+    conn = client.bot.dbs[client.server_tag]
+    print (f'Initializing quote table in /persist/db/{client.server_tag}.db...')
     db.init_table(conn, 'quotes', quote_columns)
     db.ccache()
-    print('Initialization complete.')
-
+    print ('Quote initialization complete.')
 
 @hook.hook('command', ['q'])
 async def quotes(client, data):
-    """main quote """
+    """main quote hook"""
     conn = client.bot.dbs[data.server]
-    message = data.split_message
+    split = data.message.split()
 
     tables = db.get_table_names(conn)
     if 'quotes' not in tables:
-        asyncio.create_task(
-            client.message(
-                data.target,
-                ('Quote table uninitialized. Please ask your nearest bot'
-                 'admin to run .qinit.')))
+        asyncio.create_task(client.message(data.target, 'Quote table uninitialized. Please ask your nearest bot admin to run .qinit.'))
 
-    if message[0] == 'add':
-        quotedata = (data.target, message[1], data.nickname,
-                     ' '.join(message[2:]), int(time.time()), '0')
-        db.set_row(conn, 'quotes', quotedata)
-        asyncio.create_task(client.message(data.target, 'Quote added.'))
-        db.ccache()
-        return
-    elif message[0] == 'del':
-        quotes = db.get_row(conn, 'quotes', 'nick', data.nickname)
+    #TODO: fix weird ass edgecase with users when a nick that corresponds to a command
 
-        try:
-            numarg = int(message[1])
-            if numarg > 0:
-                numarg -= 1
-        except ValueError:
-            asyncio.create_task(
-                client.message(
-                    data.target,
-                    'You need to use a number when deleting quotes.'))
-            return
+    if len(split) > 1:
+        if split[0] == 'add' or split[0] == 'a':
+            nick = split[1].lower()
 
-        quotes = _remove_quotes(quotes)
-        if len(quotes) > 0:
-            try:
-                # get quote to delete
-                quote = quotes[numarg]
-            except ValueError:
-                asyncio.create_task(
-                    client.message(
-                        data.target,
-                        f'You only have {str(len(quotes))} quote(s).'))
-                return
-            cur = conn.cursor()
-            cur.execute("UPDATE quotes SET deleted='1' WHERE msg=? AND time=?",
-                        (quote[3], quote[4]))
-            del cur
-            conn.commit()
+            quote = ' '.join(split[2:])
+            quotedata = (data.target, nick, data.nickname, quote, int(time.time()), '0',)
+            db.set_row(conn, 'quotes', quotedata)
+            asyncio.create_task(client.notice(data.nickname, 'Quote added.'))
             db.ccache()
-            asyncio.create_task(client.message(data.target, 'Quote deleted.'))
+            return
 
-            return
+        elif split[0] == 'delete' or split[0] == 'r' or split[0] == 'remove':
+            nickquotes = db.get_row(conn, 'quotes', 'nick', data.nickname.lower())
+            numarg = None
+
+            try:
+                numarg = int(split[1])
+                if numarg > 0:
+                    numarg -= 1
+            except:
+                asyncio.create_task(client.message(data.target, 'You need to use a number when deleting quotes.'))
+                return
+
+            nickquotes = remove_quotes(nickquotes)
+            if len(nickquotes) > 0:
+                try:
+                    #get quote to delete
+                    quote = nickquotes[numarg]
+                except:
+                    if len(nickquotes) == 1:
+                        asyncio.create_task(client.message(data.target, 'You only have 1 quote.'))
+                    else:
+                        asyncio.create_task(client.message(data.target, f'You only have {str(len(nickquotes))} quote(s).'))
+                    return
+
+                """gotta do custom query since i couldn't find anything in db.py that suits my needs.
+                i'm using both the time and the quote itself because it's the quickest sure way to know that that quote is unique
+                afaik it's very unlikely that the bot is fast enough to process two or more inputs within a second
+                """
+
+                cur = conn.cursor()
+                cur.execute("UPDATE quotes SET deleted='1' WHERE msg=? AND time=?", (quote[3], quote[4]))
+                del cur
+                conn.commit()
+                db.ccache()
+                asyncio.create_task(client.notice(data.nickname, 'Quote deleted.'))
+
+                return
+            else:
+                asyncio.create_task(client.message(data.target, 'You have no quotes.'))
+                return
+
+    if len(split) > 0 and len(data.message) > 0:
+        argtuple = split[0].lower(),
+
+        #convert split[0] (we now know that it needs to be compared with a db) into a tuple, since we get db results in a tuple
+
+        if data.message[0] == '#':
+            channels = db.get_column(conn, 'channels', 'channel')
+
+            if argtuple in channels:
+                chanquotes = db.get_row(conn, 'quotes', 'chan', split[0].lower())
+                try:
+                    display_quote(client, data, chanquotes, split[0], split[1])
+                except:
+                    display_quote(client, data, chanquotes, split[0], None)
+
+            else:
+                asyncio.create_task(client.message(data.target, f'No quotes found for {split[0]}.'))
         else:
-            asyncio.create_task(
-                client.message(data.target, 'You have no quotes.'))
-            return
-    else:
-        _search_quotes(client, data, conn, message)
+            users = db.get_column(conn, 'quotes', 'nick')
+
+            if argtuple in users:
+                print(split[0])
+                print(split[0].lower())
+                nickquotes = db.get_row(conn, 'quotes', 'nick', split[0].lower())
+                try:
+                    display_quote(client, data, nickquotes, split[0], split[1])
+                except:
+                    display_quote(client, data, nickquotes, split[0], None)
+            else:
+                asyncio.create_task(client.message(data.target, f'No quotes found for {split[0]}.'))
+

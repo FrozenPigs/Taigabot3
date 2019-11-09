@@ -1,18 +1,18 @@
 * To Add
-** gadmin
-| Command   | File               |
-|-----------+--------------------|
-| forget    | hashtags           |
-** admin
-| Command         | File               |
-|-----------------+--------------------|
-| add             | datafiles          |
-| storyofpomfface | stupid             |
-| match           | core_admin_channel |
-| disablehash     | core_admin_channel |
-| disabledhashes  | core_admin_channel |
-| enablehash      | core_admin_channel |
-| trim            | core_admin_channel |
+** general commands
+| Command         | File       |
+|-----------------+------------|
+| 4ch             | 4chan      |
+| choose          | misc       |
+| countdown       | misc       |
+| dict, define    | dict       |
+| ping            | misc       |
+| spotify, sp     | spotify    |
+| soundcloud, sc  | soundcloud |
+| url titles      | url        |
+| vim, vimeo      | vimeo      |
+| wiki            | wiki       |
+
 ** events
 | Events                                                         | File      |
 |----------------------------------------------------------------+-----------|
@@ -105,12 +105,28 @@
 | bans     | core_admin_channel | ban list             | admin    |
 | unban    | core_admin_channel | unban                | admin    |
 
+** general commands
+| Command                       | File               | New Command                  | New File        |
+|-------------------------------+--------------------+------------------------------+-----------------|
+| r                             | reminders          | r                            | reminders       |
+| q                             | quotes             | q                            | quotes          |
+| calc, wa                      | wolframalpha       | calc, math, wa,              | wolfram         |
+| tell                          | tell               | tell, showtells              | tell            |
+| g, gi,                        | google             | g, gi, sp, spi               | startpage       |
+| homescreen, waifu, desktop    | ???                | homescreen, waifu, desktop   | user-attributes |
+| yt, youtube                   | youtube            | yt, youtube                  | youtube         |
+| w, weather                    | ???                | w, weather                   | location        |
+| t, time                       | ???                | t, time                      | location        |
+| ud, nig                       | urban              | ud                           | urban           |
+
 ** events
 | Event        | File      | New Event    | New File |
 |--------------+-----------+--------------+----------|
 | invite       | core_misc | invite/whois | admin    |
 | log          | log       | logger       | log      |
 | ctcp replies | core_ctcp | ctcp replies | ctcp     |
+| #reminder    | reminders | #reminder    | reminders|
+
 ** sieves
 | Sieve       | File       | New Sieve                                  | New File    |
 |-------------+------------+--------------------------------------------+-------------|

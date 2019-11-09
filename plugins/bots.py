@@ -1,4 +1,4 @@
-"""Uils for dealing with time."""
+# .bots plugin
 # Copyright (C) 2019  Anthony DeDominic <adedomin@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,25 +13,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# Standard Libs
+# author: ine
+#
+# usage:
+# .bots, .source                    -- show some information about the bot
+
+from core import hook
+
 import asyncio
-import sched
-import time
-from typing import Any, Callable, Dict, Tuple
 
+@hook.hook('command', ['bots'])
+async def bots(client, data):
+    asyncio.create_task(client.message(data.target, 'Reporting in! [Python]'))
 
-async def asyncsched(sched_time: int,
-                     func: Callable,
-                     args: Tuple[Any],
-                     kwargs: Dict[str, Any] = None) -> None:
-    """
-    Schedule func to be run in sched_time.
-
-    Func gets called with args and kwargs and should be an async function
-    """
-    s = sched.scheduler(time.perf_counter, time.sleep)
-    if kwargs:
-        s.enter(sched_time, 1, asyncio.create_task, (func(*args, **kwargs), ))
-    else:
-        s.enter(sched_time, 1, asyncio.create_task, (func(*args), ))
-    s.run()
+@hook.hook('command', ['source'])
+async def source(client, data):
+    asyncio.create_task(client.message(data.target, '\x02paprika\x02 - Fuck my shit up nigga https://github.com/nojusr/paprika'))
