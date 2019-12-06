@@ -16,18 +16,23 @@
 # TODO: Do quote deletion better
 # TODO: Add min length to the search string
 
-from typing import List
-import time
+# Standard Libs
 import asyncio
 import random
-import requests
+import time
+from typing import List
 
+# First Party
 # import core db functions
 from core import db, hook
 
+# Third Party
+import requests
+
 # db table definition
 quote_columns: List[str] = [
-    'chan', 'nick', 'add_nick', 'msg', 'time', 'deleted']
+    'chan', 'nick', 'add_nick', 'msg', 'time', 'deleted'
+]
 
 
 def _remove_quotes(quotelist):
@@ -101,10 +106,9 @@ def _display_quote(client, data, quotelist, target, search=None):
                 quotenums.append(search + 1)
         except IndexError:
             asyncio.create_task(
-                client.message(
-                    data.target,
-                    (f'I only have {str(len(quotelist))} quote(s) for'
-                     f'{target}')))
+                client.message(data.target, (
+                    f'I only have {str(len(quotelist))} quote(s) for'
+                    f'{target}')))
     else:
         for i, value in enumerate(quotelist):
             if search in value[3]:
@@ -160,10 +164,9 @@ async def quotes(client, data):
     tables = db.get_table_names(conn)
     if 'quotes' not in tables:
         asyncio.create_task(
-            client.message(
-                data.target,
-                ('Quote table uninitialized. Please ask your nearest bot'
-                 'admin to run .qinit.')))
+            client.message(data.target, (
+                'Quote table uninitialized. Please ask your nearest bot'
+                'admin to run .qinit.')))
 
     if message[0] == 'add':
         quotedata = (data.target, message[1], data.nickname,
@@ -198,8 +201,9 @@ async def quotes(client, data):
                         f'You only have {str(len(quotes))} quote(s).'))
                 return
             cur = conn.cursor()
-            cur.execute("UPDATE quotes SET deleted='1' WHERE msg=? AND time=?",
-                        (quote[3], quote[4]))
+            cur.execute(
+                "UPDATE quotes SET deleted='1' WHERE msg=? AND time=?",
+                (quote[3], quote[4]))
             del cur
             conn.commit()
             db.ccache()

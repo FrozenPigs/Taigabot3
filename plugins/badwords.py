@@ -9,22 +9,23 @@ from util import timeu, user
 
 
 @hook.hook('sieve', ['04-censor-badwords-output'])
-async def badwords_output_sieve(client, server, command, args, kwargs):
+async def badwords_output_sieve(bot, message):
     """Is for stopping the bot saying bad words in channel."""
-    if command == 'PRIVMSG':
-
-        kickwords = db.get_cell(client.bot.dbs[server], 'channels',
-                                'kickwords', 'channel', args[0])[0][0]
-        banwords = db.get_cell(client.bot.dbs[server], 'channels', 'banwords',
-                               'channel', args[0])[0][0]
-        message = args[1]
+    parsed = await bot.parse_message(message)
+    if parsed[1] == 'PRIVMSG':
+        channel = parsed[-1][0]
+        kickwords = db.get_cell(bot.db, 'channels', 'kickwords', 'channel',
+                                channel)[0][0]
+        banwords = db.get_cell(bot.db, 'channels', 'banwords', 'channel',
+                               channel)[0][0]
+        split_message = parsed[-1][-1].split()
         if kickwords:
             if ' ' in kickwords:
                 kickwords = kickwords.split()
             else:
                 kickwords = [kickwords]
             for word in kickwords:
-                if word in message:
+                if word in split_message:
                     message = message.replace(word, '[censored]').strip()
         if banwords:
             if ' ' in banwords:
@@ -33,49 +34,52 @@ async def badwords_output_sieve(client, server, command, args, kwargs):
                 banwords = [banwords]
             for word in banwords:
                 word = ' '.join(word.split(':')[0:-1])
-                if word in message:
+                if word in split_message:
                     message = message.replace(word, '[censored]').strip()
-        args = (args[0], message)
-    return command, args, kwargs
+    return message
 
 
 @hook.hook('sieve', ['04-disallow-badwords-input'])
-async def badwords_input_sieve(client, data):
-    """Is used to return block inputs from users using bad words."""
-    admin = await user.is_admin(client, client.bot.dbs[data.server],
-                                data.nickname, data.mask)
-    gadmin = await user.is_gadmin(client, data.server, data.mask)
-    db.add_column(client.bot.dbs[data.server], 'channels', 'kickwords')
-    db.add_column(client.bot.dbs[data.server], 'channels', 'banwords')
+async def badwords_input_sieve(bot, msg):
+    """Is used to block inputs from users using bad words."""
+    if not msg.user:
+        return msg
+    admin = msg.user.chan_admin
+    gadmin = msg.user.global_admin
+    db.add_column(bot.db, 'channels', 'kickwords')
+    db.add_column(bot.db, 'channels', 'banwords')
 
-    if not data.target or data.target[0] != '#' or gadmin or admin:
-        return data
+    if not msg.target or msg.target[0] != '#' or gadmin or admin:
+        return msg
 
-    db_prefix = db.get_cell(client.bot.dbs[data.server], 'channels',
-                            'commandprefix', 'channel', data.target)[0][0]
-    if data.command[0] != db_prefix:
-        return data
+    db_prefix = db.get_cell(bot.db, 'channels', 'commandprefix', 'channel',
+                            msg.target)[0][0]
+    print(msg)
+    if msg.command[0] != db_prefix:
+        return msg
 
-    kickwords = db.get_cell(client.bot.dbs[data.server], 'channels',
-                            'kickwords', 'channel', data.target)
-    banwords = db.get_cell(client.bot.dbs[data.server], 'channels', 'banwords',
-                           'channel', data.target)
+    kickwords = db.get_cell(bot.db, 'channels', 'kickwords', 'channel',
+                            msg.target)
+    banwords = db.get_cell(bot.db, 'channels', 'banwords', 'channel',
+                           msg.target)
     if kickwords:
         kickwords = kickwords[0][0]
         for word in kickwords.split(' '):
-            if word in data.message:
+            if word in msg.split_message:
                 asyncio.create_task(
-                    client.notice(data.nickname, (f'I cannot say {word} in'
-                                                  f'{data.target}')))
+                    bot.send_notice([msg.user.nickname],
+                                    (f'I cannot say {word} in'
+                                     f'{msg.target}')))
     if banwords:
         banwords = banwords[0][0]
         for word in banwords.split(' '):
             word = ' '.join(word.split(':')[0:-1])
-            if word in data.message:
+            if word in msg.split_message:
                 asyncio.create_task(
-                    client.notice(data.nickname, (f'I cannot say {word} in'
-                                                  f'{data.target}')))
-    return data
+                    bot.send_notice([msg.user.nickname],
+                                    (f'I cannot say {word} in'
+                                     f'{msg.target}')))
+    return msg
 
 
 @hook.hook('event', ['PRIVMSG'])
@@ -92,8 +96,8 @@ async def badwords(client, data):
 
     kickwords = db.get_cell(client.bot.dbs[data.server], 'channels',
                             'kickwords', 'channel', data.target)
-    banwords = db.get_cell(client.bot.dbs[data.server], 'channels', 'banwords',
-                           'channel', data.target)
+    banwords = db.get_cell(client.bot.dbs[data.server], 'channels',
+                           'banwords', 'channel', data.target)
     if kickwords:
         kickwords = kickwords[0][0]
         for word in kickwords.split():
@@ -102,7 +106,7 @@ async def badwords(client, data):
                     client.kick(
                         data.target,
                         data.nickname,
-                        reason=(f'You\'re not allowed to say {word}.')))
+                        reason=(f"You're not allowed to say {word}.")))
     if banwords:
         banwords = banwords[0][0]
         for word in banwords.split():
@@ -113,9 +117,8 @@ async def badwords(client, data):
                     client.kickban(
                         data.target,
                         data.nickname,
-                        reason=(
-                            f'You\'re not allowed to say {word}, banned for'
-                            f' {ban_time} seconds.')))
+                        reason=(f"You're not allowed to say {word}, banned for"
+                                f' {ban_time} seconds.')))
                 asyncio.create_task(
                     timeu.asyncsched(ban_time, client.unban,
                                      (data.target, data.nickname)))
@@ -193,8 +196,8 @@ async def c_badwords(client, data):
     """
     kickwords = db.get_cell(client.bot.dbs[data.server], 'channels',
                             'kickwords', 'channel', data.target)
-    banwords = db.get_cell(client.bot.dbs[data.server], 'channels', 'banwords',
-                           'channel', data.target)
+    banwords = db.get_cell(client.bot.dbs[data.server], 'channels',
+                           'banwords', 'channel', data.target)
     if ' ' in data.message:
         message = data.message.split(' ')
     else:
