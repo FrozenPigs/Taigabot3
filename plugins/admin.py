@@ -60,30 +60,30 @@ async def init_channel_dbs(client):
 
 
 @hook.hook('event', ['JOIN'])
-async def chan_join(client, data):
+async def chan_join(bot, msg):
     """Is called on channel join."""
-    conn = client.bot.dbs[data.server]
-    if data.nickname in client.users:
+    conn = bot.db
+    if msg.sent_by in bot.users:
         ops = await botu.make_list(
-            db.get_cell(conn, 'channels', 'op', 'channel', data.target)[0][0])
+            db.get_cell(conn, 'channels', 'op', 'channel', msg.target)[0][0])
         hops = await botu.make_list(
-            db.get_cell(conn, 'channels', 'hop', 'channel', data.target)[0][0])
+            db.get_cell(conn, 'channels', 'hop', 'channel', msg.target)[0][0])
         vops = await botu.make_list(
-            db.get_cell(conn, 'channels', 'vop', 'channel', data.target)[0][0])
+            db.get_cell(conn, 'channels', 'vop', 'channel', msg.target)[0][0])
         bans = await botu.make_list(
-            db.get_cell(conn, 'channels', 'ban', 'channel', data.target)[0][0])
+            db.get_cell(conn, 'channels', 'ban', 'channel', msg.target)[0][0])
 
         if data.mask in ops:
             asyncio.create_task(
-                client.rawmsg('MODE', data.target, '+o', f'{data.nickname}'))
+                bot.send_mode(msg.target, '+o', f'{msg.sent_by}'))
         elif data.mask in hops:
             asyncio.create_task(
-                client.rawmsg('MODE', data.target, '+h', f'{data.nickname}'))
+                bot.send_mode(msg.target, '+h', f'{msg.sent_by}'))
         elif data.mask in vops:
             asyncio.create_task(
-                client.rawmsg('MODE', data.target, '+v', f'{data.nickname}'))
+                bot.send_mode(msg.target, '+v', f'{msg.sent_by}'))
         if data.mask in bans:
-            asyncio.create_task(client.ban(data.target, data.nickname))
+            asyncio.create_task(bot.send_ban(data.target, data.nickname))
 
 
 @hook.hook('command', ['admins'], admin=True, autohelp=True)

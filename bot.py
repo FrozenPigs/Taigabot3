@@ -332,6 +332,8 @@ class Taigabot(irc.IRC):
                     '-input'):
                 for func in funcs:
                     msg = await func(self, msg)
+                    if msg is None:
+                        return msg
         return msg
 
     async def _run_inits(self) -> None:
@@ -361,14 +363,15 @@ class Taigabot(irc.IRC):
                 raw_message = await self.read_line()
                 message = Message(self, await self.parse_message(raw_message))
                 message = await self._run_input_sieves(message)
-                await self._run_events(message)
-                if '!' in message.sent_by:
-                    nick = message.sent_by.split('!')[0]
-                    if nick in self.users.keys():
-                        print(self.users[nick])
-                if hasattr(self, f'rpl_{message.raw_command}'):
-                    rpl_handler = getattr(self, f'rpl_{message.raw_command}')
-                    await rpl_handler(message)
+                if message:
+                    await self._run_events(message)
+                    if '!' in message.sent_by:
+                        nick = message.sent_by.split('!')[0]
+                        if nick in self.users.keys():
+                            print(self.users[nick])
+                    if hasattr(self, f'rpl_{message.raw_command}'):
+                        rpl_handler = getattr(self, f'rpl_{message.raw_command}')
+                        await rpl_handler(message)
             except asyncio.streams.IncompleteReadError:
                 if self.server_config.auto_reconnect:
                     await asyncio.sleep(self.server_config.

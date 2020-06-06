@@ -8,12 +8,12 @@ from core import hook
 from util import timeu
 
 
-async def _detect_highlight(users, message):
+async def _detect_highlight(users, msg):
     """Is used to detect if message is masshighlighting."""
-    message = message.split(' ')
+    msg = msg.split(' ')
     regex = re.compile("['!?,.]")
     matches = [
-        word for word in message[1:] if regex.sub('', word.lower()) in users
+        word for word in msg[1:] if regex.sub('', word.lower()) in users
     ]
     if len(set(matches)) > 5:
         return True
@@ -21,33 +21,33 @@ async def _detect_highlight(users, message):
 
 
 @hook.hook('sieve', ['03-masshighlight-output'])
-async def masshighlight_output_sieve(bot, message):
+async def masshighlight_output_sieve(bot, msg):
     """Is for preventing the bot from mass highligting."""
-    parsed = await bot.parse_message(message)
+    parsed = await bot.parse_message(msg)
     if parsed[1] == 'PRIVMSG':
-        message = parsed[-1][-1]
-        if ' ' not in message:
-            return message
+        msg = parsed[-1][-1]
+        if ' ' not in msg:
+            return msg
         users = list(bot.users.keys())
-        if await _detect_highlight(users, message):
+        if await _detect_highlight(users, msg):
             return None
-    return message
+    return msg
 
 
 @hook.hook('sieve', ['03-masshighlight-input'])
-async def masshighlight_input_sieve(client, data):
+async def masshighlight_input_sieve(bot, msg):
     """Is for banning users who masshighlight."""
-    if ' ' not in data.message:
-        return data
-    users = list(client.users.keys())
-    if await _detect_highlight(users, data.message):
+    if ' ' not in msg.message:
+        return msg
+    users = list(bot.users.keys())
+    if await _detect_highlight(users, msg.message):
         asyncio.create_task(
-            client.kickban(
-                data.target,
-                data.nickname,
+            bot.send_kickban(
+                msg.target,
+                msg.sent_by,
                 reason=('No mass'
                         'highlighting, come back in 1 minute.')))
         asyncio.create_task(
-            timeu.asyncsched(60, client.unban, (data.target, data.nickname)))
+            timeu.asyncsched(60, bot.send_unban, (msg.target, msg.sent_by)))
         return None
-    return data
+    return msg

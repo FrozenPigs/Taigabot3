@@ -83,45 +83,45 @@ async def badwords_input_sieve(bot, msg):
 
 
 @hook.hook('event', ['PRIVMSG'])
-async def badwords(client, data):
+async def badwords(bot, msg):
     """Is an event for kicking or banning users using bad words."""
-    if data.target[0] != '#':
+    if msg.target[0] != '#':
         return
 
-    if await user.is_admin(client, client.bot.dbs[data.server], data.nickname,
-                           data.mask):
+    print(dir(msg))
+    if msg.user.chan_admin:
         return
-    if await user.is_gadmin(client, data.server, data.mask):
+    if msg.user.global_admin:
         return
 
-    kickwords = db.get_cell(client.bot.dbs[data.server], 'channels',
-                            'kickwords', 'channel', data.target)
-    banwords = db.get_cell(client.bot.dbs[data.server], 'channels',
-                           'banwords', 'channel', data.target)
+    kickwords = db.get_cell(bot.db, 'channels',
+                            'kickwords', 'channel', msg.target)
+    banwords = db.get_cell(bot.db, 'channels',
+                           'banwords', 'channel', msg.target)
     if kickwords:
         kickwords = kickwords[0][0]
         for word in kickwords.split():
-            if word in data.message:
+            if word in msg.message:
                 asyncio.create_task(
-                    client.kick(
-                        data.target,
-                        data.nickname,
+                    bot.send_kick(
+                        msg.target,
+                        msg.sent_by,
                         reason=(f"You're not allowed to say {word}.")))
     if banwords:
         banwords = banwords[0][0]
         for word in banwords.split():
             word, ban_time, *_ = word.split(':')
             ban_time = int(ban_time)
-            if word in data.message:
+            if word in msg.message:
                 asyncio.create_task(
-                    client.kickban(
-                        data.target,
-                        data.nickname,
+                    bot.send_kickban(
+                        msg.target,
+                        msg.sent_by,
                         reason=(f"You're not allowed to say {word}, banned for"
                                 f' {ban_time} seconds.')))
                 asyncio.create_task(
-                    timeu.asyncsched(ban_time, client.unban,
-                                     (data.target, data.nickname)))
+                    timeu.asyncsched(ban_time, bot.send_unban,
+                                     (msg.target, msg.sent_by)))
 
 
 async def _add_words(client, data, conn, words, message, ban=False):
