@@ -1,10 +1,6 @@
 #kelp's assembly of homages to shitbot, which doesen't work due to changes
 #in bython ;-;
 # Standard Libs
-# Standard Libs
-# Standard Libs
-# Standard Libs
-# Standard Libs
 import asyncio
 import random
 import sqlite3
@@ -17,24 +13,23 @@ from util import messaging
 
 
 @hook.hook('command', ['morr'])    #morr dispenser
-async def morrr(client, data):
+async def morrr(bot, message):
     out = 'hands '
-    if data.message == '':
-        out += data.nickname
+    if message.message == message.command:
+        out += message.user.nickname
     else:
-        tmpstr = data.message
-        out += tmpstr.split(' ')[0]
+        out = ' '.join(message.split_message[1:])
     out += ' a nice butterbrod with '
     out += str(random.randint(2, 8))
     out += ' slices of that norwegian goodness on it.'
     out = f'\x01ACTION {out}\x01'
-    asyncio.create_task(messaging.action(client, data.target, out))
+    asyncio.create_task(bot.send_privmsg([message.target], out))
 
-
+    
 @hook.hook('command', ['s8ball'])    #shitty version of 8ball
-async def sball(client, data):
+async def sball(bot, message):
     out = 'your dumb ass didn\'t even ask a question'
-    if data.message != '':
+    if message.message != message.command:
         choices = [
             "not today, ho", "ask Kali_",
             "ask your friendly neighbourhood cat", "i dont know", "yeh", "no",
@@ -50,4 +45,4 @@ async def sball(client, data):
         out = 'says... '
         out += awnser
         out = f'\x01ACTION {out}\x01'
-    asyncio.create_task(client.message(data.target, out))
+    asyncio.create_task(bot.send_privmsg([message.target], out))

@@ -20,9 +20,14 @@ async def finger(bot, message):
 async def version(bot, message):
     """Is for replying to ctcp version messages."""
     if message.command == '\x01VERSION\x01':
-        asyncio.create_task(
-            bot.send_notice([message.user.nickname],
-                               f'\x01VERSION TaigaBotNet Version 3.8\x01'))
+        try:
+            asyncio.create_task(
+                bot.send_notice([message.user.nickname],
+                                f'\x01VERSION TaigaBotNet Version 3.8\x01'))
+        except AttributeError:
+            asyncio.create_task(
+                bot.send_notice([message.sent_by],
+                                f'\x01VERSION TaigaBotNet Version 3.8\x01'))
 
 
 @hook.hook('event', ['PRIVMSG'])
@@ -65,7 +70,6 @@ async def ctcptime(bot, message):
 async def ping(bot, message):
     """Is for replying to ctcp ping messages."""
     if message.command == '\x01PING':
-        print(message)
         ping_message = ' '.join(message.split_message[1:])
         asyncio.create_task(
             bot.send_notice([message.user.nickname], f'\x01PING {ping_message}\x01'))

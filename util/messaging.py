@@ -27,7 +27,7 @@ colors: Dict[str, str] = {
 }
 
 
-async def action(client: Any, target: str, message: str) -> None:
+async def action(bot: Any, target: str, message: str) -> None:
     """Is used to do an action in a channel."""
     message = f'\x01ACTION {message}\x01'
-    client.message(target, message)
+    bot.send_privmsg([target], message)
