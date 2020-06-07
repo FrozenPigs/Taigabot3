@@ -11,7 +11,7 @@ from util import timeu, user
 @hook.hook('sieve', ['04-censor-badwords-output'])
 async def badwords_output_sieve(bot, message):
     """Is for stopping the bot saying bad words in channel."""
-    parsed = await bot.parse_message(message)
+    parsed = bot.parse_message(message)
     if parsed[1] == 'PRIVMSG':
         channel = parsed[-1][0]
         kickwords = db.get_cell(bot.db, 'channels', 'kickwords', 'channel', channel)[0][0]

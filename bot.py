@@ -367,7 +367,7 @@ class Taigabot(irc.IRC):
                                                               self.plugins)
             try:
                 raw_message = await self.read_line()
-                message = Message(self, await self.parse_message(raw_message))
+                message = Message(self, self.parse_message(raw_message))
                 message = await self._run_input_sieves(message)
                 if message:
                     await self._run_events(message)
