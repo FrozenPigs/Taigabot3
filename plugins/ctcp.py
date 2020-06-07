@@ -8,63 +8,64 @@ from core import hook
 
 
 @hook.hook('event', ['PRIVMSG'])
-async def finger(client, data):
+async def finger(bot, message):
     """Is for replying to ctcp finger messages."""
-    if data.command == '\x01FINGER\x01':
+    if message.command == '\x01FINGER\x01':
         asyncio.create_task(
-            client.send_notice(data.nickname,
+            bot.send_notice([message.user.nickname],
                                "\x01FINGER pls don't finger me\x01"))
 
 
 @hook.hook('event', ['PRIVMSG'])
-async def version(client, data):
+async def version(bot, message):
     """Is for replying to ctcp version messages."""
-    if data.command == '\x01VERSION\x01':
+    if message.command == '\x01VERSION\x01':
         asyncio.create_task(
-            client.send_notice(data.nickname,
-                               f'\x01VERSION TaigaBotNet Version 3.7\x01'))
+            bot.send_notice([message.user.nickname],
+                               f'\x01VERSION TaigaBotNet Version 3.8\x01'))
 
 
 @hook.hook('event', ['PRIVMSG'])
-async def source(client, data):
+async def source(bot, message):
     """Is for replying to ctcp source messages."""
-    if data.command == '\x01SOURCE\x01':
+    if message.command == '\x01SOURCE\x01':
         asyncio.create_task(
-            client.send_notice(data.nickname, '\x01SOURCE No source yet.\x01'))
+            bot.send_notice([message.user.nickname], '\x01SOURCE No source yet.\x01'))
 
 
 @hook.hook('event', ['PRIVMSG'])
-async def userinfo(client, data):
+async def userinfo(bot, message):
     """Is for replying to ctcp userinfo messages."""
-    if data.command == '\x01USERINFO\x01':
+    if message.command == '\x01USERINFO\x01':
         asyncio.create_task(
-            client.send_notice(data.nickname, '\x01USERINFO immabot\x01'))
+            bot.send_notice([message.user.nickname], '\x01USERINFO immabot\x01'))
 
 
 @hook.hook('event', ['PRIVMSG'])
-async def clientinfo(client, data):
+async def clientinfo(bot, message):
     """Is for replying to ctcp clientinfo messages."""
-    if data.command == '\x01CLIENTINFO\x01':
+    if message.command == '\x01CLIENTINFO\x01':
         supported = ('ACTION CLIENTINFO FINGER PING SOURCE TIME USERINFO'
                      ' VERSION')
         asyncio.create_task(
-            client.send_notice(data.nickname,
+            bot.send_notice([message.user.nickname],
                                f'\x01CLIENTINFO {supported}\x01'))
 
 
 @hook.hook('event', ['PRIVMSG'])
-async def ctcptime(client, data):
+async def ctcptime(bot, message):
     """Is for replying to ctcp time messages."""
-    if data.command == '\x01TIME\x01':
+    if message.command == '\x01TIME\x01':
         curtime = time.strftime('%A, %d. %B %Y %I:%M%p')
         asyncio.create_task(
-            client.send_notice(data.nickname, f'\x01TIME {curtime}\x01'))
+            bot.send_notice([message.user.nickname], f'\x01TIME {curtime}\x01'))
 
 
 @hook.hook('event', ['PRIVMSG'])
-async def ping(client, data):
+async def ping(bot, message):
     """Is for replying to ctcp ping messages."""
-    if data.command == '\x01PING':
-        message = ' '.join(data.message.split()[1:])
+    if message.command == '\x01PING':
+        print(message)
+        ping_message = ' '.join(message.split_message[1:])
         asyncio.create_task(
-            client.send_notice(data.nickname, f'\x01PING {message}'))
+            bot.send_notice([message.user.nickname], f'\x01PING {ping_message}\x01'))
