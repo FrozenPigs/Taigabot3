@@ -215,7 +215,6 @@ class Taigabot(irc.IRC):
     async def rpl_318(self, message: Message) -> None:
         nickname = message.split_message[0]
         self.users[nickname].whoised = True
-        print(self.users[nickname])
 
     async def rpl_333(self, message: Message) -> None:
         userhost = message.split_message[1]
@@ -322,7 +321,6 @@ class Taigabot(irc.IRC):
         await self.check_admins(self.users[nickname], target)
         await self.check_ignored(self.users[nickname], target)
         prefix = await self._get_prefix(target)
-        print(prefix)
         asyncio.create_task(self._run_commands(message))
 
     async def _run_input_sieves(self, privmsg) -> None:
@@ -367,8 +365,6 @@ class Taigabot(irc.IRC):
                     await self._run_events(message)
                     if '!' in message.sent_by:
                         nick = message.sent_by.split('!')[0]
-                        if nick in self.users.keys():
-                            print(self.users[nick])
                     if hasattr(self, f'rpl_{message.raw_command}'):
                         rpl_handler = getattr(self, f'rpl_{message.raw_command}')
                         await rpl_handler(message)

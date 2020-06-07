@@ -497,7 +497,6 @@ class IRC:
         raw_message = (await
                        self.reader.readuntil(b'\r\n')).decode('utf-8')[:-2]
         message = await self.parse_message(raw_message)
-        print(raw_message)
         if message[2] == 'PING':
             create_task(self.send_pong(' '.join(message[3][0:])))
         elif message[2] == 'CAP':

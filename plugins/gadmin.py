@@ -466,7 +466,6 @@ async def g_ctcp(client, data):
         asyncio.create_task(client.notice(data.nickname, f'{doc}'))
         return
     if len(message) == 2:
-        print(message[0], message[1], '')
         asyncio.create_task(client.ctcp(message[0], message[1], ''))
     elif len(message) == 3:
         msg = ' '.join(message[2:])

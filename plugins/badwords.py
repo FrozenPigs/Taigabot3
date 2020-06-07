@@ -54,7 +54,6 @@ async def badwords_input_sieve(bot, msg):
 
     db_prefix = db.get_cell(bot.db, 'channels', 'commandprefix', 'channel',
                             msg.target)[0][0]
-    print(msg)
     if msg.command[0] != db_prefix:
         return msg
 
@@ -88,7 +87,6 @@ async def badwords(bot, msg):
     if msg.target[0] != '#':
         return
 
-    print(dir(msg))
     if msg.user.chan_admin:
         return
     if msg.user.global_admin:
