@@ -278,7 +278,7 @@ class IRC:
         This is for sending messages to channels or users.
         """
         create_task(
-            self.send_line(f'(PRIVMSG {",".join(targets)} :{message}'))
+            self.send_line(f'PRIVMSG {",".join(targets)} :{message}'))
 
     async def send_quit(self, reason: Optional[str] = None) -> None:
         """Send a QUIT to the server, with or without reason.

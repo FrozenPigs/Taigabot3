@@ -286,9 +286,36 @@ class Taigabot(irc.IRC):
                     user.chan_ignored[target] = True
         user.chan_ignored[target] = False
 
-    async def _run_commands(self, privmsg: Message) -> None:
-        pass
-        #print(privmsg)
+
+    async def _run_commands(self, message: Message) -> None:
+        print('run_command', message.command)
+        commands = self.plugins['command']
+        command = message.command[1:]
+        conn = self.db
+        if not message.sent_by:
+            return
+        if command in commands.keys():
+            for func in commands[command]:
+                print(func, command)
+                hook = func.__hook__[1]
+                if hook['gadmin'] and not message.user.gadmin:
+                    asyncio.create_task(
+                        self.send_notice(message.sent_by,
+                                    ('You must be a gadmin to use'
+                                     ' that command')))
+                    return
+                if hook['admin'] and not admin and not message.user.admin:
+                    asyncio.create_task(
+                        self.send_notice(message.sent_by,
+                                    ('You must be an admin to use'
+                                     ' that command')))
+                    return
+                if not len(message.message) and hook['autohelp']:
+                    doc: str = ' '.join(cast(str, func.__doc__).split())
+                    asyncio.create_task(self.notice(message.sent_by, f'{doc}'))
+                    return
+                asyncio.create_task(func(self, message))
+
 
     async def _get_prefix(self, target: str) -> str:
         default_prefix = self.server_config.command_prefix
@@ -321,7 +348,9 @@ class Taigabot(irc.IRC):
         await self.check_admins(self.users[nickname], target)
         await self.check_ignored(self.users[nickname], target)
         prefix = await self._get_prefix(target)
-        asyncio.create_task(self._run_commands(message))
+        if message.command[0] == prefix:
+            print('prefix', message.command[0], prefix)
+            asyncio.create_task(self._run_commands(message))
 
     async def _run_input_sieves(self, privmsg) -> None:
         msg = privmsg
@@ -351,8 +380,8 @@ class Taigabot(irc.IRC):
                 if func.__name__.lower() not in self.server_config.disabled:
                     asyncio.create_task(func(self, privmsg))
 
+
     async def read_loop(self) -> None:    # message_handler
-        # _run_events
         await self._run_inits()
         while True:
             self.plugin_mtimes, self.plugins = plugins.reload(
@@ -368,6 +397,7 @@ class Taigabot(irc.IRC):
                     if hasattr(self, f'rpl_{message.raw_command}'):
                         rpl_handler = getattr(self, f'rpl_{message.raw_command}')
                         await rpl_handler(message)
+                        
             except asyncio.streams.IncompleteReadError:
                 if self.server_config.auto_reconnect:
                     await asyncio.sleep(self.server_config.

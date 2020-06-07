@@ -8,11 +8,11 @@ from core import hook
 
 
 @hook.hook('command', ['penis3'], autohelp=True)
-async def penis3(client, data):
+async def penis3(bot, message):
     """Is used to test threadding by sleeping."""
     print('penis')
-    time.sleep(5)
-    asyncio.create_task(client.message(data.target, 'penis'))
+    #time.sleep(5)
+    asyncio.create_task(bot.send_privmsg([message.target], 'penis'))
 
 
 @hook.hook('command', ['penis2'], admin=True)
