@@ -21,7 +21,7 @@ async def _detect_highlight(users, message):
 @hook.hook('sieve', ['03-masshighlight-output'])
 async def masshighlight_output_sieve(bot, message):
     """Is for preventing the bot from mass highligting."""
-    parsed = bot.parse_message(message)
+    parsed = await bot.parse_message(message)
     if parsed[1] == 'PRIVMSG':
         message = parsed[-1][-1]
         if ' ' not in message:

@@ -427,7 +427,7 @@ class IRC:
         elif method == 'EXTERNAL':
             create_task(self.send_authenticate('*'))
 
-    def parse_message(self, inp: str) -> Tuple[str, str, str, List[str]]:
+    async def parse_message(self, inp: str) -> Tuple[str, str, str, List[str]]:
         """Parse IRC messages into tags, prefix, command and args."""
         # TODO: Parse tags into dict
         tags: str = ''
@@ -454,7 +454,7 @@ class IRC:
         negotiation, sasl, and PINGS so must be used in a loop.
         """
         raw_message = (await self.reader.readuntil(b'\r\n')).decode('utf-8')[:-2]
-        message = self.parse_message(raw_message)
+        message = await self.parse_message(raw_message)
         if message[2] == 'PING':
             create_task(self.send_pong(' '.join(message[3][0:])))
         elif message[2] == 'CAP':
