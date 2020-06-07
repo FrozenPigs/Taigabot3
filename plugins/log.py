@@ -24,8 +24,9 @@ async def logger(bot, msg):
     command = msg.raw_command
     message = msg.message
     target = msg.target
+    sent_by = msg.sent_by
     timestamp = time.strftime('%H:%M:%S')
-    output = (f'<{timestamp}> <{server}> <{command}> <{host}> <{target}> '
+    output = (f'<{timestamp}> <{server}> <{command}> <{host}> <{target}> <{sent_by}> '
               f'{message}')
     log_dir = Path(
         bot.full_config.log_dir).resolve() / server / time.strftime('%Y')

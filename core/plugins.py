@@ -73,7 +73,7 @@ def reload(plugin_dir: Path, plugin_mtimes: Dict[Path, float],
     Otherwise if the modify time has changed on a loaded plugin reload the
     plugin and change the modify time.
     """
-    plugin_files = set(plugin_dir.glob('*.py'))
+    plugin_files = set(plug for plug in plugin_dir.glob('*.py') if not plug.name.startswith('.'))
     mtimes: Dict[str, Dict[str, float]] = plugin_mtimes
     for plug in plugin_files:
         new_mtime = plug.stat().st_mtime
