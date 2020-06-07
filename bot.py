@@ -10,7 +10,7 @@ import signal
 import sys
 from pathlib import Path
 from sqlite3 import Connection
-from ssl import SSLContext
+from ssl import SSLContext, SSLCertVerificationError
 from typing import (Any, Callable, Dict, List, Optional, Set, Tuple, TypeVar,
                     Union, cast)
 
@@ -56,7 +56,13 @@ class Taigabot(irc.IRC):
         ], self.server_config.nickserv_command.format(self.server_config.nickname_password))
 
     async def start(self) -> None:    # on_connect
-        await self.connect()
+        try:
+            await self.connect()
+        except SSLCertVerificationError as err:
+            print('Certificate verification failed')
+            print(str(err))
+            return
+
         await asyncio.gather(self.authenticate(), self.read_loop())
 
     async def authenticate(self) -> None:
