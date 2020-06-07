@@ -49,6 +49,10 @@ class Taigabot(irc.IRC):
                                          self.server_name)
         super().__init__(self.server_config)
 
+################################################################################
+#                                   MISC                                       #
+################################################################################
+
     async def nickserv(self) -> None:
         self.send_privmsg([self.server_config.nickserv_nick],
                           self.server_config.nickserv_command.
@@ -128,6 +132,30 @@ class Taigabot(irc.IRC):
                 channel_modes[channel] = channel_mode
             new_channels.append(channel)
         return channel_modes, new_channels
+    
+    async def check_admins(self, user: User, target: str) -> None:
+        user.global_admin = user.userhost in self.server_config.admins
+        db.add_column(self.db, 'channels', 'admins')
+        admins = db.get_cell(self.db, 'channels', 'admins', 'channel', target)
+        if admins:
+            nadmins: Optional[str] = admins[0][0]
+            if nadmins:
+                if user.userhost in nadmins.split():
+                    user.chan_admin = True
+                else:
+                    user.chan_admin = False
+
+    async def check_ignored(self, user: User, target: str) -> None:
+        user.global_ignored = user.userhost in self.server_config.ignored
+        db.add_column(self.db, 'channels', 'ignored')
+        ignores = db.get_cell(self.db, 'channels', 'ignored', 'channel',
+                              target)
+        if ignores:
+            nignores: Optional[str] = ignores[0][0]
+            if nignores:
+                if user.userhost in nignores:
+                    user.chan_ignored[target] = True
+        user.chan_ignored[target] = False
 
     async def track_users_userhost(self, userhost: str) -> None:
         if '!' in userhost:
@@ -147,6 +175,10 @@ class Taigabot(irc.IRC):
                 self.users[nickname].userhost = userhost
                 self.users[nickname].username = username
                 self.users[nickname].username_user_set = username_user_set
+
+################################################################################
+#                                    RPL                                       #
+################################################################################
 
     async def rpl_353(self, message: Message) -> None:
         """NAMES."""
@@ -241,30 +273,24 @@ class Taigabot(irc.IRC):
             user = self.users[nickname]
             user.last_message = message.raw_message
 
-    async def check_admins(self, user: User, target: str) -> None:
-        user.global_admin = user.userhost in self.server_config.admins
-        db.add_column(self.db, 'channels', 'admins')
-        admins = db.get_cell(self.db, 'channels', 'admins', 'channel', target)
-        if admins:
-            nadmins: Optional[str] = admins[0][0]
-            if nadmins:
-                if user.userhost in nadmins.split():
-                    user.chan_admin = True
-                else:
-                    user.chan_admin = False
+    async def rpl_PRIVMSG(self, message: Message) -> None:
+        userhost = message.sent_by
+        await self.track_users_userhost(userhost)
+        nickname = userhost.split('!')[0]
+        self.users[nickname].last_message = message.raw_message
+        if not self.users[nickname].whoised:
+            self.send_whois(nickname)
+        target = message.target
+        await self.check_admins(self.users[nickname], target)
+        await self.check_ignored(self.users[nickname], target)
+        prefix = await self._get_prefix(target)
+        if message.command[0] == prefix:
+            print('prefix', message.command[0], prefix)
+            asyncio.create_task(self._run_commands(message))
 
-    async def check_ignored(self, user: User, target: str) -> None:
-        user.global_ignored = user.userhost in self.server_config.ignored
-        db.add_column(self.db, 'channels', 'ignored')
-        ignores = db.get_cell(self.db, 'channels', 'ignored', 'channel',
-                              target)
-        if ignores:
-            nignores: Optional[str] = ignores[0][0]
-            if nignores:
-                if user.userhost in nignores:
-                    user.chan_ignored[target] = True
-        user.chan_ignored[target] = False
-
+################################################################################
+#                     SIEVES, EVENTS AND COMMANDS                              #
+################################################################################
 
     async def _run_commands(self, message: Message) -> None:
         print('run_command', message.command)
@@ -315,21 +341,6 @@ class Taigabot(irc.IRC):
                 db.set_cell(self.db, 'channels', 'commandprefix', prefix,
                             'channel', target)
         return prefix
-
-    async def rpl_PRIVMSG(self, message: Message) -> None:
-        userhost = message.sent_by
-        await self.track_users_userhost(userhost)
-        nickname = userhost.split('!')[0]
-        self.users[nickname].last_message = message.raw_message
-        if not self.users[nickname].whoised:
-            self.send_whois(nickname)
-        target = message.target
-        await self.check_admins(self.users[nickname], target)
-        await self.check_ignored(self.users[nickname], target)
-        prefix = await self._get_prefix(target)
-        if message.command[0] == prefix:
-            print('prefix', message.command[0], prefix)
-            asyncio.create_task(self._run_commands(message))
 
     async def _run_input_sieves(self, privmsg) -> None:
         msg = privmsg
