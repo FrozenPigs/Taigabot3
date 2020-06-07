@@ -27,8 +27,8 @@ CommandDict = Dict[str, List[CommandFunc]]
 
 class Taigabot(irc.IRC):
 
-    def __init__(self, config: Config, server_name: str, ssl: Union[bool, SSLContext]):
-        self.ssl = ssl
+    def __init__(self, config: Config, server_name: str, ssl_context: SSLContext):
+        self.ssl_context = ssl_context
         self.full_config = config
         self.server_name = server_name
         self.server_config: ServerConfig = self.full_config.servers[self.server_name]
@@ -73,7 +73,7 @@ class Taigabot(irc.IRC):
 
     async def connect(self) -> None:
         return await self.create_connection(self.server_config.server, self.server_config.port,
-                                            self.ssl)
+                                            self.ssl_context)
 
     async def _run_output_sieves(self, message: str) -> Union[None, str]:
         msg = message

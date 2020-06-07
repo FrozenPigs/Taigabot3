@@ -127,6 +127,7 @@ class ServerConfig:
     nickserv_command: str = field(default='IDENTIFY {0}')
     port: int = field(default=6697)
     ssl: bool = field(default=True)
+    ssl_insecure: bool = field(default=False)
     auto_reconnect: bool = field(default=True)
     auto_reconnect_delay: int = field(default=20)
     disabled: List[str] = field(default_factory=list)
