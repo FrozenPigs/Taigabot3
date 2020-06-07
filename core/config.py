@@ -18,8 +18,7 @@ def load(config_file: str) -> Union[Exception, Config]:
     return json.load(Path(config_file).resolve().open('r'))
 
 
-def reload(config_file: str,
-           config_mtime: float) -> Union[Exception, Tuple[float, Config]]:
+def reload(config_file: str, config_mtime: float) -> Union[Exception, Tuple[float, Config]]:
     """Is used to load/reload the config file."""
     new_mtime: float = Path(config_file).resolve().stat().st_mtime
     try:

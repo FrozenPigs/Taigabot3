@@ -26,10 +26,8 @@ async def logger(bot, msg):
     target = msg.target
     sent_by = msg.sent_by
     timestamp = time.strftime('%H:%M:%S')
-    output = (f'<{timestamp}> <{server}> <{command}> <{host}> <{target}> <{sent_by}> '
-              f'{message}')
-    log_dir = Path(
-        bot.full_config.log_dir).resolve() / server / time.strftime('%Y')
+    output = (f'<{timestamp}> <{server}> <{command}> <{host}> <{target}> <{sent_by}> ' f'{message}')
+    log_dir = Path(bot.full_config.log_dir).resolve() / server / time.strftime('%Y')
     raw_log_dir = log_dir / 'raw'
 
     if not raw_log_dir.exists():

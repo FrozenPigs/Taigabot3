@@ -7,47 +7,40 @@ from typing import Any, List
 from core import data, db
 
 
-async def add_to_channels(client: Any, data: data.ParsedRaw, conn: Connection,
-                          column: str, adding: str, existing: List[
-                              str], added_msg: str, already_msg: str):
+async def add_to_channels(client: Any, data: data.ParsedRaw, conn: Connection, column: str,
+                          adding: str, existing: List[str], added_msg: str, already_msg: str):
     if adding in existing:
         asyncio.create_task(client.notice(data.nickname, already_msg))
     else:
         existing.append(adding)
         if len(existing) > 1:
-            db.set_cell(conn, 'channels', column, ' '.join(existing),
-                        'channel', data.target)
+            db.set_cell(conn, 'channels', column, ' '.join(existing), 'channel', data.target)
         else:
             print(existing)
-            db.set_cell(conn, 'channels', column, existing[0], 'channel',
-                        data.target)
+            db.set_cell(conn, 'channels', column, existing[0], 'channel', data.target)
 
         asyncio.create_task(client.notice(data.nickname, added_msg))
 
 
-async def del_from_channels(
-        client: Any, data: data.ParsedRaw, conn: Connection, column: str,
-        removing: str, existing: List[str], removed_msg: str, notin_msg: str):
+async def del_from_channels(client: Any, data: data.ParsedRaw, conn: Connection, column: str,
+                            removing: str, existing: List[str], removed_msg: str, notin_msg: str):
     if removing in existing:
         existing.remove(removing)
         if len(existing) > 1:
-            db.set_cell(conn, 'channels', column, ' '.join(existing),
-                        'channel', data.target)
+            db.set_cell(conn, 'channels', column, ' '.join(existing), 'channel', data.target)
         else:
             if not existing:
-                db.set_cell(conn, 'channels', column, '', 'channel',
-                            data.target)
+                db.set_cell(conn, 'channels', column, '', 'channel', data.target)
             else:
-                db.set_cell(conn, 'channels', column, existing, 'channel',
-                            data.target)
+                db.set_cell(conn, 'channels', column, existing, 'channel', data.target)
 
         asyncio.create_task(client.notice(data.nickname, removed_msg))
     else:
         asyncio.create_task(client.notice(data.nickname, notin_msg))
 
 
-async def add_to_conf(client: Any, data: data.ParsedRaw, adding: str,
-                      conf_value: List[str], added_msg: str, already_msg: str):
+async def add_to_conf(client: Any, data: data.ParsedRaw, adding: str, conf_value: List[str],
+                      added_msg: str, already_msg: str):
     if adding in conf_value:
         asyncio.create_task(client.notice(data.nickname, already_msg))
     else:
@@ -55,9 +48,8 @@ async def add_to_conf(client: Any, data: data.ParsedRaw, adding: str,
         conf_value.append(adding)
 
 
-async def remove_from_conf(client: Any, data: data.ParsedRaw, removing: str,
-                           conf_value: List[
-                               str], removed_msg: str, notin_msg: str):
+async def remove_from_conf(client: Any, data: data.ParsedRaw, removing: str, conf_value: List[str],
+                           removed_msg: str, notin_msg: str):
     if removing not in conf_value:
         asyncio.create_task(client.notice(data.nickname, notin_msg))
     else:
@@ -97,8 +89,7 @@ async def _enable_disable(client, target, conn, value, cell):
             db.set_cell(conn, 'channels', cell, value[0], 'channel', target)
 
 
-async def is_cmd_event_sieve_init(plugin, data, sieves, events, commands,
-                                  init):
+async def is_cmd_event_sieve_init(plugin, data, sieves, events, commands, init):
     """Is for checking if the input is an actual sieve, event or command."""
     sieve = plugin not in sieves
     event = plugin not in events
@@ -111,8 +102,7 @@ async def is_cmd_event_sieve_init(plugin, data, sieves, events, commands,
     return False
 
 
-async def valid_cmd_event_sieve_init(sieves, events, commands, inits,
-                                     nodisable):
+async def valid_cmd_event_sieve_init(sieves, events, commands, inits, nodisable):
     for event in list(events):
         if event in nodisable:
             events.remove(event)
@@ -133,37 +123,28 @@ async def valid_cmd_event_sieve_init(sieves, events, commands, inits,
     return sieves, events, commands, inits
 
 
-async def cmd_event_sieve_init_lists(client, data, disabled, nodisable,
-                                     sieves, events, commands, inits):
+async def cmd_event_sieve_init_lists(client, data, disabled, nodisable, sieves, events, commands,
+                                     inits):
     """Is for displaying a list of valid disables or enables."""
     if data.command in {'disable', 'gdisable'}:
         sieves, events, commands, inits = await valid_cmd_event_sieve_init(
             sieves, events, commands, inits, nodisable)
         if sieves != '':
-            asyncio.create_task(
-                client.notice(data.nickname,
-                              f'Valid sieves to disable: {sieves}'))
+            asyncio.create_task(client.notice(data.nickname, f'Valid sieves to disable: {sieves}'))
         if events != '':
-            asyncio.create_task(
-                client.notice(data.nickname,
-                              f'Valid events to disable: {events}'))
+            asyncio.create_task(client.notice(data.nickname, f'Valid events to disable: {events}'))
         if commands != '':
             asyncio.create_task(
-                client.notice(data.nickname,
-                              f'Valid commands to disable: {commands}'))
+                client.notice(data.nickname, f'Valid commands to disable: {commands}'))
         if inits != '':
-            asyncio.create_task(
-                client.notice(data.nickname,
-                              f'Valid inits to disable: {inits}'))
+            asyncio.create_task(client.notice(data.nickname, f'Valid inits to disable: {inits}'))
 
     else:
         if not disabled:
-            asyncio.create_task(
-                client.notice(data.nickname, 'Nothing disabled.'))
+            asyncio.create_task(client.notice(data.nickname, 'Nothing disabled.'))
         else:
             if len(disabled) > 1:
                 disabled = ', '.join(disabled)
             else:
                 disabled = disabled[0]
-            asyncio.create_task(
-                client.notice(data.nickname, f'Disabled: {disabled}'))
+            asyncio.create_task(client.notice(data.nickname, f'Disabled: {disabled}'))

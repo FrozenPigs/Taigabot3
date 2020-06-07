@@ -75,8 +75,7 @@ def connect(db_dir: str, server: str) -> Connection:
     if not db_dir.exists():
         db_dir.mkdir(parents=True)
     db_file: Path = db_dir / (server + '.db')
-    db: Connection = sqlite3.connect(
-        db_file, timeout=1, check_same_thread=False)
+    db: Connection = sqlite3.connect(db_file, timeout=1, check_same_thread=False)
     init_table(db, 'users', users_columns)
     init_table(db, 'channels', channel_columns)
     return db
@@ -108,8 +107,8 @@ def add_column(conn: Connection, table: str, column: str) -> Return:
         return result.fetchall()
 
 
-def set_cell(conn: Connection, table: str, column: str, data: str,
-             matchcolumn: str, matchvalue: str) -> Return:
+def set_cell(conn: Connection, table: str, column: str, data: str, matchcolumn: str,
+             matchvalue: str) -> Return:
     """IS used to add a cell to the database."""
     cursor = conn.cursor()
     sql: str = f'UPDATE {table} SET {column} = ? WHERE {matchcolumn} = ?'
@@ -137,8 +136,7 @@ def set_row(conn: Connection, table: str, data: Data) -> Return:
 
 
 @functools.lru_cache(maxsize=128)
-def get_cell(conn: Connection, table: str, column: str, matchcolumn: str,
-             matchvalue: str) -> Return:
+def get_cell(conn: Connection, table: str, column: str, matchcolumn: str, matchvalue: str) -> Return:
     """Is used to get a cell from the database."""
     cursor = conn.cursor()
     sql: str = f'SELECT {column} FROM {table} WHERE {matchcolumn} = ?'
@@ -151,8 +149,7 @@ def get_cell(conn: Connection, table: str, column: str, matchcolumn: str,
 
 
 @functools.lru_cache(maxsize=128)
-def get_row(conn: Connection, table: str, matchcolumn: str,
-            matchvalue: str) -> Return:
+def get_row(conn: Connection, table: str, matchcolumn: str, matchvalue: str) -> Return:
     """Is used to get a whole row from the database."""
     cursor = conn.cursor()
     sql: str = f'SELECT * FROM {table} WHERE {matchcolumn} = ?'
@@ -218,10 +215,7 @@ def get_table_names(conn: Connection) -> Optional[List[str]]:
         return None
 
 
-def execute(cursor: Cursor,
-            conn: Connection,
-            sql: str,
-            args: Optional[Data] = None) -> Execute:
+def execute(cursor: Cursor, conn: Connection, sql: str, args: Optional[Data] = None) -> Execute:
     """Is used to execute an sql query on the database."""
     try:
         result: Execute

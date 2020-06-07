@@ -21,8 +21,7 @@ def _compile_plugins(plugin: Path, reloading: bool) -> Optional[Exception]:
     return None
 
 
-def _add_replace(plugins: Plugins, function: GenericPluginFunc,
-                 hook_name: str) -> None:
+def _add_replace(plugins: Plugins, function: GenericPluginFunc, hook_name: str) -> None:
     """Is for adding or replacing plugins in the Plugins dict."""
     for func in plugins[hook_name]:
         if func.__name__ == function.__name__:
@@ -32,8 +31,7 @@ def _add_replace(plugins: Plugins, function: GenericPluginFunc,
             plugins[hook_name].append(function)
 
 
-def load(plugin: Path,
-         old_plugins: Dict[str, Dict[str, Callable]],
+def load(plugin: Path, old_plugins: Dict[str, Dict[str, Callable]],
          reloading: bool = False) -> Dict[str, Any]:
     """
     Is used to load functions from plugin file, use reload.

@@ -43,13 +43,9 @@ async def _parse_masks(client, data, conn, message):
             no_ignore.append(bot_mask)
             if mask in no_ignore:
                 if data.command == 'gignore':
-                    asyncio.create_task(
-                        client.notice(data.nickname,
-                                      f'I cannot gignore {mask}.'))
+                    asyncio.create_task(client.notice(data.nickname, f'I cannot gignore {mask}.'))
                 else:
-                    asyncio.create_task(
-                        client.notice(data.nickname,
-                                      f'I cannot ignore {mask}.'))
+                    asyncio.create_task(client.notice(data.nickname, f'I cannot ignore {mask}.'))
                 masks.remove(mask)
     return masks
 
@@ -66,8 +62,7 @@ async def g_un_gignore(client, data):
     message = message.split(' ')
 
     if not len(masks) and message[0] != 'list':
-        asyncio.create_task(
-            client.notice(data.nickname, f'No valid users or masks.'))
+        asyncio.create_task(client.notice(data.nickname, f'No valid users or masks.'))
         doc = ' '.join(g_un_gignore.__doc__.split())
         asyncio.create_task(client.notice(data.nickname, f'{doc}'))
         return
@@ -76,31 +71,24 @@ async def g_un_gignore(client, data):
     if message[0] == 'list':
         if len(ignored) > 0:
             asyncio.create_task(
-                client.notice(data.nickname,
-                              f'Gignored users: {", ".join(ignored)}'))
+                client.notice(data.nickname, f'Gignored users: {", ".join(ignored)}'))
         else:
-            asyncio.create_task(
-                client.notice(data.nickname, f'No users gignored.'))
+            asyncio.create_task(client.notice(data.nickname, f'No users gignored.'))
         return
 
     for mask in masks:
         if data.command == 'gignore':
             if mask in ignored:
-                asyncio.create_task(
-                    client.notice(data.nickname,
-                                  f'{mask} is already gignored.'))
+                asyncio.create_task(client.notice(data.nickname, f'{mask} is already gignored.'))
             else:
-                asyncio.create_task(
-                    client.notice(data.nickname, f'gignoring {mask}.'))
+                asyncio.create_task(client.notice(data.nickname, f'gignoring {mask}.'))
                 ignored.append(mask)
         elif data.command == 'gunignore':
             if mask in ignored:
-                asyncio.create_task(
-                    client.notice(data.nickname, f'{mask} is gunignored.'))
+                asyncio.create_task(client.notice(data.nickname, f'{mask} is gunignored.'))
                 ignored.remove(mask)
             else:
-                asyncio.create_task(
-                    client.notice(data.nickname, f'{mask} is not gignored.'))
+                asyncio.create_task(client.notice(data.nickname, f'{mask} is not gignored.'))
 
 
 @hook.hook('command', ['ignore', 'unignore'], admin=True, autohelp=True)
@@ -116,47 +104,38 @@ async def c_un_ignore(client, data):
     if not len(masks) and message.split(' ')[0] != 'list':
         doc = ' '.join(c_un_ignore.__doc__.split())
         asyncio.create_task(client.notice(data.nickname, f'{doc}'))
-        asyncio.create_task(
-            client.notice(data.nickname, f'No valid users or masks.'))
+        asyncio.create_task(client.notice(data.nickname, f'No valid users or masks.'))
         return
 
-    ignored = db.get_cell(conn, 'channels', 'ignored', 'channel',
-                          data.target)[0][0]
+    ignored = db.get_cell(conn, 'channels', 'ignored', 'channel', data.target)[0][0]
     if not ignored:
         ignored = ''
 
     if message.split(' ')[0] == 'list':
         if len(ignored) > 0:
-            asyncio.create_task(
-                client.notice(data.nickname, f'Ignored users: {ignored}'))
+            asyncio.create_task(client.notice(data.nickname, f'Ignored users: {ignored}'))
         else:
-            asyncio.create_task(
-                client.notice(data.nickname, f'No users ignored.'))
+            asyncio.create_task(client.notice(data.nickname, f'No users ignored.'))
         return
 
     for mask in masks:
         if data.command == 'unignore':
             if mask in ignored:
                 asyncio.create_task(
-                    client.notice(data.nickname,
-                                  f'{mask} is unignored in {data.target}.'))
+                    client.notice(data.nickname, f'{mask} is unignored in {data.target}.'))
                 ignored = ignored.replace(mask, '').strip()
             else:
                 asyncio.create_task(
-                    client.notice(data.nickname,
-                                  f'{mask} is not ignored in {data.target}.'))
+                    client.notice(data.nickname, f'{mask} is not ignored in {data.target}.'))
                 return
         elif data.command == 'ignore':
             if mask in ignored:
                 asyncio.create_task(
-                    client.notice(
-                        data.nickname,
-                        f'{mask} is already ignored in {data.target}.'))
+                    client.notice(data.nickname, f'{mask} is already ignored in {data.target}.'))
                 return
             else:
                 asyncio.create_task(
-                    client.notice(data.nickname,
-                                  f'ignoring {mask} in {data.target}.'))
+                    client.notice(data.nickname, f'ignoring {mask} in {data.target}.'))
                 ignored += mask + ' '
 
     db.set_cell(conn, 'channels', 'ignored', ignored, 'channel', data.target)

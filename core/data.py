@@ -69,8 +69,7 @@ class User:
     whoised: bool = field(default=False)
     part_message: Dict[str, str] = field(default_factory=dict)
     quit_message: str = field(default_factory=str)
-    last_message: Tuple[str, str, str, List[str]] = field(
-        default_factory=tuple)
+    last_message: Tuple[str, str, str, List[str]] = field(default_factory=tuple)
 
     # def __getattribute__(self, key: str) -> None:
     #     value = super().__getattribute__(key)
@@ -158,9 +157,7 @@ class ServerConfig:
     def __setattr__(self, key, value) -> None:
         """Set object attributes and save to config if needed."""
         if hasattr(self, 'init') and not self.init:
-            if value not in self.raw_config.values() and key not in {
-                    'init', 'raw_config'
-            }:
+            if value not in self.raw_config.values() and key not in {'init', 'raw_config'}:
                 global conf
                 if conf:
                     conf.save()
@@ -336,12 +333,7 @@ class Bot:
         self.config_file: Path = self.base_dir / 'Taigabot3' / 'config.json'
 
         config.reload(self)
-        self.plugs: PlugsDict = {
-            'command': {},
-            'event': {},
-            'init': {},
-            'sieve': {}
-        }
+        self.plugs: PlugsDict = {'command': {}, 'event': {}, 'init': {}, 'sieve': {}}
         plugins.reload(self)
         for server in self.config['servers']:
             db.connect(self, server)    # populates self.dbs

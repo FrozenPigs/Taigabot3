@@ -8,12 +8,11 @@ Wrapper = Callable[[CommandFunc], CommandFunc]
 WrapperArgs = Dict[str, Union[List[str], bool]]
 
 
-def hook(
-        hook_type: str,
-        arg: List[str],
-        admin: bool = False,
-        gadmin: bool = False,
-        autohelp: bool = False) -> Wrapper:
+def hook(hook_type: str,
+         arg: List[str],
+         admin: bool = False,
+         gadmin: bool = False,
+         autohelp: bool = False) -> Wrapper:
     """Is used for command, event, and sieve hooks."""
     args: WrapperArgs = {}
 

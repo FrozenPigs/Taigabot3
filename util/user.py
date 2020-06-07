@@ -13,8 +13,7 @@ async def is_gadmin(client: Any, server: str, mask: str) -> bool:
     return all(mask == nmask for nmask in admins)
 
 
-async def is_admin(client: Any, conn: Connection, nick: str,
-                   mask: str) -> bool:
+async def is_admin(client: Any, conn: Connection, nick: str, mask: str) -> bool:
     """Is used to check if a mask is an admin in the channel."""
     db.add_column(conn, 'channels', 'admins')
     admins = db.get_cell(conn, 'channels', 'admins', 'channel', nick)
@@ -26,8 +25,7 @@ async def is_admin(client: Any, conn: Connection, nick: str,
     return False
 
 
-async def is_ignored(client: Any, conn: Connection, target: str,
-                     mask: str) -> bool:
+async def is_ignored(client: Any, conn: Connection, target: str, mask: str) -> bool:
     """Is used to check if a mask is ignored in a channel."""
     db.add_column(conn, 'channels', 'ignored')
     ignores = db.get_cell(conn, 'channels', 'ignored', 'channel', target)
@@ -77,9 +75,8 @@ async def parse_masks(client: Any, conn: Connection, inp: str) -> List[str]:
         split_inp = [inp]
     print(inp)
     masks: List[str] = [
-        await get_mask(client, conn, user)
-        for user in split_inp
-        if await is_user(client, conn, user)
+        await get_mask(client, conn, user) for user in split_inp if await is_user(
+            client, conn, user)
     ]
     masks.extend(mask for mask in split_inp if '@' in mask)
     return masks

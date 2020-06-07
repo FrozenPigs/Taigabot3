@@ -8,9 +8,11 @@ from datetime import datetime
 from sqlite3 import OperationalError
 
 # First Party
-import psutil
 from core import db, hook
 from util import botu, messaging, user
+
+# Third Party
+import psutil
 
 
 @hook.hook('sieve', ['02-parse-destination-input'])
@@ -63,31 +65,25 @@ async def g_genable_gdisable(client, data):
 
     if message[0] == 'list':
         asyncio.create_task(
-            botu.cmd_event_sieve_init_lists(client, data, gdisabled, nodisable,
-                                            sieves, events, commands, init))
+            botu.cmd_event_sieve_init_lists(client, data, gdisabled, nodisable, sieves, events,
+                                            commands, init))
         return
 
     for plugin in message:
         plugin = plugin.lower().strip()
-        if await botu.is_cmd_event_sieve_init(plugin, data, sieves, events,
-                                              commands, init):
+        if await botu.is_cmd_event_sieve_init(plugin, data, sieves, events, commands, init):
             asyncio.create_task(
-                client.notice(data.nickname,
-                              f'{plugin} is not a sieve, command or event.'))
+                client.notice(data.nickname, f'{plugin} is not a sieve, command or event.'))
         elif data.command == 'genable':
             asyncio.create_task(
-                botu.remove_from_conf(client, data, plugin, gdisabled,
-                                      f'Genabling {plugin}.',
+                botu.remove_from_conf(client, data, plugin, gdisabled, f'Genabling {plugin}.',
                                       f'{plugin} is not gdisabled.'))
         elif data.command == 'gdisable':
             if plugin in nodisable:
-                asyncio.create_task(
-                    client.notice(data.nickname,
-                                  f'You cannot gdisable {plugin}.'))
+                asyncio.create_task(client.notice(data.nickname, f'You cannot gdisable {plugin}.'))
             else:
                 asyncio.create_task(
-                    botu.add_to_conf(client, data, plugin, gdisabled,
-                                     f'Gdisabling {plugin}.',
+                    botu.add_to_conf(client, data, plugin, gdisabled, f'Gdisabling {plugin}.',
                                      f'{plugin} is already gdisabled.'))
 
 
@@ -100,8 +96,7 @@ async def g_gadmins(client, data):
     gadmins = client.bot.config['servers'][data.server]['admins']
     message = data.split_message
     if message[0] == 'list':
-        asyncio.create_task(
-            client.notice(data.nickname, 'gadmins are: ' + ', '.join(gadmins)))
+        asyncio.create_task(client.notice(data.nickname, 'gadmins are: ' + ', '.join(gadmins)))
         return
     conn = client.bot.dbs[data.server]
     masks = await user.parse_masks(client, conn, ' '.join(message[1:]))
@@ -109,13 +104,11 @@ async def g_gadmins(client, data):
     for mask in masks:
         if message[0] == 'del':
             asyncio.create_task(
-                botu.del_from_conf(client, data, mask, gadmins,
-                                   f'Removing {mask} from gadmins.',
+                botu.del_from_conf(client, data, mask, gadmins, f'Removing {mask} from gadmins.',
                                    f'{mask} is not a gadmin.'))
         elif message[0] == 'add':
             asyncio.create_task(
-                botu.add_to_conf(client, data, mask, gadmins,
-                                 f'Adding {mask} to gadmins..',
+                botu.add_to_conf(client, data, mask, gadmins, f'Adding {mask} to gadmins..',
                                  f'{mask} is already a gadmin.'))
 
 
@@ -133,8 +126,7 @@ async def g_nick(client, data):
     """.nick <nick> -- Changes the bots nick."""
     new_nick = data.split_message
     if len(new_nick) > 1:
-        asyncio.create_task(
-            client.notice(data.nickname, 'Nicknames cannot contain spaces.'))
+        asyncio.create_task(client.notice(data.nickname, 'Nicknames cannot contain spaces.'))
         return
 
     asyncio.create_task(client.set_nickname(new_nick))
@@ -168,9 +160,7 @@ async def g_say_me_raw(client, data):
         elif asyncio.create_task(client.in_channel(target)):
             messaging.action(client, target, ' '.join(message))
     elif command == 'raw':
-        asyncio.create_task(
-            client.rawmsg(target,
-                          data.message.replace(target, '').strip()))
+        asyncio.create_task(client.rawmsg(target, data.message.replace(target, '').strip()))
 
 
 # TODO: handle 473: ['arteries', '#wednesday', 'Cannot join channel (+i)']
@@ -196,30 +186,24 @@ async def g_join_part_cycle(client, data):
 
         if command == 'part' or command == 'cycle':
             if channel not in channels:
-                asyncio.create_task(
-                    client.notice(data.nickname, f'Not in {channel}.'))
+                asyncio.create_task(client.notice(data.nickname, f'Not in {channel}.'))
             else:
                 asyncio.create_task(client.part(channel))
-                asyncio.create_task(
-                    client.notice(data.nickname, f'Parting {channel}.'))
+                asyncio.create_task(client.notice(data.nickname, f'Parting {channel}.'))
                 channels.remove(channel)
         time.sleep(0.2)
         if command == 'join' or command == 'cycle':
             if channel not in itertools.chain(channels, no_join):
                 channels.append(channel)
                 asyncio.create_task(client.join(channel))
-                asyncio.create_task(
-                    client.notice(data.nickname, f'Joining {channel}.'))
+                asyncio.create_task(client.notice(data.nickname, f'Joining {channel}.'))
             else:
-                asyncio.create_task(
-                    client.notice(data.nickname, f'Already in {channel}.'))
+                asyncio.create_task(client.notice(data.nickname, f'Already in {channel}.'))
 
 
 async def _list_tables(client, data, conn):
     tables = db.get_table_names(conn)
-    asyncio.create_task(
-        client.notice(data.nickname,
-                      f'Valid tables are: {", ".join(tables)}.'))
+    asyncio.create_task(client.notice(data.nickname, f'Valid tables are: {", ".join(tables)}.'))
 
 
 async def _list_columns(client, data, conn, table, setting=False, cols=None):
@@ -231,14 +215,10 @@ async def _list_columns(client, data, conn, table, setting=False, cols=None):
     if client is not None:
         if not setting:
             asyncio.create_task(
-                client.notice(
-                    data.nickname,
-                    f'Valid columns to match are: {", ".join(columns)}.'))
+                client.notice(data.nickname, f'Valid columns to match are: {", ".join(columns)}.'))
         else:
             asyncio.create_task(
-                client.notice(
-                    data.nickname,
-                    f'Valid columns to set are: {", ".join(columns)}.'))
+                client.notice(data.nickname, f'Valid columns to set are: {", ".join(columns)}.'))
     return columns
 
 
@@ -247,8 +227,7 @@ async def _get_match_value(client, data, message):
         match_value = message[2]
         return match_value
     except IndexError:
-        asyncio.create_task(
-            client.notice(data.nickname, 'Need a value to match against.'))
+        asyncio.create_task(client.notice(data.nickname, 'Need a value to match against.'))
         doc = ' '.join(g_set.__doc__.split())
         asyncio.create_task(client.notice(data.nickname, f'{doc}'))
         return None
@@ -258,16 +237,13 @@ async def _get_set_column(client, data, conn, message, table, columns):
     try:
         set_column = message[3]
     except IndexError:
-        asyncio.create_task(
-            _list_columns(
-                client, data, conn, table, setting=True, cols=columns))
+        asyncio.create_task(_list_columns(client, data, conn, table, setting=True, cols=columns))
         set_column = ''
         return
     finally:
         if set_column not in columns and set_column != '':
             asyncio.create_task(
-                _list_columns(
-                    client, data, conn, table, setting=True, cols=columns))
+                _list_columns(client, data, conn, table, setting=True, cols=columns))
             return None
         return set_column
 
@@ -310,24 +286,19 @@ async def g_set(client, data):
 
     row_exists = db.get_cell(conn, table, match_col, match_col, match_value)
     if not row_exists:
-        asyncio.create_task(
-            client.notice(data.nickname,
-                          f'{match_value} is not in that table.'))
+        asyncio.create_task(client.notice(data.nickname, f'{match_value} is not in that table.'))
         return
 
-    set_column = await _get_set_column(client, data, conn, message, table,
-                                       columns)
+    set_column = await _get_set_column(client, data, conn, message, table, columns)
     if not set_column:
         return
 
     value = ' '.join(message[4:])
     if not value:
-        asyncio.create_task(
-            client.notice(data.nickname, 'Need a value to add.'))
+        asyncio.create_task(client.notice(data.nickname, 'Need a value to add.'))
     else:
         conn = client.bot.dbs[data.server]
-        asyncio.create_task(
-            client.notice(data.nickname, f'Setting {set_column} to {value}.'))
+        asyncio.create_task(client.notice(data.nickname, f'Setting {set_column} to {value}.'))
         db.set_cell(conn, table, set_column, value, match_col, match_value)
 
 
@@ -365,10 +336,9 @@ async def g_system(client, data):
     mem_available = await _conv_bytes(mem.available, gb=True)
     mem_free = await _conv_bytes(mem.free, gb=True)
     mem_per = mem.percent
-    memory = (
-        f'Total Memory: \x02{mem_total}\x02, Memory Used: \x02'
-        f'{mem_used}\x02, Memory Avaiable: \x02{mem_available}\x02, '
-        f'Memory Free: \x02{mem_free}\x02, Memory Percent: \x02{mem_per}\x02')
+    memory = (f'Total Memory: \x02{mem_total}\x02, Memory Used: \x02'
+              f'{mem_used}\x02, Memory Avaiable: \x02{mem_available}\x02, '
+              f'Memory Free: \x02{mem_free}\x02, Memory Percent: \x02{mem_per}\x02')
     asyncio.create_task(client.notice(data.nickname, memory))
 
     swap = psutil.swap_memory()
@@ -385,25 +355,22 @@ async def g_system(client, data):
     disk_used = await _conv_bytes(duseage.used, gb=True)
     disk_free = await _conv_bytes(duseage.free, gb=True)
     disk_per = duseage.percent
-    disk = (
-        f'Total Swap: \x02{swap_total}\x02, Swap Used: \x02{swap_used}\x02, '
-        f'Swap Free: \x02{swap_free}\x02, Swap Percent: \x02{swap_per}\x02, '
-        f'CWD Disk Total: \x02{disk_total}\x02, CWD Disk Used: \x02'
-        f'{disk_used}\x02, CWD Disk Free: \x02{disk_free}\x02, '
-        f'CWD Disk Percent: \x02{disk_per}\x02')
+    disk = (f'Total Swap: \x02{swap_total}\x02, Swap Used: \x02{swap_used}\x02, '
+            f'Swap Free: \x02{swap_free}\x02, Swap Percent: \x02{swap_per}\x02, '
+            f'CWD Disk Total: \x02{disk_total}\x02, CWD Disk Used: \x02'
+            f'{disk_used}\x02, CWD Disk Free: \x02{disk_free}\x02, '
+            f'CWD Disk Percent: \x02{disk_per}\x02')
     asyncio.create_task(client.notice(data.nickname, disk))
 
     net = psutil.net_io_counters()
     net_sent = await _conv_bytes(net.bytes_sent, gb=True)
     net_recv = await _conv_bytes(net.bytes_recv, gb=True)
     connections = len(psutil.net_connections())
-    last_boot = datetime.fromtimestamp(psutil.boot_time()).strftime(
-        '%Y-%m-%d %H:%M:%S')
+    last_boot = datetime.fromtimestamp(psutil.boot_time()).strftime('%Y-%m-%d %H:%M:%S')
     total_procs = len(psutil.pids())
-    netboot = (
-        f'Network Data Sent: \x02{net_sent}\x02, Network Data Recieved:'
-        f' \x02{net_recv}\x02, Total Connections: \x02{connections}\x02, '
-        f'Booted: \x02{last_boot}\x02, Total Processes: \x02{total_procs}\x02')
+    netboot = (f'Network Data Sent: \x02{net_sent}\x02, Network Data Recieved:'
+               f' \x02{net_recv}\x02, Total Connections: \x02{connections}\x02, '
+               f'Booted: \x02{last_boot}\x02, Total Processes: \x02{total_procs}\x02')
     asyncio.create_task(client.notice(data.nickname, netboot))
 
 
@@ -442,10 +409,9 @@ async def g_binfo(client, data):
            f'Stack Size: \x02{stack}\x02, Heap Size: \x02{heap}\x02, '
            f'Memory Percent: \x02{memper:.2f}\x02')
     asyncio.create_task(client.notice(data.nickname, mem))
-    disk = (
-        f'Total Disk Read: \x02{read}\x02, Total Disk Write: \x02{write}\x02, '
-        f'Open Files: \x02{files}\x02, Open Net Connections: '
-        f'\x02{connections}\x02')
+    disk = (f'Total Disk Read: \x02{read}\x02, Total Disk Write: \x02{write}\x02, '
+            f'Open Files: \x02{files}\x02, Open Net Connections: '
+            f'\x02{connections}\x02')
     asyncio.create_task(client.notice(data.nickname, disk))
     aff = ' '.join([str(cpu) for cpu in aff])
     cpu = (f'Bot CPU Percent: \x02{percent}\x02, Used Threads: '
@@ -491,16 +457,13 @@ async def dbcache(client, data):
     column = db.get_column.cache_info()
     column = f'{column.hits}, {column.misses}, {column.currsize}'
     column_names = db.get_column_names.cache_info()
-    column_names = (f'{column_names.hits}, {column_names.misses}, '
-                    f'{column_names.currsize}')
+    column_names = (f'{column_names.hits}, {column_names.misses}, ' f'{column_names.currsize}')
     table = db.get_table.cache_info()
     table = f'{table.hits}, {table.misses}, {table.currsize}'
     table_names = db.get_table_names.cache_info()
-    table_names = (f'{table_names.hits}, {table_names.misses}, '
-                   f'{table_names.currsize}')
+    table_names = (f'{table_names.hits}, {table_names.misses}, ' f'{table_names.currsize}')
     add_column = db.add_column.cache_info()
-    add_column = (f'{add_column.hits}, {add_column.misses}, '
-                  f'{add_column.currsize}')
+    add_column = (f'{add_column.hits}, {add_column.misses}, ' f'{add_column.currsize}')
 
     message = (f'Cell: \x02{cell}\x02, Row: \x02{row}\x02 Columns: '
                f'\x02{column}\x02, Column Names: \x02{column_names}\x02, '

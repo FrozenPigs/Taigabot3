@@ -12,8 +12,7 @@ from bot import Taigabot
 from core import data
 
 
-def ssl_context(cert: str = None, key: str = None,
-                verify: bool = True) -> ssl.SSLContext:
+def ssl_context(cert: str = None, key: str = None, verify: bool = True) -> ssl.SSLContext:
     context = ssl.SSLContext(ssl.PROTOCOL_TLS)
     context.options |= ssl.OP_NO_SSLv2
     context.options |= ssl.OP_NO_SSLv3

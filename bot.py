@@ -27,13 +27,11 @@ CommandDict = Dict[str, List[CommandFunc]]
 
 class Taigabot(irc.IRC):
 
-    def __init__(self, config: Config, server_name: str,
-                 ssl: Union[bool, SSLContext]):
+    def __init__(self, config: Config, server_name: str, ssl: Union[bool, SSLContext]):
         self.ssl = ssl
         self.full_config = config
         self.server_name = server_name
-        self.server_config: ServerConfig = self.full_config.servers[
-            self.server_name]
+        self.server_config: ServerConfig = self.full_config.servers[self.server_name]
         self.plugin_dir: Path = Path(self.full_config.plugin_dir).resolve()
         self.plugins: Dict[str, Dict[str, Callable]] = {
             'command': {},
@@ -42,11 +40,10 @@ class Taigabot(irc.IRC):
             'sieve': {}
         }
         self.plugin_mtimes: Dict[str, float] = {}
-        self.plugin_mtimes, self.plugins = plugins.reload(
-            self.plugin_dir, self.plugin_mtimes, self.plugins)
+        self.plugin_mtimes, self.plugins = plugins.reload(self.plugin_dir, self.plugin_mtimes,
+                                                          self.plugins)
         self.users: Dict[str, User] = {}
-        self.db: Connection = db.connect(self.full_config.db_dir,
-                                         self.server_name)
+        self.db: Connection = db.connect(self.full_config.db_dir, self.server_name)
         super().__init__(self.server_config)
 
 ################################################################################
@@ -54,9 +51,9 @@ class Taigabot(irc.IRC):
 ################################################################################
 
     async def nickserv(self) -> None:
-        self.send_privmsg([self.server_config.nickserv_nick],
-                          self.server_config.nickserv_command.
-                          format(self.server_config.nickname_password))
+        self.send_privmsg([
+            self.server_config.nickserv_nick
+        ], self.server_config.nickserv_command.format(self.server_config.nickname_password))
 
     async def start(self) -> None:    # on_connect
         await self.connect()
@@ -69,14 +66,13 @@ class Taigabot(irc.IRC):
                 await self.nickserv()
 
     async def connect(self) -> None:
-        return await self.create_connection(self.server_config.server,
-                                            self.server_config.port, self.ssl)
+        return await self.create_connection(self.server_config.server, self.server_config.port,
+                                            self.ssl)
 
     async def _run_output_sieves(self, message: str) -> Union[None, str]:
         msg = message
         for name, funcs in self.plugins['sieve'].items():
-            if name not in self.server_config.disabled and name.endswith(
-                    '-output'):
+            if name not in self.server_config.disabled and name.endswith('-output'):
                 for func in funcs:
                     msg = await func(self, msg)
         return msg
@@ -108,8 +104,7 @@ class Taigabot(irc.IRC):
             username = userhost.split('!')[1].split('@')[0]
         return nickname, username, userhost
 
-    async def _chanmodes_from_names(self, nick: str, userhost: str = ''
-                                    ) -> Tuple[str, str, str]:
+    async def _chanmodes_from_names(self, nick: str, userhost: str = '') -> Tuple[str, str, str]:
         nickname = nick
         channel_mode = '+'
         for char in nick:
@@ -121,18 +116,16 @@ class Taigabot(irc.IRC):
                 channel_mode += modes[char]
         return nickname, channel_mode, userhost
 
-    async def _chanmodes_from_chans(self, channels: List[str]
-                                    ) -> Tuple[Dict[str, str], List[str]]:
+    async def _chanmodes_from_chans(self, channels: List[str]) -> Tuple[Dict[str, str], List[str]]:
         channel_modes = {}
         new_channels = []
         for channel in channels:
-            channel, channel_mode, host = await self._chanmodes_from_names(
-                channel)
+            channel, channel_mode, host = await self._chanmodes_from_names(channel)
             if channel_mode != '+':
                 channel_modes[channel] = channel_mode
             new_channels.append(channel)
         return channel_modes, new_channels
-    
+
     async def check_admins(self, user: User, target: str) -> None:
         user.global_admin = user.userhost in self.server_config.admins
         db.add_column(self.db, 'channels', 'admins')
@@ -148,8 +141,7 @@ class Taigabot(irc.IRC):
     async def check_ignored(self, user: User, target: str) -> None:
         user.global_ignored = user.userhost in self.server_config.ignored
         db.add_column(self.db, 'channels', 'ignored')
-        ignores = db.get_cell(self.db, 'channels', 'ignored', 'channel',
-                              target)
+        ignores = db.get_cell(self.db, 'channels', 'ignored', 'channel', target)
         if ignores:
             nignores: Optional[str] = ignores[0][0]
             if nignores:
@@ -185,10 +177,8 @@ class Taigabot(irc.IRC):
         users = message.split_message[2:]
         channel = message.split_message[1]
         for nick in users:
-            nickname, username, userhost = await self._userhost_from_names(
-                nick)
-            nickname, chan_mode, userhost = await self._chanmodes_from_names(
-                nickname, userhost)
+            nickname, username, userhost = await self._userhost_from_names(nick)
+            nickname, chan_mode, userhost = await self._chanmodes_from_names(nickname, userhost)
             if userhost:
                 await self.track_users_userhost(userhost)
                 if chan_mode != '+':
@@ -213,8 +203,7 @@ class Taigabot(irc.IRC):
     async def rpl_319(self, message: Message) -> None:
         """whois channels"""
         nickname = message.split_message[0]
-        channel_modes, channels = await self._chanmodes_from_chans(
-            message.split_message[1:])
+        channel_modes, channels = await self._chanmodes_from_chans(message.split_message[1:])
         self.users[nickname].channel_modes = channel_modes
         self.users[nickname].channels = channels
 
@@ -288,6 +277,7 @@ class Taigabot(irc.IRC):
             print('prefix', message.command[0], prefix)
             asyncio.create_task(self._run_commands(message))
 
+
 ################################################################################
 #                     SIEVES, EVENTS AND COMMANDS                              #
 ################################################################################
@@ -305,15 +295,13 @@ class Taigabot(irc.IRC):
                 hook = func.__hook__[1]
                 if hook['gadmin'] and not message.user.gadmin:
                     asyncio.create_task(
-                        self.send_notice(message.sent_by,
-                                    ('You must be a gadmin to use'
-                                     ' that command')))
+                        self.send_notice(message.sent_by, ('You must be a gadmin to use'
+                                                           ' that command')))
                     return
                 if hook['admin'] and not admin and not message.user.admin:
                     asyncio.create_task(
-                        self.send_notice(message.sent_by,
-                                    ('You must be an admin to use'
-                                     ' that command')))
+                        self.send_notice(message.sent_by, ('You must be an admin to use'
+                                                           ' that command')))
                     return
                 if not len(message.message) and hook['autohelp']:
                     doc: str = ' '.join(cast(str, func.__doc__).split())
@@ -321,15 +309,13 @@ class Taigabot(irc.IRC):
                     return
                 asyncio.create_task(func(self, message))
 
-
     async def _get_prefix(self, target: str) -> str:
         default_prefix = self.server_config.command_prefix
         if not default_prefix:
             default_prefix = '.'
         if target[0] != '#':
             return default_prefix
-        db_prefix = db.get_cell(self.db, 'channels', 'commandprefix',
-                                'channel', target)
+        db_prefix = db.get_cell(self.db, 'channels', 'commandprefix', 'channel', target)
         if not db_prefix:
             prefix = default_prefix
             db.add_channel(self.db, target, prefix)
@@ -338,15 +324,13 @@ class Taigabot(irc.IRC):
             valid_prefixes = self.full_config.valid_command_prefixes
             if not prefix or prefix not in valid_prefixes:
                 prefix = default_prefix
-                db.set_cell(self.db, 'channels', 'commandprefix', prefix,
-                            'channel', target)
+                db.set_cell(self.db, 'channels', 'commandprefix', prefix, 'channel', target)
         return prefix
 
     async def _run_input_sieves(self, privmsg) -> None:
         msg = privmsg
         for name, funcs in self.plugins['sieve'].items():
-            if name not in self.server_config.disabled and name.endswith(
-                    '-input'):
+            if name not in self.server_config.disabled and name.endswith('-input'):
                 for func in funcs:
                     msg = await func(self, msg)
                     if msg is None:
@@ -370,12 +354,11 @@ class Taigabot(irc.IRC):
                 if func.__name__.lower() not in self.server_config.disabled:
                     asyncio.create_task(func(self, privmsg))
 
-
     async def read_loop(self) -> None:    # message_handler
         await self._run_inits()
         while True:
-            self.plugin_mtimes, self.plugins = plugins.reload(
-                self.plugin_dir, self.plugin_mtimes, self.plugins)
+            self.plugin_mtimes, self.plugins = plugins.reload(self.plugin_dir, self.plugin_mtimes,
+                                                              self.plugins)
             try:
                 raw_message = await self.read_line()
                 message = Message(self, await self.parse_message(raw_message))
@@ -387,11 +370,10 @@ class Taigabot(irc.IRC):
                     if hasattr(self, f'rpl_{message.raw_command}'):
                         rpl_handler = getattr(self, f'rpl_{message.raw_command}')
                         await rpl_handler(message)
-                        
+
             except asyncio.streams.IncompleteReadError:
                 if self.server_config.auto_reconnect:
-                    await asyncio.sleep(self.server_config.
-                                        auto_reconnect_delay)
+                    await asyncio.sleep(self.server_config.auto_reconnect_delay)
                     try:
                         await self.connect()
                     except ConnectionResetError:

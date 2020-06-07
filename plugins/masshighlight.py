@@ -12,9 +12,7 @@ async def _detect_highlight(users, message):
     """Is used to detect if message is masshighlighting."""
     message = message.split(' ')
     regex = re.compile("['!?,.]")
-    matches = [
-        word for word in message[1:] if regex.sub('', word.lower()) in users
-    ]
+    matches = [word for word in message[1:] if regex.sub('', word.lower()) in users]
     if len(set(matches)) > 5:
         return True
     False
@@ -47,7 +45,6 @@ async def masshighlight_input_sieve(bot, message):
                 message.sent_by,
                 reason=('No mass'
                         'highlighting, come back in 1 minute.')))
-        asyncio.create_task(
-            timeu.asyncsched(60, bot.send_unban, (message.target, message.sent_by)))
+        asyncio.create_task(timeu.asyncsched(60, bot.send_unban, (message.target, message.sent_by)))
         return None
     return message

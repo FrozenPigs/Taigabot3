@@ -30,9 +30,7 @@ from core import db, hook
 import requests
 
 # db table definition
-quote_columns: List[str] = [
-    'chan', 'nick', 'add_nick', 'msg', 'time', 'deleted'
-]
+quote_columns: List[str] = ['chan', 'nick', 'add_nick', 'msg', 'time', 'deleted']
 
 
 def _remove_quotes(quotelist):
@@ -64,17 +62,14 @@ def _message_or_paste(client, data, quotenums, quotelist):
         for i, quote in enumerate(quotes):
             out = f'[{quotenums[i]}/{len(quotelist)}] <{quote[1]}> {quote[3]}'
             if len(quotes) > 5:
-                response = requests.post(
-                    'https://hastebin.com/documents', data=out)
+                response = requests.post('https://hastebin.com/documents', data=out)
                 if response.status_code == 200:
                     d = response.json()['key']
                     link = 'https://hastebin.com/' + str(d)
                     asyncio.create_task(client.message(data.target, link))
                 else:
                     asyncio.create_task(
-                        client.message(
-                            data.target,
-                            'Failed to upload quotes onto pastebin.'))
+                        client.message(data.target, 'Failed to upload quotes onto pastebin.'))
 
             else:
                 asyncio.create_task(client.message(data.target, out))
@@ -93,8 +88,7 @@ def _display_quote(client, data, quotelist, target, search=None):
     search = _parse_search(search, quotelist)
 
     if len(quotelist) < 1:
-        asyncio.create_task(
-            client.message(data.target, f'I have no quotes for {target}'))
+        asyncio.create_task(client.message(data.target, f'I have no quotes for {target}'))
         return
 
     if isinstance(search, int):
@@ -106,9 +100,8 @@ def _display_quote(client, data, quotelist, target, search=None):
                 quotenums.append(search + 1)
         except IndexError:
             asyncio.create_task(
-                client.message(data.target, (
-                    f'I only have {str(len(quotelist))} quote(s) for'
-                    f'{target}')))
+                client.message(data.target, (f'I only have {str(len(quotelist))} quote(s) for'
+                                             f'{target}')))
     else:
         for i, value in enumerate(quotelist):
             if search in value[3]:
@@ -138,9 +131,7 @@ def _search_quotes(client, data, conn, message):
             except IndexError:
                 _display_quote(client, data, quotes, message[0], None)
         else:
-            asyncio.create_task(
-                client.message(data.target,
-                               f'No quotes found for {message[0]}.'))
+            asyncio.create_task(client.message(data.target, f'No quotes found for {message[0]}.'))
 
 
 @hook.hook('command', ['qinit'], admin=True)
@@ -164,13 +155,12 @@ async def quotes(client, data):
     tables = db.get_table_names(conn)
     if 'quotes' not in tables:
         asyncio.create_task(
-            client.message(data.target, (
-                'Quote table uninitialized. Please ask your nearest bot'
-                'admin to run .qinit.')))
+            client.message(data.target, ('Quote table uninitialized. Please ask your nearest bot'
+                                         'admin to run .qinit.')))
 
     if message[0] == 'add':
-        quotedata = (data.target, message[1], data.nickname,
-                     ' '.join(message[2:]), int(time.time()), '0')
+        quotedata = (data.target, message[1], data.nickname, ' '.join(message[2:]),
+                     int(time.time()), '0')
         db.set_row(conn, 'quotes', quotedata)
         asyncio.create_task(client.message(data.target, 'Quote added.'))
         db.ccache()
@@ -184,9 +174,7 @@ async def quotes(client, data):
                 numarg -= 1
         except ValueError:
             asyncio.create_task(
-                client.message(
-                    data.target,
-                    'You need to use a number when deleting quotes.'))
+                client.message(data.target, 'You need to use a number when deleting quotes.'))
             return
 
         quotes = _remove_quotes(quotes)
@@ -196,14 +184,10 @@ async def quotes(client, data):
                 quote = quotes[numarg]
             except ValueError:
                 asyncio.create_task(
-                    client.message(
-                        data.target,
-                        f'You only have {str(len(quotes))} quote(s).'))
+                    client.message(data.target, f'You only have {str(len(quotes))} quote(s).'))
                 return
             cur = conn.cursor()
-            cur.execute(
-                "UPDATE quotes SET deleted='1' WHERE msg=? AND time=?",
-                (quote[3], quote[4]))
+            cur.execute("UPDATE quotes SET deleted='1' WHERE msg=? AND time=?", (quote[3], quote[4]))
             del cur
             conn.commit()
             db.ccache()
@@ -211,8 +195,7 @@ async def quotes(client, data):
 
             return
         else:
-            asyncio.create_task(
-                client.message(data.target, 'You have no quotes.'))
+            asyncio.create_task(client.message(data.target, 'You have no quotes.'))
             return
     else:
         _search_quotes(client, data, conn, message)

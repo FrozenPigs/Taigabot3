@@ -16,11 +16,9 @@ class IRC:
         """Init variabless that are mostly used for authenticating and sasl."""
         self.server_config = server_config
 
-    async def create_connection(self, server: str, port: int,
-                                ssl: bool) -> None:
+    async def create_connection(self, server: str, port: int, ssl: bool) -> None:
         """Create self.reader and self.writer for the server."""
-        self.reader, self.writer = await open_connection(
-            server, port, ssl=ssl)
+        self.reader, self.writer = await open_connection(server, port, ssl=ssl)
 
     def close_connection(self) -> None:
         """Close the connection for the objects writer."""
@@ -88,37 +86,26 @@ class IRC:
         Channels with a key should be in the format '#channel key' in the list.
         """
         chans_with_keys = [
-            channels.pop(channels.index(chan)).split()
-            for chan in channels.copy()
-            if ' ' in chan
+            channels.pop(channels.index(chan)).split() for chan in channels.copy() if ' ' in chan
         ]
         if chans_with_keys:
             channels = [chan[0] for chan in chans_with_keys] + channels
             chans_keys = [chan[1] for chan in chans_with_keys]
-            create_task(
-                self.send_line(
-                    f'JOIN {",".join(channels)} {",".join(chans_keys)}'))
+            create_task(self.send_line(f'JOIN {",".join(channels)} {",".join(chans_keys)}'))
         else:
             create_task(self.send_line(f'JOIN {",".join(channels)}'))
 
-    async def send_kick(self,
-                        channel: str,
-                        nickname: str,
-                        reason: Optional[str] = None) -> None:
+    async def send_kick(self, channel: str, nickname: str, reason: Optional[str] = None) -> None:
         """Send a KICK to the server.
 
         This command kicks users from the channel, with or without reason.
         """
         if reason:
-            create_task(
-                self.send_line(f'KICK {channel} {nickname} :{reason}'))
+            create_task(self.send_line(f'KICK {channel} {nickname} :{reason}'))
         else:
             create_task(self.send_line(f'KICK {channel} {nickname}'))
 
-    async def send_kickban(self,
-                           channel: str,
-                           nickname: str,
-                           reason: Optional[str] = None) -> None:
+    async def send_kickban(self, channel: str, nickname: str, reason: Optional[str] = None) -> None:
         """Send KICK to the server and a MODE ban.
 
         Kicks and bans the user from the channel.
@@ -142,8 +129,7 @@ class IRC:
         """
         create_task(self.send_mode(channel, '-b', nickname))
 
-    async def send_knock(self, channel: str,
-                         message: Optional[str] = None) -> None:
+    async def send_knock(self, channel: str, message: Optional[str] = None) -> None:
         """Send a KNOCK to the server.
 
         This command requests invites to a channel, with optional message.
@@ -167,17 +153,13 @@ class IRC:
         """
         if channels:
             chans_with_conds = [
-                channels.pop(channels.index(chan)).split()
-                for chan in channels.copy()
-                if ' ' in chan
+                channels.pop(channels.index(chan)).split() for chan in channels.copy() if ' ' in chan
             ]
             if chans_with_conds:
                 channels = [chan[0] for chan in chans_with_conds] + channels
                 chans_conds = [chan[1] for chan in chans_with_conds]
             if chans_conds:
-                create_task(
-                    self.send_line(
-                        f'LIST {",".join(channels)} {",".join(chans_conds)}'))
+                create_task(self.send_line(f'LIST {",".join(channels)} {",".join(chans_conds)}'))
             else:
                 create_task(self.send_line(f'LIST {",".join(channels)}'))
         else:
@@ -194,8 +176,7 @@ class IRC:
         """
         if mode:
             if args:
-                create_task(
-                    self.send_line(f'MODE {target} {mode} {" ".join(args)}'))
+                create_task(self.send_line(f'MODE {target} {mode} {" ".join(args)}'))
             else:
                 create_task(self.send_line(f'MODE {target} {mode}'))
         else:
@@ -211,16 +192,14 @@ class IRC:
         else:
             create_task(self.send_line('MOTD'))
 
-    async def send_names(self, channels: List[str],
-                         server: Optional[str]) -> None:
+    async def send_names(self, channels: List[str], server: Optional[str]) -> None:
         """Send NAMES to list of channels.
 
         This gets the list of users in channels with privilages in various
         numerics.
         """
         if server:
-            create_task(
-                self.send_line(f'NAMES {",".join(channels)} {server}'))
+            create_task(self.send_line(f'NAMES {",".join(channels)} {server}'))
         else:
             create_task(self.send_line(f'NAMES {",".join(channels)}'))
 
@@ -238,16 +217,13 @@ class IRC:
         """
         create_task(self.send_line(f'NOTICE {",".join(targets)} :{message}'))
 
-    async def send_part(self,
-                        channels: List[str],
-                        reason: Optional[str] = None) -> None:
+    async def send_part(self, channels: List[str], reason: Optional[str] = None) -> None:
         """Send a PART to the list of channels, with or without reason.
 
         This parts the given channels, with optional reason
         """
         if reason:
-            create_task(
-                self.send_line(f'PART {",".join(channels)} :{reason}'))
+            create_task(self.send_line(f'PART {",".join(channels)} :{reason}'))
         else:
             create_task(self.send_line(f'PART {",".join(channels)}'))
 
@@ -277,8 +253,7 @@ class IRC:
 
         This is for sending messages to channels or users.
         """
-        create_task(
-            self.send_line(f'PRIVMSG {",".join(targets)} :{message}'))
+        create_task(self.send_line(f'PRIVMSG {",".join(targets)} :{message}'))
 
     async def send_quit(self, reason: Optional[str] = None) -> None:
         """Send a QUIT to the server, with or without reason.
@@ -297,8 +272,7 @@ class IRC:
         """
         create_task(self.send_line('RULES'))
 
-    async def send_stats(self, query: str,
-                         server: Optional[str] = None) -> None:
+    async def send_stats(self, query: str, server: Optional[str] = None) -> None:
         """Send STATS with a query to the server.
 
         This is for gathering statistics about the server.
@@ -318,8 +292,7 @@ class IRC:
         else:
             create_task(self.send_line('TIME'))
 
-    async def send_topic(self, channel: str,
-                         topic: Optional[str] = None) -> None:
+    async def send_topic(self, channel: str, topic: Optional[str] = None) -> None:
         """Send TOPIC to channel channel, with optional arg to change it."""
         if topic:
             create_task(self.send_line(f'TOPIC {channel} :{topic}'))
@@ -348,8 +321,7 @@ class IRC:
         """
         create_task(self.send_line(f'USER {username} * 0 :{realname}'))
 
-    async def send_version(self,
-                           target: Optional[str] = None,
+    async def send_version(self, target: Optional[str] = None,
                            server: Optional[str] = None) -> None:
         """Send a VERSION to the target, or to the server.
 
@@ -378,8 +350,7 @@ class IRC:
         """
         self.writer.write(f'WHOIS {nickname}\r\n'.encode('utf-8'))
 
-    async def send_whowas(self, nickname: str,
-                          count: Optional[str] = None) -> None:
+    async def send_whowas(self, nickname: str, count: Optional[str] = None) -> None:
         """Send WHOIS to server.
 
         This is for listing users information.
@@ -389,8 +360,7 @@ class IRC:
         else:
             create_task(self.send_line(f'WHOWAS {nickname}'))
 
-    async def send_cap(self, command: str,
-                       parameters: Optional[str] = None) -> None:
+    async def send_cap(self, command: str, parameters: Optional[str] = None) -> None:
         """Send a CAP to the server.
 
         This is used to send any of the CAP subcommands to the server.
@@ -416,29 +386,22 @@ class IRC:
         if self.server_config.server_password:
             create_task(self.send_pass(self.server_config.server_password))
         create_task(self.send_nick(self.server_config.nickname))
-        create_task(
-            self.send_user(self.server_config.username,
-                           self.server_config.realname))
+        create_task(self.send_user(self.server_config.username, self.server_config.realname))
         if self.server_config.capabilities:
             create_task(self.send_cap('LS', '302'))
 
-    async def cap_ls_reply(self,
-                           reply: Tuple[str, str, str, List[str]]) -> None:
+    async def cap_ls_reply(self, reply: Tuple[str, str, str, List[str]]) -> None:
         """Handle the reply from a CAP LS.
 
         This will see what capabilities the server has, and request what we
         want if the server supports it.
         """
         capabilities = reply[3][2].split()
-        request = [
-            cap for cap in self.server_config.capabilities
-            if cap in capabilities
-        ]
+        request = [cap for cap in self.server_config.capabilities if cap in capabilities]
         if request:
             create_task(self.send_cap('REQ', ' '.join(request)))
 
-    async def cap_ack_reply(self,
-                            reply: Tuple[str, str, str, List[str]]) -> None:
+    async def cap_ack_reply(self, reply: Tuple[str, str, str, List[str]]) -> None:
         """Handle the reply from a CAP REQ.
 
         If we have requested sasl it will continue the authentication,
@@ -446,8 +409,7 @@ class IRC:
         """
         acknowledged = reply[3][2].split()
         if 'sasl' in acknowledged and self.server_config.sasl_method:
-            create_task(
-                self.send_authenticate(self.server_config.sasl_method.upper()))
+            create_task(self.send_authenticate(self.server_config.sasl_method.upper()))
         else:
             create_task(self.send_cap('END'))
 
@@ -458,13 +420,10 @@ class IRC:
         finish the authentication.
         """
         method = self.server_config.sasl_method.upper()
-        if method == 'PLAIN' and (self.server_config.nick_password and
-                                  self.server_config.nickname):
-            password = (
-                f'{self.server_config.nickname}\0{self.server_config.nickname}'
-                f'\0{self.server_config.nick_password}').encode('utf-8')
-            create_task(
-                self.send_authenticate(b64encode(password).decode('utf-8')))
+        if method == 'PLAIN' and (self.server_config.nick_password and self.server_config.nickname):
+            password = (f'{self.server_config.nickname}\0{self.server_config.nickname}'
+                        f'\0{self.server_config.nick_password}').encode('utf-8')
+            create_task(self.send_authenticate(b64encode(password).decode('utf-8')))
         elif method == 'EXTERNAL':
             create_task(self.send_authenticate('*'))
 
@@ -494,8 +453,7 @@ class IRC:
         This is also used for handling the replies needed for the capability
         negotiation, sasl, and PINGS so must be used in a loop.
         """
-        raw_message = (await
-                       self.reader.readuntil(b'\r\n')).decode('utf-8')[:-2]
+        raw_message = (await self.reader.readuntil(b'\r\n')).decode('utf-8')[:-2]
         message = await self.parse_message(raw_message)
         if message[2] == 'PING':
             create_task(self.send_pong(' '.join(message[3][0:])))
