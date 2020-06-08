@@ -12,15 +12,14 @@ from bot import Taigabot
 from core import data
 
 
-def ssl_context(cert: str = None, key: str = None, verify: bool = True) -> ssl.SSLContext:
+def custom_ssl_context(cert: str = None, key: str = None) -> ssl.SSLContext:
     context = ssl.SSLContext(ssl.PROTOCOL_TLS)
     context.options |= ssl.OP_NO_SSLv2
     context.options |= ssl.OP_NO_SSLv3
     context.options |= ssl.OP_NO_TLSv1
     context.load_default_certs()
+    context.verify_mode = ssl.CERT_REQUIRED
 
-    if verify:
-        context.verify_mode = ssl.CERT_REQUIRED
     if cert and key:
         context.load_cert_chain(cert, keyfile=key)
 
@@ -32,17 +31,20 @@ async def main() -> None:
     config = data.Config(config_file)
     for server_name, server_config in config.servers.items():
         if server_config.ssl:
-            ssl = True
-        else:
-            ssl = False
+            ssl_context = ssl.create_default_context()
+            if server_config.ssl_insecure:
+                ssl_context.check_hostname = False
+                ssl_context.verify_mode = ssl.CERT_NONE
+
         if server_config.sasl_method == 'external':
             if not server_config.ssl:
                 print('Must enable ssl to use external sasl.')
             else:
                 cert = server_config.sasl_cert
                 key = server_config.sasl_key
-                ssl = ssl_context(cert, key)
-        bot = Taigabot(config, server_name, ssl)
+                ssl_context = custom_ssl_context(cert, key)
+
+        bot = Taigabot(config, server_name, ssl_context)
         bot_objects.append(bot)
         bot_tasks[server_name] = bot.start()
     await asyncio.gather(*bot_tasks.values())
