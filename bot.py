@@ -301,12 +301,12 @@ class Taigabot(irc.IRC):
             for func in commands[command]:
                 print(func, command)
                 hook = func.__hook__[1]
-                if hook['gadmin'] and not message.user.gadmin:
+                if hook['gadmin'] and not message.user.global_admin:
                     asyncio.create_task(
                         self.send_notice(message.sent_by, ('You must be a gadmin to use'
                                                            ' that command')))
                     return
-                if hook['admin'] and not admin and not message.user.admin:
+                if hook['admin'] and not admin and not message.user.chan_admin:
                     asyncio.create_task(
                         self.send_notice(message.sent_by, ('You must be an admin to use'
                                                            ' that command')))
