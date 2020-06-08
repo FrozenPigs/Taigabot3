@@ -2,7 +2,7 @@
     "db_dir": "./persist/db/",
     "log_dir": "./persist/log/",
     "plugin_dirs": [
-        "./plugins/core/",
+        "./plugins/",
         "./plugins/stupid/"
     ],
     "valid_command_prefixes": [
