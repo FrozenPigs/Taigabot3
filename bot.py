@@ -282,7 +282,7 @@ class Taigabot(irc.IRC):
         await self.check_admins(self.users[nickname], target)
         await self.check_ignored(self.users[nickname], target)
         prefix = await self._get_prefix(target)
-        if message.command[0] == prefix:
+        if message.command and message.command[0] == prefix:
             asyncio.create_task(self._run_commands(message))
 
 

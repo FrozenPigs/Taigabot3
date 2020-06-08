@@ -113,7 +113,10 @@ class Message:
             self.split_message = self.message.split()
         else:
             self.split_message = [self.message]
-        self.command = self.split_message[0]
+        try:
+            self.command = self.split_message[0]
+        except IndexError:
+            self.command = ''
 
 
 @dataclass
