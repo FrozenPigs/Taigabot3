@@ -301,39 +301,3 @@ class ParsedRaw:
             self.split_message = self.message.split()
         else:
             self.split_message = [self.message]
-
-
-@dataclass()
-class Bot:
-    """All information used to run the bot."""
-
-    config: Dict[str, Any] = field(default_factory=dict)
-    config_mtime: float = 0.0
-    plugs: PlugsDict = field(default_factory=dict)
-    plugin_mtimes: Dict[str, float] = field(default_factory=dict)
-
-    dbs: Dict[str, Connection] = field(default_factory=dict)
-    lock: threading.Lock = threading.Lock()
-    clients: List['Client'] = field(default_factory=list)
-
-    base_dir: Path = field(default_factory=Path)
-    db_dir: Path = field(default_factory=Path)
-    log_dir: Path = field(default_factory=Path)
-    plugin_dir: Path = field(default_factory=Path)
-
-    config_file: Path = field(default_factory=Path)
-    plugin_files: Set[Path] = field(default_factory=set)
-
-    def __post_init__(self):
-        """Is used to initate values for all the above, excluding clients."""
-        self.base_dir: Path = Path('.').resolve()
-        self.db_dir: Path = self.base_dir / 'Taigabot3' / 'persist' / 'db'
-        self.log_dir: Path = self.base_dir / 'Taigabot3' / 'persist' / 'logs'
-        self.plugin_dir: Path = self.base_dir / 'Taigabot3' / 'plugins'
-        self.config_file: Path = self.base_dir / 'Taigabot3' / 'config.json'
-
-        config.reload(self)
-        self.plugs: PlugsDict = {'command': {}, 'event': {}, 'init': {}, 'sieve': {}}
-        plugins.reload(self)
-        for server in self.config['servers']:
-            db.connect(self, server)    # populates self.dbs

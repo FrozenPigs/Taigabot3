@@ -10,13 +10,13 @@ import signal
 import sys
 from pathlib import Path
 from sqlite3 import Connection
-from ssl import SSLContext, SSLCertVerificationError
+from ssl import SSLCertVerificationError, SSLContext
 from typing import (Any, Callable, Dict, List, Optional, Set, Tuple, TypeVar,
                     Union, cast)
 
 # First Party
 from core import config, db, irc, plugins
-from core.data import Bot, Config, Message, ParsedRaw, ServerConfig, User
+from core.data import Config, Message, ParsedRaw, ServerConfig, User
 from util import user
 
 DBResult = Optional[List[Tuple[Optional[str], ...]]]
