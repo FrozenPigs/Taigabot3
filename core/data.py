@@ -185,9 +185,9 @@ class Config:
     config_file: Path
     config_mtime: float = field(default=0.0)
     init: bool = field(default=True)
-    db_dir: str = field(default='./Taigabot3/persist/db/')
-    log_dir: str = field(default='./Taigabot3/persist/logs/')
-    plugin_dir: str = field(default='./Taigabot3/plugins/')
+    db_dir: str = field(default='./persist/db/')
+    log_dir: str = field(default='./persist/logs/')
+    plugin_dirs: List[str] = field(default_factory=list)
     valid_command_prefixes: List[str] = field(default_factory=list)
     api_keys: Dict[str, str] = field(default_factory=dict)
     servers: Dict[str, ServerConfig] = field(default_factory=dict)
@@ -197,6 +197,11 @@ class Config:
         """Load the config file an parse into dataclasses."""
         self.from_json()
         self.init = False
+
+        if len(self.plugin_dirs) == 0:
+            print('Warning: no plugins dirs configured, adding default "plugins/core/"')
+            self.plugin_dirs.append('./plugins/core/')
+
         global conf
         conf = self
 

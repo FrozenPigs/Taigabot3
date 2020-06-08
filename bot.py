@@ -32,7 +32,10 @@ class Taigabot(irc.IRC):
         self.full_config = config
         self.server_name = server_name
         self.server_config: ServerConfig = self.full_config.servers[self.server_name]
-        self.plugin_dir: Path = Path(self.full_config.plugin_dir).resolve()
+        self.plugin_dirs: List[Path] = []
+        for plugin_dir in self.full_config.plugin_dirs:
+            self.plugin_dirs.append(Path(plugin_dir).resolve())
+
         self.plugins: Dict[str, Dict[str, Callable]] = {
             'command': {},
             'event': {},
@@ -40,7 +43,7 @@ class Taigabot(irc.IRC):
             'sieve': {}
         }
         self.plugin_mtimes: Dict[str, float] = {}
-        self.plugin_mtimes, self.plugins = plugins.reload(self.plugin_dir, self.plugin_mtimes,
+        self.plugin_mtimes, self.plugins = plugins.reload(self.plugin_dirs, self.plugin_mtimes,
                                                           self.plugins)
         self.users: Dict[str, User] = {}
         self.db: Connection = db.connect(self.full_config.db_dir, self.server_name)
@@ -363,7 +366,7 @@ class Taigabot(irc.IRC):
     async def read_loop(self) -> None:    # message_handler
         await self._run_inits()
         while True:
-            self.plugin_mtimes, self.plugins = plugins.reload(self.plugin_dir, self.plugin_mtimes,
+            self.plugin_mtimes, self.plugins = plugins.reload(self.plugin_dirs, self.plugin_mtimes,
                                                               self.plugins)
             try:
                 raw_message = await self.read_line()
