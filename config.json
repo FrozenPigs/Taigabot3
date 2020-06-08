@@ -77,6 +77,57 @@
             "sasl_method": "",
             "sasl_cert": "",
             "sasl_key": ""
+        },
+        "espernet": {
+            "command_prefix": ".",
+            "nickserv_nick": "nickserv",
+            "nickserv_command": "IDENTIFY {}",
+            "port": 6697,
+            "ssl": true,
+            "auto_reconnect": true,
+            "auto_reconnect_delay": 20,
+            "disabled": [],
+            "no_disable": [
+                "01-ignore-input",
+                "02-parse-destination-input",
+                "03-masshighlight-input",
+                "03-masshighlight-output",
+                "logger",
+                "genable",
+                "gdisable",
+                "gadmins"
+            ],
+            "no_log": [
+                "*",
+                "Global",
+                "py-ctcp",
+                "arteries",
+                "None"
+            ],
+            "ignored": [],
+            "no_ignore": [],
+            "admins": [
+                "wednesday@*"
+            ],
+            "channels": [
+                "#wednesday"
+            ],
+            "no_channels": [
+                "#chat"
+            ],
+            "capabilities": [
+                "multi-prefix", "userhost-in-names"
+            ],
+            "owner": "wednesday",
+            "nickname": "TestTaiga",
+            "nickname_password": "",
+            "username": "TestTaiga",
+            "realname": "TestTaiga",
+            "server": "irc.esper.net",
+            "server_password": "",
+            "sasl_method": "",
+            "sasl_cert": "",
+            "sasl_key": ""
         }
     }
 }
