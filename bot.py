@@ -283,7 +283,6 @@ class Taigabot(irc.IRC):
         await self.check_ignored(self.users[nickname], target)
         prefix = await self._get_prefix(target)
         if message.command[0] == prefix:
-            print('prefix', message.command[0], prefix)
             asyncio.create_task(self._run_commands(message))
 
 
@@ -328,6 +327,7 @@ class Taigabot(irc.IRC):
         if not db_prefix:
             prefix = default_prefix
             db.add_channel(self.db, target, prefix)
+            db.set_cell(self.db, 'channels', 'commandprefix', prefix, 'channel', target)
         else:
             prefix = db_prefix[0][0]
             valid_prefixes = self.full_config.valid_command_prefixes
@@ -371,6 +371,7 @@ class Taigabot(irc.IRC):
             try:
                 raw_message = await self.read_line()
                 message = Message(self, await self.parse_message(raw_message))
+                await self._get_prefix(message.target)
                 message = await self._run_input_sieves(message)
                 if message:
                     await self._run_events(message)
@@ -380,7 +381,7 @@ class Taigabot(irc.IRC):
                         rpl_handler = getattr(self, f'rpl_{message.raw_command}')
                         await rpl_handler(message)
 
-            except asyncio.streams.IncompleteReadError:
+            except asyncio.IncompleteReadError:
                 if self.server_config.auto_reconnect:
                     await asyncio.sleep(self.server_config.auto_reconnect_delay)
                     try:
