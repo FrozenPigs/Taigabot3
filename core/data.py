@@ -199,8 +199,8 @@ class Config:
         self.init = False
 
         if len(self.plugin_dirs) == 0:
-            print('Warning: no plugins dirs configured, adding default "plugins/core/"')
-            self.plugin_dirs.append('./plugins/core/')
+            print('Warning: no plugins directories configured, adding default "plugins/"')
+            self.plugin_dirs.append('./plugins/')
 
         global conf
         conf = self
