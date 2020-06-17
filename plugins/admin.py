@@ -10,15 +10,15 @@ last_invite: str = ''
 
 
 @hook.hook('event', ['INVITE'])
-async def invite(client, data):
+async def invite(bot, msg):
     """Is for listening for invite events, storing it then triggering whois."""
     global last_invite
-    last_invite = f'{data.nickname} {data.message}'
-    asyncio.create_task(client.whois(data.nickname))
+    last_invite = f'{msg.nickname} {msg.message}'
+    asyncio.create_task(bot.send_whois(msg.nickname))
 
 
 @hook.hook('event', ['319'])
-async def whois(client, data):
+async def whois(bot, msg):
     """
     Is for listening to whois to deal with invites.
 
@@ -26,27 +26,26 @@ async def whois(client, data):
     owner, or hop in the channel then join.
     """
 
-    message = data.split_message
+    message = msg.split_message
     global last_invite
     if last_invite:
         invite = last_invite.split()
-        nick = invite[0]
-        data.nickname = nick
         channel = invite[1]
-        if message[1] == invite[0]:
+        if message[0] == invite[0]:
             privilages = [f'~{channel}', f'&{channel}', f'@{channel}', f'%{channel}']
             if len([priv for priv in privilages if priv in message]) > 0:
-                channels = client.bot.config['servers'][data.server]['channels']
+                channels = bot.server_config.channels
                 channels.append(channel)
                 asyncio.create_task(
-                    botu.add_to_conf(client, data, channel, channels, f'Joining {channel}.',
+                    botu.add_to_conf(bot, msg, channel, channels, f'Joining {channel}.',
                                      f'{channel} is already in the config.'))
-                asyncio.create_task(client.join(channel))
+                asyncio.create_task(bot.send_join([channel]))
 
 
 @hook.hook('init', ['init_channel_dbs'])
 async def init_channel_dbs(client):
-    print('hi')
+    pass
+    # print('hi')
     # conn = client.bot.dbs[client.server_tag]
     # db.add_column(conn, 'channels', 'disabled')
     # db.add_column(conn, 'channels', 'ban')
@@ -68,185 +67,187 @@ async def chan_join(bot, msg):
         bans = await botu.make_list(
             db.get_cell(conn, 'channels', 'ban', 'channel', msg.target)[0][0])
 
-        if data.mask in ops:
+        if msg.sent_by in ops:
             asyncio.create_task(bot.send_mode(msg.target, '+o', f'{msg.sent_by}'))
-        elif data.mask in hops:
+        elif msg.sent_by in hops:
             asyncio.create_task(bot.send_mode(msg.target, '+h', f'{msg.sent_by}'))
-        elif data.mask in vops:
+        elif msg.sent_by in vops:
             asyncio.create_task(bot.send_mode(msg.target, '+v', f'{msg.sent_by}'))
-        if data.mask in bans:
-            asyncio.create_task(bot.send_ban(data.target, data.nickname))
+        if msg.sent_by in bans:
+            asyncio.create_task(bot.send_ban(msg.target, msg.nickname))
 
 
 @hook.hook('command', ['admins'], admin=True, autohelp=True)
-async def c_admins(client, data):
+async def c_admins(bot, msg):
     """
     .admins [list/add/del] [user/mask] -- Lists, adds or deletes users or
     masks from admins.
     """
-    message = data.split_message
-    conn = client.bot.dbs[data.server]
+    message = msg.split_message
+    conn = bot.db
     admins = await botu.make_list(
-        db.get_cell(conn, 'channels', 'admins', 'channel', data.target)[0][0])
+        db.get_cell(conn, 'channels', 'admins', 'channel', msg.target)[0][0])
     if len(message) > 1:
-        masks = await user.parse_masks(client, conn, ' '.join(message[1:]))
+        masks = await user.parse_masks(bot, conn, ' '.join(message[1:]))
 
     if message[0] == 'del':
         for mask in masks:
             asyncio.create_task(
-                botu.del_from_channels(client, data, conn, 'admins', mask, admins,
+                botu.del_from_channels(bot, msg, conn, 'admins', mask, admins,
                                        f'Removing {mask} from admins.', f'{mask} is not an admin.'))
     elif message[0] == 'add':
         for mask in masks:
             asyncio.create_task(
-                botu.add_to_channels(client, data, conn, 'admins', mask, admins,
+                botu.add_to_channels(bot, msg, conn, 'admins', mask, admins,
                                      f'Adding {mask} to admins.', f'{mask} is already an admin.'))
     elif message[0] == 'list':
         if admins:
-            asyncio.create_task(client.notice(data.nickname, f'Admins are: {", ".join(admins)}'))
+            asyncio.create_task(bot.send_notice([msg.nickname], f'Admins are: {", ".join(admins)}'))
         else:
-            asyncio.create_task(client.notice(data.nickname, 'There are no admins.'))
+            asyncio.create_task(bot.send_notice([msg.nickname], 'There are no admins.'))
         return
 
 
 @hook.hook('command', ['disable', 'enable'], admin=True, autohelp=True)
-async def c_enable_disable(client, data):
+async def c_enable_disable(bot, msg):
     """
     .enable/.disable <list/commands/events/sieves> -- Lists, enables or
     disables commands, events and sieves.
     """
-    event_vals = list(client.bot.plugs['event'].values())
+    event_vals = list(bot.plugins['event'].values())
     events = [func[0].__name__ for func in (event for event in event_vals)]
-    commands = list(client.bot.plugs['command'])
-    sieves = list(client.bot.plugs['sieve'])
+    commands = list(bot.plugins['command'])
+    sieves = list(bot.plugins['sieve'])
 
-    nodisable = client.bot.config['servers'][data.server]['no_disable']
-    conn = client.bot.dbs[data.server]
+    nodisable = bot.server_config.no_disable
+    conn = bot.db
     disabled = await botu.make_list(
-        db.get_cell(conn, 'channels', 'disabled', 'channel', data.target)[0][0])
-    message = data.split_message
+        db.get_cell(conn, 'channels', 'disabled', 'channel', msg.target)[0][0])
+    message = msg.split_message
 
     if message[0] == 'list':
         asyncio.create_task(
-            botu.cmd_event_sieve_lists(client, data, disabled, nodisable, sieves, events, commands))
+            botu.cmd_event_sieve_lists(bot, msg, disabled, nodisable, sieves, events, commands))
         return
 
     for plugin in message:
         plugin = plugin.lower().strip()
-        if await botu.is_cmd_event_sieve(plugin, data, sieves, events, commands):
+        if await botu.is_cmd_event_sieve(plugin, msg, sieves, events, commands):
             asyncio.create_task(
-                client.notice(data.nickname, f'{plugin} is not a sieve, command or event.'))
-        elif data.command == 'enable':
+                bot.send_notice([msg.nickname], f'{plugin} is not a sieve, command or event.'))
+        elif msg.command == 'enable':
             asyncio.create_task(
-                botu.del_from_channels(client, data, conn, 'disabled', plugin, disabled,
+                botu.del_from_channels(bot, msg, conn, 'disabled', plugin, disabled,
                                        f'Enabling {plugin}', f'{plugin} is not disabled'))
-        elif data.command == 'disable':
+        elif msg.command == 'disable':
             if plugin in nodisable:
-                asyncio.create_task(client.notice(data.nickname, f'You cannot disable {plugin}.'))
+                asyncio.create_task(
+                    bot.send_notice([msg.nickname], f'You cannot disable {plugin}.'))
             else:
                 asyncio.create_task(
-                    botu.add_to_channels(client, data, conn, 'disabled', plugin, disabled,
+                    botu.add_to_channels(bot, msg, conn, 'disabled', plugin, disabled,
                                          f'Disabling {plugin}', f'{plugin} is already disabled.'))
 
 
 @hook.hook('command', ['op', 'hop', 'vop', 'deop', 'dehop', 'devop'], admin=True, autohelp=True)
-async def c_op(client, data):
+async def c_op(bot, msg):
     """.deop <users>/.op [add/del/list] [users] -- Ops/deops users and can add/del
     to autoop list. Same for hop and vop."""
-    message = data.split_message
-    conn = client.bot.dbs[data.server]
-    if data.command[0:2] == 'de':
-        asyncio.create_task(botu.usermodes(client, data.target, data.command, message))
+    message = msg.split_message
+    conn = bot.db
+    if msg.command[0:2] == 'de':
+        asyncio.create_task(botu.usermodes(bot, msg.target, msg.command, message))
         return
 
     dbmasks = await botu.make_list(
-        db.get_cell(conn, 'channels', data.command, 'channel', data.target)[0][0])
+        db.get_cell(conn, 'channels', msg.command, 'channel', msg.target)[0][0])
 
     if message[0] == 'list':
         if dbmasks:
             asyncio.create_task(
-                client.notice(data.nickname, f'{data.command}s are: {" ".join(dbmasks)}.'))
+                bot.send_notice([msg.nickname], f'{msg.command}s are: {" ".join(dbmasks)}.'))
         else:
-            asyncio.create_task(client.notice(data.nickname, f'There are no {data.command}s.'))
+            asyncio.create_task(bot.send_notice([msg.nickname], f'There are no {msg.command}s.'))
         return
 
     message = message[1:]
-    masks = await user.parse_masks(client, conn, ' '.join(message))
+    masks = await user.parse_masks(bot, conn, ' '.join(message))
     for mask in masks:
         if message[0] == 'add':
             asyncio.create_task(
-                botu.add_to_channels(client, data, conn, data.command, mask, dbmasks,
-                                     f'Adding {mask} to {data.command} list.',
-                                     f'{mask} is already auto-{data.command}ed.'))
+                botu.add_to_channels(bot, msg, conn, msg.command, mask, dbmasks,
+                                     f'Adding {mask} to {msg.command} list.',
+                                     f'{mask} is already auto-{msg.command}ed.'))
         elif message[0] == 'del':
             asyncio.create_task(
-                botu.del_from_channels(client, data, conn, data.command, mask, dbmasks,
-                                       f'Removing {mask} from {data.command} list.',
-                                       f'{mask} is not auto-{data.command}ed.'))
-    asyncio.create_task(botu.usermodes(client, data.target, data.command, message))
+                botu.del_from_channels(bot, msg, conn, msg.command, mask, dbmasks,
+                                       f'Removing {mask} from {msg.command} list.',
+                                       f'{mask} is not auto-{msg.command}ed.'))
+    asyncio.create_task(botu.usermodes(bot, msg.target, msg.command, message))
 
 
 @hook.hook('command', ['topic'], admin=True, autohelp=True)
-async def c_topic(client, data):
+async def c_topic(bot, msg):
     """.topic [|] <message> -- Changes topic, adds if message starts with |."""
-    if data.message[0] != '|':
-        asyncio.create_task(client.set_topic(data.target, data.message))
-    else:
-        asyncio.create_task(
-            client.set_topic(data.target, client.channels[data.target]['topic'] + data.message))
+    if msg.message[0] != '|':
+        asyncio.create_task(bot.sent_topic(msg.target, msg.message))
+    # pydle way, need new method
+    # else:
+    #     asyncio.create_task(
+    #         msg.set_topic(msg.target, client.channels[data.target]['topic'] + data.message))
 
 
 @hook.hook('command', ['mute', 'unmute'], admin=True)
-async def c_mute(client, data):
+async def c_mute(bot, msg):
     """.mute/.unmute -- Mutes or unmutes the channel."""
-    if data.command == 'mute':
-        asyncio.create_task(client.rawmsg('MODE', data.target, '+m'))
+    if msg.command == 'mute':
+        asyncio.create_task(bot.send_mode(msg.target, '+m'))
     else:
-        asyncio.create_task(client.rawmsg('MODE', data.target, '-m'))
+        asyncio.create_task(bot.send_mode(msg.target, '-m'))
 
 
 @hook.hook('command', ['lock', 'unlock'], admin=True)
-async def c_lock(client, data):
+async def c_lock(bot, msg):
     """.lock/.unlock -- Locks or unlocks the channel."""
-    if data.command == 'lock':
-        asyncio.create_task(client.rawmsg('MODE', data.target, '+i'))
+    if msg.command == 'lock':
+        asyncio.create_task(bot.send_mode(msg.target, '+i'))
     else:
-        asyncio.create_task(client.rawmsg('MODE', data.target, '-i'))
+        asyncio.create_task(bot.send_mode(msg.target, '-i'))
 
 
 @hook.hook('command', ['remove'], admin=True, autohelp=True)
-async def c_remove(client, data):
+async def c_remove(bot, msg):
     """.remove <user> -- Makes a user part from the channel."""
-    asyncio.create_task(client.rawmsg('REMOVE', data.target, data.message))
+    asyncio.create_task(bot.send_line(f'REMOVE {msg.target} :{msg.message}'))
 
 
 @hook.hook('command', ['kick'], admin=True, autohelp=True)
-async def c_kick(client, data):
+async def c_kick(bot, msg):
     """.kick <user> [message] -- Kicks a user from the channel."""
     reason = 'bye bye'
-    message = data.split_message
+    message = msg.split_message
     if len(message) > 1:
         reason = message[1:]
         if len(reason) > 1:
             reason = ' '.join(reason)
         else:
             reason = reason[0]
-    asyncio.create_task(client.kick(data.target, message[0], reason))
+    asyncio.create_task(bot.send_kick(msg.target, message[0], reason))
 
 
 @hook.hook('command', ['ban', 'unban', 'unban', 'kickban'], admin=True, autohelp=True)
-async def c_ban_unban(client, data):
+async def c_ban_unban(bot, msg):
     """.ban [add/del/list] [user] [timer]/.kickban [add/del]
        [user] [reason] [timer]/.unban [user] --
        Ban/kickban/unban the user. User can be banned for [timer].
        .unban automatically removes from ban list."""
-    message = data.split_message
-    conn = client.bot.dbs[data.server]
-    bans = await botu.make_list(db.get_cell(conn, 'channels', 'ban', 'channel', data.target)[0][0])
-    if data.command == 'unban':
-        asyncio.create_task(client.unban(data.target, message[0]))
+    message = msg.split_message
+    conn = bot.db
+    bans = await botu.make_list(db.get_cell(conn, 'channels', 'ban', 'channel', msg.target)[0][0])
+    if msg.command == 'unban':
+        asyncio.create_task(bot.send_unban(msg.target, message[0]))
         asyncio.create_task(
-            botu.del_from_channels(client, data, conn, 'ban', message[
+            botu.del_from_channels(bot, msg, conn, 'ban', message[
                 0], bans, f'Removing {message[0]} from bans.',
                                    f'{message[0]} is not in the ban list.'))
         return
@@ -260,25 +261,25 @@ async def c_ban_unban(client, data):
     if message[0] == 'del':
         message = message[1:]
         asyncio.create_task(
-            botu.del_from_channels(client, data, conn, 'ban', message[
+            botu.del_from_channels(bot, msg, conn, 'ban', message[
                 0], bans, f'Removing {message[0]} from bans.',
                                    f'{message[0]} is not in the ban list.'))
     elif message[0] == 'add':
         message = message[1:]
         asyncio.create_task(
-            botu.add_to_channels(client, data, conn, 'ban', message[
+            botu.add_to_channels(bot, msg, conn, 'ban', message[
                 0], bans, f'Adding {message[0]} to the bans.',
                                  f'{message[0]} is already in the ban list.'))
     elif message[0] == 'list':
-        asyncio.create_task(client.notice(data.nickname, 'bans are: ' + ', '.join(bans)))
+        asyncio.create_task(bot.send_notice([msg.nickname], 'bans are: ' + ', '.join(bans)))
         return
 
-    if data.command == 'ban':
-        asyncio.create_task(client.ban(data.target, message[0]))
-    if data.command == 'kickban':
+    if msg.command == 'ban':
+        asyncio.create_task(bot.send_ban(msg.target, message[0]))
+    if msg.command == 'kickban':
         asyncio.create_task(
-            client.kickban(
-                data.target, message[0], reason=' '.join(message).replace(message[0], 'Git Rekt')))
+            bot.send_kickban(
+                msg.target, message[0], reason=' '.join(message).replace(message[0], 'Git Rekt')))
 
     if timer:
-        asyncio.create_task(timeu.asyncsched(timer, client.unban, (data.target, message[0])))
+        asyncio.create_task(timeu.asyncsched(timer, msg.send_unban, (msg.target, message[0])))
