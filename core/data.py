@@ -85,6 +85,7 @@ class Message:
     raw_message: Tuple[str, str, str, List[str]]
     tags: str = field(default_factory=str)
     sent_by: str = field(default_factory=str)
+    nickname: str = field(default_factory=str)
     raw_command: str = field(default_factory=str)
     args: List[str] = field(default_factory=list)
     user: User = field(default=None)
@@ -117,6 +118,8 @@ class Message:
             self.command = self.split_message[0]
         except IndexError:
             self.command = ''
+        if '@' in self.sent_by:
+            self.nickname = self.sent_by.split('!')[0]
 
 
 @dataclass
