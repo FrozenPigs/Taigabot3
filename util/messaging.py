@@ -1,5 +1,7 @@
 """Messaging and colour utils."""
 # Standard Libs
+import asyncio
+import re
 from typing import Any, Dict
 
 colors: Dict[str, str] = {
@@ -27,7 +29,20 @@ colors: Dict[str, str] = {
 }
 
 
-async def action(bot: Any, target: str, message: str) -> None:
+async def send_action(bot: Any, target: str, message: str) -> None:
     """Is used to do an action in a channel."""
     message = f'\x01ACTION {message}\x01'
-    bot.send_privmsg([target], message)
+    asyncio.create_task(bot.send_privmsg([target], message))
+
+
+def multiword_replace(text, wordDic):
+    """
+    take a text and replace words that match a key in a dictionary with
+    the associated value, return the changed text
+    """
+    rc = re.compile('|'.join(map(re.escape, wordDic)))
+
+    def translate(match):
+        return wordDic[match.group(0)]
+
+    return rc.sub(translate, text)
