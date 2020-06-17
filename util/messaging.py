@@ -46,3 +46,9 @@ def multiword_replace(text, wordDic):
         return wordDic[match.group(0)]
 
     return rc.sub(translate, text)
+
+
+# smush multiple spaces into one
+def compress_whitespace(text):
+    whitespace = re.compile(r"\s+")
+    return whitespace.sub(' ', text).strip()
