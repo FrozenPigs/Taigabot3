@@ -22,8 +22,7 @@ def urlencode(inp):
 
     if isinstance(inp, str):
         inp = force_decode(inp)
-
-    return parse(inp)
+    return parse.quote(inp)
 
 
 def get_json(url, **kwargs):
