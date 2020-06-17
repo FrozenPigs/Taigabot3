@@ -319,6 +319,10 @@ class Taigabot(irc.IRC):
                     doc: str = ' '.join(cast(str, func.__doc__).split())
                     asyncio.create_task(self.send_notice([message.nickname], f'{doc}'))
                     return
+                message.message = message.message.replace(message.command + ' ', '')
+                message.split_message = message.split_message.pop(0)
+                if isinstance(message.split_message, str):
+                    message.split_message = [message.split_message]
                 asyncio.create_task(func(self, message))
 
     async def _get_prefix(self, target: str) -> str:
