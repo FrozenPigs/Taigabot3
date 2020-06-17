@@ -20,13 +20,13 @@ async def _take_action(bot, msg, flood_rules, flood_type):
     message = (f'You are flooding, the flood rules are {flood_rules[0]} '
                f'{flood_type} per {flood_rules[1]} seconds.')
     if flood_rules[-1] == 'warn':
-        asyncio.create_task(bot.notice(msg.user.nickname, message))
+        asyncio.create_task(bot.send_notice([msg.nickname], message))
     elif flood_rules[-1] == 'kick':
-        asyncio.create_task(bot.kick(msg.target, msg.user.nickname, reason=message))
+        asyncio.create_task(bot.send_kick(msg.target, msg.nickname, reason=message))
     elif flood_rules[-1] == 'ban':
-        asyncio.create_task(bot.send_kickban(msg.target, msg.user.userhost, reason=message))
+        asyncio.create_task(bot.send_kickban(msg.target, msg.sent_by, reason=message))
         event = sched.scheduler(time.perf_counter, time.sleep)
-        event.enter(60, 1, asyncio.create_task, (bot.send_unban(msg.target, msg.user.nickname)))
+        event.enter(60, 1, asyncio.create_task, (bot.send_unban(msg.target, msg.nickname)))
         thread = threading.Thread(target=event.run)
         thread.daemon = True
         thread.start()
@@ -45,9 +45,9 @@ async def _detect_flood(bot, msg, flood_rules, flood_type):
 
     if msg.target not in flood_dict:
         flood_dict[msg.target] = {}
-    if msg.user.nickname not in flood_dict[msg.target]:
+    if msg.nickname not in flood_dict[msg.target]:
         flood_dict[msg.target][msg.nickname] = []
-    flooder = flood_dict[msg.target][msg.user.nickname]
+    flooder = flood_dict[msg.target][msg.nickname]
     now = time.perf_counter()
     flooder.append(now)
     flooder = [t for t in list(flooder) if now - t < int(flood_rules[1])]
@@ -92,11 +92,11 @@ async def _is_int(inp):
         return False
 
 
-async def _secs_or_help(client, data, message):
+async def _secs_or_help(bot, msg, message):
     """Is for displaying help for various conditions, or returning seconds."""
     if len(message) == 1:
         doc = ' '.join(c_flood.__doc__.split())
-        asyncio.create_task(client.notice(data.nickname, f'{doc}'))
+        asyncio.create_task(bot.send_notice([msg.nickname], f'{doc}'))
         return None
     if len(message) >= 2 and message[1] != 'disable':
         commands = ['list', 'cmd', 'msg']
@@ -109,12 +109,12 @@ async def _secs_or_help(client, data, message):
             secs = notint = False
         if message[0] not in commands or tooshort or notvalid or notint:
             doc = ' '.join(c_flood.__doc__.split())
-            asyncio.create_task(client.notice(data.nickname, f'{doc}'))
+            asyncio.create_task(bot.send_notice([msg.nickname], f'{doc}'))
             return None
         if not notint:
             if int(message[1]) < 1 or int(message[2]) < 1:
                 doc = ' '.join(c_flood.__doc__.split())
-                asyncio.create_task(client.notice(data.nickname, f'{doc}'))
+                asyncio.create_task(bot.send_notice([msg.nickname], f'{doc}'))
                 return None
 
     else:
@@ -123,52 +123,52 @@ async def _secs_or_help(client, data, message):
 
 
 @hook.hook('command', ['flood'], autohelp=True, admin=True)
-async def c_flood(client, data):
+async def c_flood(bot, msg):
     """
     .flood [list/cmd/msg] [messages/disable] [second] [kick/ban/warn] --
      List, disable, or change the max messages per second or commands per
      second. The bot can kick, ban(which also kicks), or warn flooding users.
     """
-    conn = client.bot.dbs[data.server]
-    msgflood = db.get_cell(conn, 'channels', 'msgflood', 'channel', data.target)[0][0]
-    cmdflood = db.get_cell(conn, 'channels', 'cmdflood', 'channel', data.target)[0][0]
-    if ' ' in data.message:
-        message = data.message.split(' ')
+    conn = bot.db
+    msgflood = db.get_cell(conn, 'channels', 'msgflood', 'channel', msg.target)[0][0]
+    cmdflood = db.get_cell(conn, 'channels', 'cmdflood', 'channel', msg.target)[0][0]
+    if ' ' in msg.message:
+        message = msg.message.split(' ')
     else:
-        message = [data.message]
+        message = [msg.message]
 
     if message[0] == 'list':
         if msgflood not in (None, ''):
-            asyncio.create_task(client.notice(data.nickname, f'Message flood: {msgflood}.'))
+            asyncio.create_task(msg.send_notice([msg.nickname], f'Message flood: {msgflood}.'))
         else:
-            asyncio.create_task(client.notice(data.nickname, f'No message flood set.'))
+            asyncio.create_task(msg.send_notice([msg.nickname], f'No message flood set.'))
         if cmdflood not in (None, ''):
-            asyncio.create_task(client.notice(data.nickname, f'Command flood: {cmdflood}.'))
+            asyncio.create_task(msg.send_notice([msg.nickname], f'Command flood: {cmdflood}.'))
         else:
-            asyncio.create_task(client.notice(data.nickname, f'No command flood set.'))
+            asyncio.create_task(msg.send_notice([msg.nickname], f'No command flood set.'))
         return
 
-    secs = await _secs_or_help(client, data, message)
+    secs = await _secs_or_help(bot, msg, message)
     if not secs:
         return
 
     if message[0] == 'msg':
         if message[1] == 'disable':
-            asyncio.create_task(client.notice(data.nickname, 'Disabling message flood.'))
-            db.set_cell(conn, 'channels', 'msgflood', '', 'channel', data.target)
+            asyncio.create_task(bot.send_notice([msg.nickname], 'Disabling message flood.'))
+            db.set_cell(conn, 'channels', 'msgflood', '', 'channel', msg.target)
         else:
             asyncio.create_task(
-                client.notice(data.nickname, f'Changing message flood to {message[1]} {secs}'
-                              f'{message[3]}.'))
+                bot.send_notice([msg.nickname], f'Changing message flood to {message[1]} {secs}'
+                                f'{message[3]}.'))
             db.set_cell(conn, 'channels', 'msgflood', f'{message[1]} {secs} {message[3]}',
-                        'channel', data.target)
+                        'channel', msg.target)
     if message[0] == 'cmd':
         if message[1] == 'disable':
-            asyncio.create_task(client.notice(data.nickname, 'Disabling command flood.'))
-            db.set_cell(conn, 'channels', 'cmdflood', '', 'channel', data.target)
+            asyncio.create_task(bot.send_notice([bot.nickname], 'Disabling command flood.'))
+            db.set_cell(conn, 'channels', 'cmdflood', '', 'channel', msg.target)
         else:
             asyncio.create_task(
-                client.notice(data.nickname, f'Changing command flood to {message[1]} {secs}'
-                              f'{message[3]}.'))
+                bot.send_notice([msg.nickname], f'Changing command flood to {message[1]} {secs}'
+                                f'{message[3]}.'))
             db.set_cell(conn, 'channels', 'cmdflood', f'{message[1]} {secs} {message[3]}',
-                        'channel', data.target)
+                        'channel', msg.target)
