@@ -291,7 +291,6 @@ class Taigabot(irc.IRC):
 ################################################################################
 
     async def _run_commands(self, message: Message) -> None:
-        print('run_command', message.command)
         commands = self.plugins['command']
         command = message.command[1:]
         conn = self.db
@@ -299,21 +298,20 @@ class Taigabot(irc.IRC):
             return
         if command in commands.keys():
             for func in commands[command]:
-                print(func, command)
                 hook = func.__hook__[1]
                 if hook['gadmin'] and not message.user.global_admin:
                     asyncio.create_task(
-                        self.send_notice(message.sent_by, ('You must be a gadmin to use'
-                                                           ' that command')))
+                        self.send_notice([message.nickname], ('You must be a gadmin to use'
+                                                              ' that command')))
                     return
                 if hook['admin'] and not admin and not message.user.chan_admin:
                     asyncio.create_task(
-                        self.send_notice(message.sent_by, ('You must be an admin to use'
-                                                           ' that command')))
+                        self.send_notice([message.nickname], ('You must be an admin to use'
+                                                              ' that command')))
                     return
-                if not len(message.message) and hook['autohelp']:
+                if not len(message.message) - len(message.command) and hook['autohelp']:
                     doc: str = ' '.join(cast(str, func.__doc__).split())
-                    asyncio.create_task(self.notice(message.sent_by, f'{doc}'))
+                    asyncio.create_task(self.send_notice([message.nickname], f'{doc}'))
                     return
                 asyncio.create_task(func(self, message))
 
