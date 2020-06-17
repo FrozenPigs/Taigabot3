@@ -7,53 +7,53 @@ from typing import Any, List
 from core import data, db
 
 
-async def add_to_channels(client: Any, data: data.ParsedRaw, conn: Connection, column: str,
-                          adding: str, existing: List[str], added_msg: str, already_msg: str):
+async def add_to_channels(bot: Any, msg: data.Message, conn: Connection, column: str, adding: str,
+                          existing: List[str], added_msg: str, already_msg: str):
     if adding in existing:
-        asyncio.create_task(client.notice(data.nickname, already_msg))
+        asyncio.create_task(bot.send_notice([msg.nickname], already_msg))
     else:
         existing.append(adding)
         if len(existing) > 1:
-            db.set_cell(conn, 'channels', column, ' '.join(existing), 'channel', data.target)
+            db.set_cell(conn, 'channels', column, ' '.join(existing), 'channel', msg.target)
         else:
             print(existing)
-            db.set_cell(conn, 'channels', column, existing[0], 'channel', data.target)
+            db.set_cell(conn, 'channels', column, existing[0], 'channel', msg.target)
 
-        asyncio.create_task(client.notice(data.nickname, added_msg))
+        asyncio.create_task(bot.send_notice([msg.nickname], added_msg))
 
 
-async def del_from_channels(client: Any, data: data.ParsedRaw, conn: Connection, column: str,
+async def del_from_channels(bot: Any, msg: data.Message, conn: Connection, column: str,
                             removing: str, existing: List[str], removed_msg: str, notin_msg: str):
     if removing in existing:
         existing.remove(removing)
         if len(existing) > 1:
-            db.set_cell(conn, 'channels', column, ' '.join(existing), 'channel', data.target)
+            db.set_cell(conn, 'channels', column, ' '.join(existing), 'channel', msg.target)
         else:
             if not existing:
-                db.set_cell(conn, 'channels', column, '', 'channel', data.target)
+                db.set_cell(conn, 'channels', column, '', 'channel', msg.target)
             else:
-                db.set_cell(conn, 'channels', column, existing, 'channel', data.target)
+                db.set_cell(conn, 'channels', column, existing, 'channel', msg.target)
 
-        asyncio.create_task(client.notice(data.nickname, removed_msg))
+        asyncio.create_task(bot.send_notice([msg.nickname], removed_msg))
     else:
-        asyncio.create_task(client.notice(data.nickname, notin_msg))
+        asyncio.create_task(bot.send_notice([msg.nickname], notin_msg))
 
 
-async def add_to_conf(client: Any, data: data.ParsedRaw, adding: str, conf_value: List[str],
+async def add_to_conf(bot: Any, msg: data.Message, adding: str, conf_value: List[str],
                       added_msg: str, already_msg: str):
     if adding in conf_value:
-        asyncio.create_task(client.notice(data.nickname, already_msg))
+        asyncio.create_task(bot.send_notice([msg.nickname], already_msg))
     else:
-        asyncio.create_task(client.notice(data.nickname, added_msg))
+        asyncio.create_task(bot.send_notice([msg.nickname], added_msg))
         conf_value.append(adding)
 
 
-async def remove_from_conf(client: Any, data: data.ParsedRaw, removing: str, conf_value: List[str],
+async def remove_from_conf(bot: Any, msg: data.Message, removing: str, conf_value: List[str],
                            removed_msg: str, notin_msg: str):
     if removing not in conf_value:
-        asyncio.create_task(client.notice(data.nickname, notin_msg))
+        asyncio.create_task(bot.send_notice([msg.nickname], notin_msg))
     else:
-        asyncio.create_task(client.notice(data.nickname, removed_msg))
+        asyncio.create_task(bot.send_notice([msg.nickname], removed_msg))
         conf_value.remove(removing)
 
 
@@ -66,20 +66,20 @@ async def make_list(value):
         return [value]
 
 
-async def usermodes(client, target, command, users):
+async def usermodes(bot, target, command, users):
     prefix = '+'
     if command[0:2] == 'de':
         prefix = '-'
         command = command[2:]
     if command == 'op':
-        await client.rawmsg('MODE', target, f'{prefix}o', f'users')
+        await bot.send_mode(target, f'{prefix}o', [f'users'])
     elif command == 'hop':
-        await client.rawmsg('MODE', target, f'{prefix}h', f'{users}')
+        await bot.send_mode(target, f'{prefix}h', [f'{users}'])
     elif command == 'vop':
-        await client.rawmsg('MODE', target, f'{prefix}v', f'{users}')
+        await bot.send_mode(target, f'{prefix}v', [f'{users}'])
 
 
-async def _enable_disable(client, target, conn, value, cell):
+async def _enable_disable(bot, target, conn, value, cell):
     if len(value) > 1:
         db.set_cell(conn, 'channels', cell, ' '.join(value), 'channel', target)
     else:
@@ -123,28 +123,29 @@ async def valid_cmd_event_sieve_init(sieves, events, commands, inits, nodisable)
     return sieves, events, commands, inits
 
 
-async def cmd_event_sieve_init_lists(client, data, disabled, nodisable, sieves, events, commands,
-                                     inits):
+async def cmd_event_sieve_init_lists(bot, msg, disabled, nodisable, sieves, events, commands, inits):
     """Is for displaying a list of valid disables or enables."""
-    if data.command in {'disable', 'gdisable'}:
+    if msg.command in {'disable', 'gdisable'}:
         sieves, events, commands, inits = await valid_cmd_event_sieve_init(
             sieves, events, commands, inits, nodisable)
         if sieves != '':
-            asyncio.create_task(client.notice(data.nickname, f'Valid sieves to disable: {sieves}'))
+            asyncio.create_task(
+                bot.send_notice([msg.nickname], f'Valid sieves to disable: {sieves}'))
         if events != '':
-            asyncio.create_task(client.notice(data.nickname, f'Valid events to disable: {events}'))
+            asyncio.create_task(
+                bot.send_notice([msg.nickname], f'Valid events to disable: {events}'))
         if commands != '':
             asyncio.create_task(
-                client.notice(data.nickname, f'Valid commands to disable: {commands}'))
+                bot.send_notice([msg.nickname], f'Valid commands to disable: {commands}'))
         if inits != '':
-            asyncio.create_task(client.notice(data.nickname, f'Valid inits to disable: {inits}'))
+            asyncio.create_task(bot.send_notice([msg.nickname], f'Valid inits to disable: {inits}'))
 
     else:
         if not disabled:
-            asyncio.create_task(client.notice(data.nickname, 'Nothing disabled.'))
+            asyncio.create_task(bot.send_notice([msg.nickname], 'Nothing disabled.'))
         else:
             if len(disabled) > 1:
                 disabled = ', '.join(disabled)
             else:
                 disabled = disabled[0]
-            asyncio.create_task(client.notice(data.nickname, f'Disabled: {disabled}'))
+            asyncio.create_task(bot.send_notice([msg.nickname], f'Disabled: {disabled}'))
