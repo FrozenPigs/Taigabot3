@@ -28,6 +28,7 @@ CommandDict = Dict[str, List[CommandFunc]]
 class Taigabot(irc.IRC):
 
     def __init__(self, config: Config, server_name: str, ssl_context: SSLContext):
+        self.restarted = False
         self.ssl_context = ssl_context
         self.full_config = config
         self.server_name = server_name
@@ -52,6 +53,11 @@ class Taigabot(irc.IRC):
 ################################################################################
 #                                   MISC                                       #
 ################################################################################
+
+    async def stop(self, reset: bool = False) -> None:
+        """Is used to stop or restart the bot."""
+        self.restarted = reset
+        os.kill(os.getpid(), signal.SIGINT)
 
     async def nickserv(self) -> None:
         self.send_privmsg([
