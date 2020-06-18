@@ -136,6 +136,29 @@ def set_row(conn: Connection, table: str, data: Data) -> Return:
         return result.fetchall()
 
 
+def delete_row(conn: Connection,
+               table: str,
+               matchcolumn: str,
+               matchvalue: str,
+               matchextra: Optional[Tuple[str, ...]] = None) -> Return:
+    """Is used to delete a whole row in the database."""
+    cursor = conn.cursor()
+    if not matchextra:
+        sql: str = f'DELETE FROM {table} WHERE {matchcolumn} = ?'
+        with lock:
+            result: Execute = execute(cursor, conn, sql, (matchvalue, ))
+    else:
+        sql: str = f'DELETE FROM {table} WHERE {matchcolumn} = ? AND {matchextra[0]} = ?'
+        with lock:
+            result: Execute = execute(cursor, conn, sql, (matchvalue, matchextra[1]))
+
+    ccache()
+    if isinstance(result, Exception):
+        return None
+    else:
+        return result.fetchall()
+
+
 @functools.lru_cache(maxsize=128)
 def get_cell(conn: Connection, table: str, column: str, matchcolumn: str, matchvalue: str) -> Return:
     """Is used to get a cell from the database."""
