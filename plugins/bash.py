@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 cache = []
 
 
-def refresh_cache():
+def refresh_bash_cache():
     "gets a page of random bash.org quotes and puts them into a dictionary "
     print("[+] refreshing bash cache")
     html = request.get('http://bash.org/?random')
@@ -56,9 +56,9 @@ async def bash(bot, msg):
 
     id, votes, text = cache.pop()
     if len(cache) < 3:
-        refresh_cache()
+        refresh_bash_cache()
 
     create_task(bot.send_privmsg([msg.target], f'\x02{id}\x02 ({votes} votes): {text}'))
 
 
-refresh_cache()
+refresh_bash_cache()
