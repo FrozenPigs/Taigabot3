@@ -10,16 +10,16 @@ from asyncio import create_task
 from core import db, hook
 from util import timeu
 
-db_ready = False
+tell_db_ready = False
 
 
-def db_init(bot):
+def init_tell_db(bot):
     "check to see that our db has the tell table and return a dbection."
-    global db_ready
+    global tell_db_ready
     db.init_table(bot.db, 'tell', ['user_to', 'user_from', 'message', 'chan', 'time'], [
         'user_to', 'message'
     ])
-    db_ready = True
+    tell_db_ready = True
     print('Tell Database Ready')
 
 
@@ -27,8 +27,8 @@ def db_init(bot):
 async def tellinput(bot, msg):
     if 'showtells' in msg.message.lower():
         return
-
-    if not db_ready: db_init(bot)
+    if not tell_db_ready:
+        init_tell_db(bot)
 
     tells = db.get_row(bot.db, 'tell', 'user_to', msg.nickname)
 
@@ -41,7 +41,6 @@ async def tellinput(bot, msg):
                             f'{user_from} sent you a message {past} ago from {chan}: {message}'))
         if len(tells) > 1:
             prefix = db.get_cell(bot.db, 'channels', 'commandprefix', 'channel', msg.target)[0][0]
-            print(prefix)
             create_task(
                 bot.send_notice([msg.nickname],
                                 f'({len(tells) - 1} more, {prefix}showtells to view)'))
@@ -52,7 +51,7 @@ async def tellinput(bot, msg):
 async def showtells(bot, msg):
     "showtells -- View all pending tell messages (sent in a notice)."
 
-    if not db_ready: db_init(bot)
+    if not tell_db_ready: init_tell_db(bot)
 
     tells = db.get_row(bot.db, 'tell', 'user_to', msg.nickname)
 
@@ -99,11 +98,11 @@ async def tell(bot, msg):
         create_task(bot.send_notice([msg.nickname], "I cant send a message to that user!"))
         return
 
-    if not db_ready:
-        db_init(bot)
+    if not tell_db_ready:
+        init_tell_db(bot)
 
     rows = db.get_row(bot.db, 'tell', 'user_to', user_to)
-    if len(rows) >= 10:
+    if rows and len(rows) >= 10:
         create_task(bot.send_notice([msg.nickname], "That person has too many messages queued."))
         return
 
