@@ -26,7 +26,7 @@ allowed_datasets = [
 ]
 
 
-def refresh_cache():
+def refresh_distro_cache():
     print('[+] refreshing distrowatch cache')
     output = '[DistroWatch]'
 
@@ -90,10 +90,10 @@ async def distro(bot, msg):
     global last_refresh, cache_stale, cache
     now = time.time()
     if now - last_refresh > cache_stale:
-        refresh_cache()
+        refresh_distro_cache()
         last_refresh = now
 
     create_task(bot.send_privmsg([msg.target], cache))
 
 
-refresh_cache()
+refresh_distro_cache()
