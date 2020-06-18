@@ -26,6 +26,7 @@ class IRC:
 
     async def send_line(self, message: str) -> None:
         """Send messages to the server with correct line ending."""
+        print(message)
         self.writer.write(f'{message}\r\n'.encode('utf-8'))
 
     async def send_admin(self, server: Optional[str] = None) -> None:
