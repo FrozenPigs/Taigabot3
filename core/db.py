@@ -136,6 +136,20 @@ def set_row(conn: Connection, table: str, data: Data) -> Return:
         return result.fetchall()
 
 
+def replace_row(conn: Connection, table: str, data: Data) -> Return:
+    """Is used to set a whole row in the database."""
+    cursor = conn.cursor()
+    values: str = ('?,' * len(data))[:-1]
+    sql: str = f'INSERT OR REPLACE INTO {table} VALUES({values})'
+    with lock:
+        result: Execute = execute(cursor, conn, sql, data)
+    ccache()
+    if isinstance(result, Exception):
+        return None
+    else:
+        return result.fetchall()
+
+
 def delete_row(conn: Connection,
                table: str,
                matchcolumn: str,
@@ -143,15 +157,15 @@ def delete_row(conn: Connection,
                matchextra: Optional[Tuple[str, ...]] = None) -> Return:
     """Is used to delete a whole row in the database."""
     cursor = conn.cursor()
+    result = Execute
     if not matchextra:
         sql: str = f'DELETE FROM {table} WHERE {matchcolumn} = ?'
         with lock:
-            result: Execute = execute(cursor, conn, sql, (matchvalue, ))
+            result = execute(cursor, conn, sql, (matchvalue, ))
     else:
         sql: str = f'DELETE FROM {table} WHERE {matchcolumn} = ? AND {matchextra[0]} = ?'
         with lock:
-            result: Execute = execute(cursor, conn, sql, (matchvalue, matchextra[1]))
-
+            result = execute(cursor, conn, sql, (matchvalue, matchextra[1]))
     ccache()
     if isinstance(result, Exception):
         return None
@@ -173,12 +187,22 @@ def get_cell(conn: Connection, table: str, column: str, matchcolumn: str, matchv
 
 
 @functools.lru_cache(maxsize=128)
-def get_row(conn: Connection, table: str, matchcolumn: str, matchvalue: str) -> Return:
+def get_row(conn: Connection,
+            table: str,
+            matchcolumn: str,
+            matchvalue: str,
+            matchextra: Optional[Tuple[str, ...]] = None) -> Return:
     """Is used to get a whole row from the database."""
     cursor = conn.cursor()
-    sql: str = f'SELECT * FROM {table} WHERE {matchcolumn} = ?'
-    with lock:
-        result: Execute = execute(cursor, conn, sql, (matchvalue, ))
+    result = Execute
+    if not matchextra:
+        sql: str = f'SELECT * FROM {table} WHERE {matchcolumn} = ?'
+        with lock:
+            result = execute(cursor, conn, sql, (matchvalue, ))
+    else:
+        sql: str = f'SELECT * FROM {table} WHERE {matchcolumn} = ? AND {matchextra[0]} = ?'
+        with lock:
+            result = execute(cursor, conn, sql, (matchvalue, matchextra[1]))
     if isinstance(result, Exception):
         return None
     else:
