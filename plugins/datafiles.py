@@ -40,6 +40,10 @@ with open("plugins/data/lewd.txt") as f:
 with open("plugins/data/slogans.txt") as f:
     slogans = [line.strip() for line in f.readlines() if not line.startswith("//")]
 
+with open("plugins/data/foods.txt") as f:
+    foods = [line.strip() for line in f.readlines() if not line.startswith("//")]
+
+
 def get_generator(_json, variables):
     data = json.loads(_json)
     return textgen.TextGenerator(data["templates"], data["parts"], variables=variables)
@@ -145,6 +149,7 @@ async def kill(bot, msg):
     # act out the message
     create_task(messaging.send_action(bot, msg.target, generator.generate_string()))
 
+
 @hook.hook('command', ['slap'])
 async def slap(bot, msg):
     """slap <user> -- Makes the bot slap <user>."""
@@ -167,6 +172,7 @@ async def slap(bot, msg):
     # act out the message
     create_task(messaging.send_action(bot, msg.target, generator.generate_string()))
 
+
 @hook.hook('command', ['slogan'])
 async def slogan(bot, msg):
     """slogan <word> -- Makes a slogan for <word>."""
@@ -176,6 +182,7 @@ async def slogan(bot, msg):
         inp = ' '.join([s[0].upper() + s[1:] for s in inp.split(' ')])
 
     create_task(bot.send_privmsg([msg.target], out.replace('<text>', inp)))
+
 
 def get_filename(bot, msg, action):
     # if 'loli' in action: action = 'lolis'
@@ -198,6 +205,7 @@ def get_filename(bot, msg, action):
         return
     return action
 
+
 @hook.hook('command', ['add'], admin=True)
 async def add(bot, msg):
     """add <type> <data> -- appends <data> to <type>.txt"""
@@ -210,6 +218,7 @@ async def add(bot, msg):
 
         create_task(bot.send_notice([msg.target], '{} added.'.format(action)))
         file.close()
+
 
 def process_text(bot, msg, name):
     # if not inp or inp is int:
@@ -233,15 +242,18 @@ def process_text(bot, msg, name):
         lines = []
         return reply
 
+
 @hook.hook('command', ['troll', 'wailord'])
 async def troll(bot, msg):
     """troll -- Trolls on demand"""
     create_task(bot.send_privmsg([msg.target], process_text(bot, msg, "trolls")))
 
+
 @hook.hook('command', ['fortune'])
 async def fortune(bot, msg):
     """fortune -- Fortune cookies on demand."""
     create_task(bot.send_privmsg([msg.target], process_text(bot, msg, "fortunes")))
+
 
 @hook.hook('command', ['kek', 'topkek'])
 async def topkek(bot, msg):
@@ -254,6 +266,7 @@ async def topkek(bot, msg):
 #     """loli -- Returns a loli."""
 #     say("\x02\x034NSFW\x03\x02 {}".format(process_text(inp,"lolis",notice)))
 #     return
+
 
 @hook.hook('command', ['moistcake'])
 async def moistcake(bot, msg):
@@ -272,10 +285,12 @@ async def urmom(bot, msg):
     """urmom --  return urmom."""
     create_task(bot.send_privmsg([msg.target], process_text(bot, msg, "urmom")))
 
+
 @hook.hook('command', ['old', 'honry'])
 async def honry(bot, msg):
     """honry --  return honry."""
     create_task(bot.send_privmsg([msg.target], process_text(bot, msg, 'old')))
+
 
 @hook.hook('command', ['bender'])
 async def bender(bot, msg):
@@ -323,6 +338,7 @@ async def bender(bot, msg):
     create_task(bot.send_privmsg([msg.target], random.choice(benders)))
     benders = []
 
+
 @hook.hook('command', ['gains', 'gainz'])
 async def gainz(bot, msg):
     """gains -- SICK GAINZ BRO"""
@@ -333,3 +349,14 @@ async def gainz(bot, msg):
 async def nsfw(bot, msg):
     """nsfw -- Have a nice fap"""
     create_task(bot.send_privmsg([msg.target], process_text(bot, msg, "nsfw")))
+
+
+@hook.hook('command', ['breakfast'])
+async def breakfast(bot, msg):
+    if msg.message == msg.command:
+        nick = msg.nickname
+    else:
+        nick = msg.message
+    food = foods[random.randint(0, len(foods) - 1)]
+
+    create_task(messaging.send_action(bot, msg.target, f'gives {nick} some {food}.'))
