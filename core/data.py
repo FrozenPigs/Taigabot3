@@ -254,7 +254,9 @@ class Config:
         if self.config_mtime != new_mtime:
             if self.config_mtime != 0.0:
                 print('<<< Config Reloaded')
-            conf: Dict[str, Any] = json.load(self.config_file.open('r'))
+            with self.config_file.open('r') as f:
+                conf: Dict[str, Any] = json.load(f)
+                f.close()
             self.config_mtime = new_mtime
             return conf
         return self.raw_config

@@ -12,7 +12,9 @@ def _compile_plugins(plugin: Path, reloading: bool) -> Optional[Exception]:
     """Is for compiling the plugins into the namespace variable."""
     try:
         global namespace
-        eval(compile(plugin.open('U').read(), plugin, 'exec'), namespace)
+        with plugin.open('r') as f:
+            eval(compile(f.read(), plugin, 'exec'), namespace)
+            f.close()
     except Exception as e:
         print(f'Error Loading plugin: {type(e).__name__} {e}.')
         if reloading:
