@@ -15,10 +15,8 @@ db_ready = False
 
 def db_init(bot):
     "check to see that our db has the tell table and return a dbection."
-    print('hi there')
     global db_ready
-    conn = bot.db
-    db.init_table(conn, 'tell', ['user_to', 'user_from', 'message', 'chan', 'time'], [
+    db.init_table(bot.db, 'tell', ['user_to', 'user_from', 'message', 'chan', 'time'], [
         'user_to', 'message'
     ])
     db_ready = True
