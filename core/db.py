@@ -76,16 +76,17 @@ def connect(db_dir: str, server: str) -> Connection:
         db_dir.mkdir(parents=True)
     db_file: Path = db_dir / (server + '.db')
     db: Connection = sqlite3.connect(db_file, timeout=1, check_same_thread=False)
-    init_table(db, 'users', users_columns)
-    init_table(db, 'channels', channel_columns)
+    init_table(db, 'users', users_columns, ['nick'])
+    init_table(db, 'channels', channel_columns, ['channel'])
     return db
 
 
-def init_table(conn: Connection, tablename: str, columns: List[str]) -> Return:
+def init_table(conn: Connection, tablename: str, columns: List[str], primary: List[str]) -> Return:
     """Is used to create a table using the inputed name and columns."""
     cursor = conn.cursor()
     joined_columns: str = ', '.join(columns)
-    sql: str = f'CREATE TABLE IF NOT EXISTS {tablename}({joined_columns})'
+    joined_primary: str = ', '.join(primary)
+    sql: str = f'CREATE TABLE IF NOT EXISTS {tablename}({joined_columns}, primary key({joined_primary}))'
     with lock:
         result: Execute = execute(cursor, conn, sql)
     if isinstance(result, Exception):
