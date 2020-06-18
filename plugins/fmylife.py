@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 cache = []
 
 
-def refresh_cache():
+def refresh_fml_cache():
     print('[+] refreshing fmylife cache')
     html = request.get('https://www.fmylife.com/random')
     soup = BeautifulSoup(html, 'lxml')
@@ -30,10 +30,10 @@ async def fml(bot, msg):
     "fml -- Gets a random quote from fmyfife.com."
 
     if len(cache) < 2:
-        refresh_cache()
+        refresh_fml_cache()
 
     id, text = cache.pop()
     create_task(bot.send_privmsg([msg.target], f'(#{id}) {text}'))
 
 
-refresh_cache()
+refresh_fml_cache()
