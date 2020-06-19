@@ -198,6 +198,7 @@ class Config:
     plugin_dirs: List[str] = field(default_factory=list)
     valid_command_prefixes: List[str] = field(default_factory=list)
     api_keys: Dict[str, str] = field(default_factory=dict)
+    times: List[str] = field(default_factory=list)
     servers: Dict[str, ServerConfig] = field(default_factory=dict)
     raw_config: Dict[str, Any] = field(default_factory=dict)
 

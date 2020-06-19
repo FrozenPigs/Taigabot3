@@ -17,6 +17,36 @@
     "api_keys": {
         "": ""
     },
+    "times": {
+      "format": "%I:%M %p %Z", 
+      "separator": " | ", 
+      "time_zones": [
+        [
+          "Los Angeles", 
+          "America/Los_Angeles"
+        ], 
+        [
+          "New York", 
+          "America/New_York"
+        ], 
+        [
+          "London", 
+          "Europe/London"
+        ], 
+        [
+          "Berlin", 
+          "Europe/Berlin"
+        ], 
+        [
+          "Kiev", 
+          "Europe/Kiev"
+        ], 
+        [
+          "Tokyo", 
+          "Asia/Tokyo"
+        ]
+      ]
+    },
     "servers": {
         "rizon": {
             "command_prefix": ".",
