@@ -1,3 +1,8 @@
 psutil
 requests
 bs4
+geopy
+pytz
+pyenchant
+pyparsing
+tweepy
