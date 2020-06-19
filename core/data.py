@@ -2,7 +2,9 @@
 import copy
 import dataclasses
 import json
+import os
 import re
+import signal
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path, PosixPath
@@ -201,7 +203,11 @@ class Config:
 
     def __post_init__(self) -> None:
         """Load the config file an parse into dataclasses."""
-        self.from_json()
+        try:
+            self.from_json()
+        except FileNotFoundError:
+            print('Rename config.default to config.json')
+            os.kill(os.getpid(), signal.SIGINT)
         self.init = False
 
         if len(self.plugin_dirs) == 0:
