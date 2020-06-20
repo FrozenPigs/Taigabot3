@@ -4,6 +4,7 @@ from urllib import parse
 
 # Third Party
 import requests
+from bs4 import BeautifulSoup
 
 # TODO python 3: from urllib.parse import quote
 
@@ -35,6 +36,10 @@ def get_html(url, **kwargs):
 
 def get_text(url, **kwargs):
     return get(url, **kwargs)
+
+
+def get_soup(url, **kwargs):
+    return BeautifulSoup(get(url, **kwargs), features='lxml')
 
 
 def get(url, **kwargs):
