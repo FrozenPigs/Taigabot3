@@ -6,6 +6,7 @@ import base64
 import difflib
 import os
 import pprint
+import re
 import signal
 import sys
 from pathlib import Path
@@ -41,7 +42,8 @@ class Taigabot(irc.IRC):
             'command': {},
             'event': {},
             'init': {},
-            'sieve': {}
+            'sieve': {},
+            'regex': {}
         }
         self.plugin_mtimes: Dict[str, float] = {}
         self.plugin_mtimes, self.plugins = plugins.reload(self.plugin_dirs, self.plugin_mtimes,
@@ -172,6 +174,10 @@ class Taigabot(irc.IRC):
                 userhost = userhost.replace('~', '')
             nickname = userhost.split('!')[0]
             username = userhost.split('!')[1].split('@')[0]
+            set_mask = db.set_cell(self.db, 'users', 'mask', userhost, 'nick', nickname)
+            extra_columns = len(db.get_column_names(self.db, 'users')) - 2
+            if not set_mask:
+                db.set_row(self.db, 'users', (nickname, userhost, *('None', ) * extra_columns))
             if nickname not in self.users.keys():
                 user = User(nickname, self)
                 user.userhost = userhost
@@ -236,7 +242,8 @@ class Taigabot(irc.IRC):
         await self.track_users_userhost(userhost)
         channel = message.split_message[0]
         nickname = userhost.split('!')[0]
-        self.users[nickname].channels.append(channel)
+        if nickname in self.users:
+            self.users[nickname].channels.append(channel)
 
     async def rpl_376(self, message: Message) -> None:
         channels = self.server_config.channels
@@ -329,7 +336,10 @@ class Taigabot(irc.IRC):
         default_prefix = self.server_config.command_prefix
         if not default_prefix:
             default_prefix = '.'
-        if target[0] != '#':
+        try:
+            if target[0] != '#':
+                return default_prefix
+        except IndexError:
             return default_prefix
         db_prefix = db.get_cell(self.db, 'channels', 'commandprefix', 'channel', target)
         if not db_prefix:
@@ -371,6 +381,18 @@ class Taigabot(irc.IRC):
                 if func.__name__.lower() not in self.server_config.disabled:
                     asyncio.create_task(func(self, privmsg))
 
+    async def _run_regexps(self, msg) -> None:
+        regex_funcs = self.plugins['regex']
+        for key, funcs in regex_funcs.items():
+            if isinstance(key, tuple):
+                regex = re.compile(*key)
+            else:
+                regex = key
+            if re.match(regex, msg.message):
+                for func in funcs:
+                    if func.__name__.lower() not in self.server_config.disabled:
+                        asyncio.create_task(func(self, msg))
+
     async def read_loop(self) -> None:    # message_handler
         await self._run_inits()
         while True:
@@ -381,6 +403,7 @@ class Taigabot(irc.IRC):
                 message = Message(self, await self.parse_message(raw_message))
                 await self._get_prefix(message.target)
                 message = await self._run_input_sieves(message)
+                asyncio.create_task(self._run_regexps(message))
                 if message:
                     await self._run_events(message)
                     if '!' in message.sent_by:
