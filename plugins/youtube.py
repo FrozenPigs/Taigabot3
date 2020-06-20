@@ -7,7 +7,7 @@ from asyncio import create_task
 
 # First Party
 from core import hook
-from util import request
+from util import request, timeu
 
 # youtube_re = (r'(?:youtube.*?(?:v=|/v/)|youtu\.be/)([-_a-zA-Z0-9]+)?(.*)',
 #               re.I)
@@ -15,7 +15,7 @@ from util import request
 base_url = 'https://www.googleapis.com/youtube/v3/'
 search_api_url = base_url + 'search?part=id,snippet'
 api_url = base_url + 'videos?part=snippet,statistics,contentDetails'
-video_url = "http://youtu.be/%s"
+video_url = "http://youtu.be/{}"
 
 
 def plural(num=0, text=''):
@@ -23,11 +23,13 @@ def plural(num=0, text=''):
 
 
 def get_video_description(key, video_id, bot):
+    url = api_url + f'&id={request.urlencode(video_id)}&key={request.urlencode(key)}'
+    print(url)
     try:
-        req = request.get_json(api_url, key=key, id=video_id)
+        req = request.get_json(url)
     except:
         key = bot.full_config.api_keys.get("public_google_key")
-        req = request.get_json(api_url, key=key, id=video_id)
+        req = request.get_json(url)
 
     if req.get('error'):
         return
@@ -60,7 +62,6 @@ def get_video_description(key, video_id, bot):
         data['statistics']
     except KeyError:
         return out
-
     stats = data['statistics']
     try:
         likes = u"\u2191{:,}".format(int(stats['likeCount']))
@@ -116,11 +117,42 @@ def get_video_description(key, video_id, bot):
 async def youtube(bot, msg):
     """youtube <query> -- Returns the first YouTube search result for <query>."""
     key = bot.full_config.api_keys.get("google")
+    print(request.urlencode(msg.message))
+    url = search_api_url + f'&type=video&key={key}&q={request.urlencode(msg.message)}'
     try:
-        req = request.get_json(search_api_url, key=key, type='video', q=msg.message)
+        req = request.get_json(url)
     except:
         key = bot.full_config.api_keys.get("public_google_key")
-        req = request.get_json(search_api_url, key=key, type='video', q=msg.message)
+        req = request.get_json(url)
+    if 'error' in req:
+        create_task(bot.send_privmsg([msg.target], 'Error performing search.'))
+        return
+
+    if req['pageInfo']['totalResults'] == 0:
+        create_task(bot.send_privmsg([msg.target], 'No results found.'))
+        return
+
+    video_id = req['items'][0]['id']['videoId']
+    if msg.command[1:] == 'hooktube' or msg.command[1:] == 'ht':
+        create_task(
+            bot.send_privmsg([msg.target],
+                             get_video_description(key, video_id) + u" - " + video_url.replace(
+                                 'youtu.be', 'hooktube.com', bot).format(video_id)))
+    else:
+        print(get_video_description(key, video_id, bot))
+        create_task(
+            bot.send_privmsg([msg.target],
+                             get_video_description(key, video_id, bot) + " - " +
+                             video_url.format(video_id)))
+
+
+@hook.hook('command', ['ytime', 'youtime'])
+async def youtime(bot, msg):
+    """youtime <query> -- Gets the total run time of the first YouTube search result for <query>."""
+    inp = msg.message
+    key = bot.full_config.api_keys.get("google")
+    url = search_api_url + f'&type=video&key={key}&q={request.urlencode(inp)}'
+    req = request.get_json(url)
 
     if 'error' in req:
         create_task(bot.send_privmsg([msg.target], 'Error performing search.'))
@@ -131,56 +163,33 @@ async def youtube(bot, msg):
         return
 
     video_id = req['items'][0]['id']['videoId']
-    if input['trigger'] == u'hooktube' or input['trigger'] == u'ht':
-        create_task(
-            bot.send_privmsg([msg.target],
-                             get_video_description(key, video_id) + u" - " + video_url.replace(
-                                 'youtu.be', 'hooktube.com', bot) % video_id))
-    else:
-        create_task(
-            bot.send_privmsg([msg.target],
-                             get_video_description(key, video_id, bot) + u" - " +
-                             video_url % video_id))
+    url = api_url + f'&id={request.urlencode(video_id)}&key={request.urlencode(key)}'
+    req = request.get_json(url)
 
+    data = req['items'][0]
 
-# @hook.command('ytime')
-# @hook.command
-# def youtime(inp, bot=None):
-#     """youtime <query> -- Gets the total run time of the first YouTube search result for <query>."""
-#     key = bot.config.get("api_keys", {}).get("google")
-#     req = request.get_json(search_api_url, key=key, q=inp, type='video')
+    length = data['contentDetails']['duration']
+    timelist = re.findall('(\d+[DHMS])', length)
 
-#     if 'error' in req:
-#         return 'Error performing search.'
+    seconds = 0
+    for t in timelist:
+        t_field = int(t[:-1])
+        if t[-1:] == 'D': seconds += 86400 * t_field
+        elif t[-1:] == 'H': seconds += 3600 * t_field
+        elif t[-1:] == 'M': seconds += 60 * t_field
+        elif t[-1:] == 'S': seconds += t_field
 
-#     if req['pageInfo']['totalResults'] == 0:
-#         return 'No results found.'
+    views = int(data['statistics']['viewCount'])
+    total = int(seconds * views)
 
-#     video_id = req['items'][0]['id']['videoId']
+    length_text = timeu.format_time(seconds, simple=True)
+    total_text = timeu.format_time(total, accuracy=8)
+    create_task(
+        bot.send_privmsg([
+            msg.target
+        ], 'The video \x02{}\x02 has a length of {} and has been viewed {:,} times for a total run time of {}!'
+                         .format(data['snippet']['title'], length_text, views, total_text)))
 
-#     req = request.get_json(api_url, key=key, id=video_id)
-
-#     data = req['items'][0]
-
-#     length = data['contentDetails']['duration']
-#     timelist = re.findall('(\d+[DHMS])', length)
-
-#     seconds = 0
-#     for t in timelist:
-#         t_field = int(t[:-1])
-#         if t[-1:] == 'D': seconds += 86400 * t_field
-#         elif t[-1:] == 'H': seconds += 3600 * t_field
-#         elif t[-1:] == 'M': seconds += 60 * t_field
-#         elif t[-1:] == 'S': seconds += t_field
-
-#     views = int(data['statistics']['viewCount'])
-#     total = int(seconds * views)
-
-#     length_text = timeformat.format_time(seconds, simple=True)
-#     total_text = timeformat.format_time(total, accuracy=8)
-
-#     return u'The video \x02{}\x02 has a length of {} and has been viewed {:,} times for ' \
-#             'a total run time of {}!'.format(data['snippet']['title'], length_text, views, total_text)
 
 # ytpl_re = (
 #     r'(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)',
