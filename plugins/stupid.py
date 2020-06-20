@@ -446,7 +446,7 @@ async def hug(bot, msg):
         nick = msg.nickname
     else:
         nick = msg.message
-    create_task(bot.send_privmsg([msg.target], f'\x02\x034♥♡❤♡♥\x03 {nick} \x034♥♡❤♡♥\x03\x02'))
+    create_task(bot.send_privmsg([msg.target], f'\x02\x034     \x03 {nick} \x034     \x03\x02'))
 
 
 @hook.hook('command', ['dab'])
@@ -486,17 +486,21 @@ async def kiss(bot, msg):
         nick = msg.nickname
     else:
         nick = msg.message
-    create_task(bot.send_privmsg([msg.target], f'(づ｡◕‿‿◕｡)づ\x02\x034。。・゜゜・。。・゜❤ {nick} ❤\x03\x02'))
+    create_task(bot.send_privmsg([msg.target], f'(       ) \x02\x034            {nick}  \x03\x02'))
 
-# @hook.regex(r'^\[(.*)\]$')
-# @hook.command(autohelp=False)
-# def intensify(inp):
-#     "intensify <word> -- [EXCITEMENT INTENSIFIES]"
-#     try:
-#         word = inp.upper()
-#     except:
-#         word = inp.group(1).upper()
-#     return u'\x02[{} INTENSIFIES]\x02'.format(word)
+
+@hook.hook('command', ['intensify'], autohelp=True)
+async def intensify(bot, msg):
+    "intensify <word> -- [EXCITEMENT INTENSIFIES]"
+    word = msg.message.upper()
+    if word[0] == '[':
+        word = re.match(r'^\[(.*)\]$', msg.message).group(1).upper()
+    create_task(messaging.send_action(bot, msg.target, f'\x02[{word} INTENSIFIES]\x02'))
+
+
+@hook.hook('regex', [r'^\[(.*)\]$'])
+async def r_intensify(bot, msg):
+    create_task(intensify(bot, msg))
 
 
 @hook.hook('command', ['increase'])
@@ -671,42 +675,51 @@ async def figlet(bot, msg):
             create_task(bot.send_privmsg([msg.target], line))
 
 
-# @hook.regex(r'^(same)$')
-# def same(inp):
-#     "same -- dont feel left out"
-#     if random.randint(1, 5) == 3: return 'butts'
-#     else: return 'same'
+@hook.hook('regex', [r'^(same)$'])
+async def same(bot, msg):
+    "same -- dont feel left out"
+    if random.randint(1, 5) == 3:
+        create_task(bot.send_privmsg([msg.target], 'butts'))
+    else:
+        create_task(bot.send_privmsg([msg.target], 'same'))
 
-# @hook.regex(r'^(HUEHUEHUE)$')
-# @hook.regex(r'^(huehuehue)$')
-# def huehuehue(inp):
-#     "huehuehue -- huebaru?"
-#     return inp.group(0)
 
-# @hook.regex(r'^(TETETE)$')
-# @hook.regex(r'^(tetete)$')
-# def tetete(inp, nick=None):
-#     return 'tetete {}{}{}'.format(nick, nick, nick)
+@hook.hook('regex', [(r'^(huehuehue)$', re.I)])
+async def huehuehue(bot, msg):
+    "huehuehue -- huebaru?"
+    create_task(bot.send_privmsg([msg.target], msg.message))
 
-# # @hook.regex(r'^(^)$')
-# # def agree(inp):
-# #     return "^"
 
-# woahs = ([('woah'), ('woah indeed'), ('woah woah woah!'), ('keep your woahs to yourself')])
+@hook.hook('regex', [(r'^(tetete)$', re.I)])
+async def tetete(bot, msg):
+    create_task(
+        bot.send_privmsg([msg.target], f'tetete {msg.nickname}{msg.nickname}{msg.nickname}'))
 
-# @hook.regex(r'.*([W|w]+[H|h]+[O|o]+[A|a]+).*')
-# @hook.regex(r'.*([W|w]+[O|o]+[A|a]+[H|h]+).*')
-# def woah(inp, nick=None):
-#     if random.randint(0, 4) == 0:
-#         return woahs[random.randint(0, len(woahs) - 1)].replace('woah', inp.group(1))
 
-# @hook.regex(r'.*([L|l]+[I|i]+[N|n]+[U|u]+[X|x]).*')
-# def interject(inp, nick=None):
-#     if random.randint(0, 12) == 0:
-#         return "I'd Just Like To Interject For A Moment. What you're referring to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX. \n "
-#         # \
-#         # "Many computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called  Linux , and many of its users are not aware that it is basically the GNU system, developed by the GNU Project. There really is a Linux, and these people are using it, but it is just a part of the system they use. \n" \
-#         # "Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called  Linux  distributions are really distributions of GNU/Linux. "
+# @hook.regex(r'^(^)$')
+# def agree(inp):
+#     return "^"
+
+woahs = ([('woah'), ('woah indeed'), ('woah woah woah!'), ('keep your woahs to yourself')])
+
+
+@hook.hook('regex', [r'.*([W|w]+[O|o]+[A|a]+[H|h]+).*', r'.*([W|w]+[H|h]+[O|o]+[A|a]+).*'])
+async def woah(bot, msg):
+    if random.randint(0, 4) == 0:
+        create_task(
+            bot.send_privmsg([msg.target], woahs[random.randint(0,
+                                                                len(woahs) - 1)].replace(
+                                                                    'woah', msg.message)))
+
+
+@hook.hook('regex', [r'.*([L|l]+[I|i]+[N|n]+[U|u]+[X|x]).*'])
+async def interject(bot, msg):
+    if random.randint(0, 12) == 0:
+        create_task(
+            bot.send_privmsg([
+                msg.target
+            ], "I'd Just Like To Interject For A Moment. What you're referring to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX. \n "
+                             ))
 
 
 @hook.hook('command', ['hack'])
