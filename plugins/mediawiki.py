@@ -1,4 +1,5 @@
 # Standard Libs
+import re
 from asyncio import create_task
 
 # First Party
@@ -16,12 +17,12 @@ INSTANCES = {
     'encyclopediadramatica': {
         'name': 'Encyclopedia Dramatica',
         'search': 'https://encyclopediadramatica.wiki/api.php?' + API_QUERYPARAMS,
-        'regex': r'(https?://encyclopediadramatica\.wiki/index\.php/[^ ]+)'
+        'regex': (r'(https?://encyclopediadramatica\.wiki/index\.php/[^ ]+)', re.I)
     },
     'wikipedia_en': {
         'name': 'Wikipedia',
         'search': 'https://en.wikipedia.org/w/api.php?' + API_QUERYPARAMS,
-        'regex': r'(https?://en\.wikipedia\.org/wiki/[^ ]+)'
+        'regex': (r'(https?://en\.wikipedia\.org/wiki/[^ ]+)', re.I)
     },
 }
 
@@ -86,18 +87,19 @@ def command_wrapper(instance, inp):
             real_title, output, url, title)
 
 
-# def url_wrapper(instance, url):
-#     output, title = scrape_text(url)
+def url_wrapper(instance, url):
+    output, title = scrape_text(url)
 
-#     if len(output) > OUTPUT_LIMIT:
-#         output = output[:OUTPUT_LIMIT] + '...'
+    if len(output) > OUTPUT_LIMIT:
+        output = output[:OUTPUT_LIMIT] + '...'
 
-#     return u'\x02{} -\x02 {}'.format(title, output)
+    return u'\x02{} -\x02 {}'.format(title, output)
 
-# @hook.regex(INSTANCES['encyclopediadramatica']['regex'])
-# def drama_url(match):
-#     url = match.group(1)
-#     return url_wrapper('encyclopediadramatica', url)
+
+@hook.hook('regex', [INSTANCES['encyclopediadramatica']['regex']])
+async def drama_url(bot, msg):
+    url = re.match(re.compile(*INSTANCES['encyclopediadramatica']['regex']), msg.message).group(1)
+    create_task(bot.send_privmsg([msg.target], url_wrapper('encyclopediadramatica', url)))
 
 
 @hook.hook('command', ['encyclopediadramatica', 'drama'])
@@ -107,10 +109,10 @@ async def drama(bot, msg):
         bot.send_privmsg([msg.target], command_wrapper('encyclopediadramatica', msg.message)))
 
 
-# @hook.regex(INSTANCES['wikipedia_en']['regex'])
-# def wikipedia_url(match):
-#     url = match.group(1)
-#     return url_wrapper('wikipedia_en', url)
+@hook.hook('regex', [INSTANCES['wikipedia_en']['regex']])
+async def wikipedia_url(bot, msg):
+    url = re.match(re.compile(*INSTANCES['wikipedia_en']['regex']), msg.message).group(1)
+    create_task(bot.send_privmsg([msg.target], url_wrapper('wikipedia_en', url)))
 
 
 @hook.hook('command', ['wiki', 'wikipedia'])
