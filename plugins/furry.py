@@ -70,7 +70,6 @@ async def furry(bot, msg):
         rating = "\x02Questionable\x02"
     elif rating == 's':
         rating = "\x02\x033Safe\x03\x02"
-
     create_task(
         bot.send_privmsg([msg.target],
-                         f'\x02[{id}]\x02 Score: \x02{score}\x02 - Rating: {rating} - {url}')
+                         f'\x02[{id}]\x02 Score: \x02{score}\x02 - Rating: {rating} - {url}'))
