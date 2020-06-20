@@ -9,8 +9,9 @@ from asyncio import create_task
 from core import hook
 from util import request, timeu
 
-# youtube_re = (r'(?:youtube.*?(?:v=|/v/)|youtu\.be/)([-_a-zA-Z0-9]+)?(.*)',
-#               re.I)
+youtube_re = (
+    r'(https?:\/\/)?(www\.)?(?:youtube.*?(?:v=|\/v\/)|youtu\\.be\/)([-_a-zA-Z0-9]{11})?(.*)', re.I)
+video_id_re = r'([-_a-zA-Z0-9]{11})'
 
 base_url = 'https://www.googleapis.com/youtube/v3/'
 search_api_url = base_url + 'search?part=id,snippet'
@@ -106,18 +107,18 @@ def get_video_description(key, video_id, bot):
     return out
 
 
-# @hook.regex(*youtube_re)
-# def youtube_url(match, bot=None, chan=None):
-#     key = bot.config.get("api_keys", {}).get("google")
+@hook.hook('regex', [youtube_re])
+async def youtube_url(bot, msg):
+    key = bot.full_config.api_keys.get("google")
+    match = re.search(video_id_re, msg.message).group(0)
 
-#     return get_video_description(key, match.group(1), bot)
+    create_task(bot.send_privmsg([msg.target], get_video_description(key, match, bot)))
 
 
 @hook.hook('command', ['hooktube', 'ht', 'yt', 'youtube'])
 async def youtube(bot, msg):
     """youtube <query> -- Returns the first YouTube search result for <query>."""
     key = bot.full_config.api_keys.get("google")
-    print(request.urlencode(msg.message))
     url = search_api_url + f'&type=video&key={key}&q={request.urlencode(msg.message)}'
     try:
         req = request.get_json(url)
@@ -191,31 +192,29 @@ async def youtime(bot, msg):
                          .format(data['snippet']['title'], length_text, views, total_text)))
 
 
-# ytpl_re = (
-#     r'(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)',
-#     re.I)
+# already broken
+# ytpl_re = (r'(https?:\/\/)?(www\.)(youtube.com/playlist)(:[0-9]+)?(.*)', re.I)
 
-# @hook.regex(*ytpl_re)
-# def youtubeplaylist_url(match):
-#     location = match.group(4).split("=")[-1]
+# @hook.hook('regex', [ytpl_re])
+# async def youtubeplaylist_url(bot, msg):
+#     location = re.match(re.compile(*ytpl_re), msg.message).groups()[-1].split('=')[-1]
 
 #     try:
-#         soup = http.get_soup(
-#             "https://www.youtube.com/playlist?list=" + location)
+#         soup = request.get_soup("https://www.youtube.com/playlist?list=" + location)
 #     except Exception:
-#         return "\x034\x02Invalid response."
+#         create_task(bot.send_privmsg([msg.target], "\x034\x02Invalid response."))
+#         return
 
 #     title = soup.find('title').text.split('-')[0].strip()
-#     author = soup.find('img',
-#                        {'class': 'channel-header-profile-image'})['title']
-#     numvideos = soup.find('ul', {
-#         'class': 'pl-header-details'
-#     }).findAll('li')[1].string
+#     print(soup.find_all('a'))
+#     author = soup.find('img', {'class': 'channel-header-profile-image'})['title']
+#     numvideos = soup.find('ul', {'class': 'pl-header-details'}).findAll('li')[1].string
 #     numvideos = re.sub("\D", "", numvideos)
-#     views = soup.find('ul', {
-#         'class': 'pl-header-details'
-#     }).findAll('li')[2].string
+#     views = soup.find('ul', {'class': 'pl-header-details'}).findAll('li')[2].string
 #     views = re.sub("\D", "", views)
 
-#     return u"\x02{}\x02 - \x02{}\x02 views - \x02{}\x02 videos - \x02{}\x02".format(
-#         title, views, numvideos, author)
+#     create_task(
+#         bot.send_privmsg([
+#             msg.target
+#         ], f"\x02{title}\x02 - \x02{views}\x02 views - \x02{numvideos}\x02 videos - \x02{author}\x02"
+#                          ))
