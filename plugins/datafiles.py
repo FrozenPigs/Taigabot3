@@ -50,7 +50,7 @@ def get_generator(_json, variables):
 
 
 def send_phrase(bot, msg, actions):
-    target = ' '.join(msg.split_message[1:])
+    target = msg.message
     bot_nick = bot.server_config.nickname
 
     if target.lower() == bot_nick.lower() or target.lower() == "itself":
@@ -121,7 +121,7 @@ async def yiff(bot, msg):
 @hook.hook('command', ['lewd'])
 async def lewd(bot, msg):
     """lewd <user> -- lewd <user>."""
-    if len(msg.split_message) == 1:
+    if msg.message == msg.command:
         create_task(bot.send_privmsg([msg.target], 'ヽ(◔ ◡ ◔)ノ.･ﾟ*｡･+☆LEWD☆'))
     else:
         send_phrase(bot, msg, lewds)
