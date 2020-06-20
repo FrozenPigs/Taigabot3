@@ -93,16 +93,19 @@ async def amazon(bot, msg):
     create_task(bot.send_privmsg([msg.target], f'[Amazon] {title} \x0303{price}\x03 {url}'))
 
 
-# AMAZON_RE = (r"https?:\/\/(www\.)?amazon.com\/[^\s]*dp\/([A-Za-z0-9]+)[^\s]*", re.I)
+AMAZON_RE = (r'(https?:\/\/)?(www\.)?amazon(.*?)\/[^\s]*dp\/([A-Za-z0-9]+)[^\s]*', re.I)
 
-# @hook.regex(*AMAZON_RE)
-# def amazon_url(match):
-#     id = match.group(2).strip()
-#     url = 'https://www.amazon.com/dp/' + id + '/'
-#     html = request.get(url)
-#     title, price = parse_product(html)
 
-#     if len(title) > 80:
-#         title = title[:80] + '...'
+@hook.hook('regex', [AMAZON_RE])
+async def amazon_url(bot, msg):
+    match = re.match(re.compile(*AMAZON_RE), msg.message)
+    id = match.groups()[-1]
+    url = 'https://www.amazon.com/dp/' + id + '/'
+    html = request.get(url)
+    print(html)
+    title, price = parse_product(html)
 
-#     return u'[Amazon] {} \x0303{}\x03 {}'.format(title, price, url)
+    if len(title) > 80:
+        title = title[:80] + '...'
+
+    create_task(bot.send_privmsg([msg.target], f'[Amazon] {title} \x0303{price}\x03 {url}'))
