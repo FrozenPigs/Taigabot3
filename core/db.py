@@ -9,7 +9,7 @@ from typing import Any, List, Optional, Tuple, Union
 
 lock = Lock()
 
-users_columns: List[str] = ['nick', 'mask', 'location', 'lastfm']
+users_columns: List[str] = ['nick', 'mask']
 channel_columns: List[str] = ['channel', 'commandprefix']
 
 Data = Tuple[Optional[str], ...]

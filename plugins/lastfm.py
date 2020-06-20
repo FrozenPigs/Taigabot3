@@ -39,6 +39,7 @@ async def lastfm(bot, msg):
     save = False
     inp = msg.message
     nick = msg.nickname
+    db.add_column(bot.db, 'users', 'lastfm')
     if '@' in inp:
         nick = inp.split('@')[1].strip()
         user = db.get_cell(bot.db, 'users', 'lastfm', 'nick', nick)
@@ -46,21 +47,21 @@ async def lastfm(bot, msg):
             create_task(bot.send_privmsg([msg.target], f'No lastfm user stored for {nick}.'))
             return
     else:
-        user = db.get_cell(bot.db, 'users', 'lastfm', 'nick', nick)
-        if not inp:
-            if not user:
+        user = db.get_cell(bot.db, 'users', 'lastfm', 'nick', nick)[0][0]
+        if inp == msg.command or not inp:
+            if user == None:
                 create_task(
-                    bot.send_notice([msg.target],
-                                    '[{msg.target}]: {msg.command[0]}{lastfm.__doc__}'))
+                    bot.send_notice([msg.nickname],
+                                    f'[{msg.target}]: {msg.command[0]}{lastfm.__doc__}'))
                 return
         else:
-            if not user:
+            if user == None:
                 save = True
             if ' save' in inp:
                 save = True
             user = inp.split()[0]
 
-    if user == None:
+    if user == 'None':
         return
     params = {'method': 'user.getRecentTracks', 'user': user, 'limit': 1, 'api_key': api_key}
     if not api_key:
@@ -144,6 +145,7 @@ async def lastfm(bot, msg):
         else:
             out = (u'{} is listening to "{}" by \x02{}\x02 from the'
                    u' album \x02{}\x02, Play Count: {}.'.format(user, title, artist, album, played))
-    if user and save:
+    print(user, save)
+    if user != msg.command and save:
         db.set_cell(bot.db, 'users', 'lastfm', user, 'nick', nick)
     create_task(bot.send_privmsg([msg.target], out))

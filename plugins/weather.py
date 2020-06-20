@@ -37,7 +37,6 @@ def getlocation(bot, location):
         db.set_row(bot.db, 'location', (location, f'{latlong[0]},{latlong[1]}', address))
     else:
         latlong = latlong.split(',')
-        print(latlong)
     return latlong, address
 
 
@@ -48,6 +47,7 @@ async def weather(bot, msg):
     command = msg.command[1:]
     nick = msg.nickname
     inp = msg.message
+    db.add_column(bot.db, 'users', 'location')
     if not location_db_ready:
         init_location_db(bot)
     if '@' in inp:
@@ -61,7 +61,7 @@ async def weather(bot, msg):
                     nick.encode('ascii', 'ignore'))))
             return
     else:
-        userloc = db.get_cell(bot.db, 'users', 'location', 'nick', nick)
+        userloc = db.get_cell(bot.db, 'users', 'location', 'nick', nick)[0][0]
         if userloc:
             latlong, address = getlocation(bot, userloc)
         if inp == msg.command:
@@ -82,7 +82,7 @@ async def weather(bot, msg):
             create_task(bot.send_notice([msg.nickname], weather.__doc__))
             return
 
-    if inp and save:
+    if inp != msg.command and save:
         db.set_cell(bot.db, 'users', 'location', inp, 'nick', nick)
 
     secret = bot.full_config.api_keys.get("darksky")
