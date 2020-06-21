@@ -120,8 +120,10 @@ async def seen(bot, msg):
 
     if not seen_db_ready:
         init_seen_db(bot)
-    last_seen = db.get_row(bot.db, 'seen', 'name', nick.lower(), ('chan', msg.target))[0]
+    print(nick.lower, msg.target)
+    last_seen = db.get_row(bot.db, 'seen', 'name', nick.lower(), ('chan', msg.target))
     if last_seen:
+        last_seen = last_seen[0]
         reltime = timeu.timesince(last_seen[1])
         if last_seen[0] != nick.lower():    # for glob matching
             nick = last_seen[0]
