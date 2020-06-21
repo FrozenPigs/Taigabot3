@@ -67,9 +67,9 @@ async def smiley(bot, msg):
 
 
 @hook.hook('command', ['potato'], autohelp=True)
-def potato(bot, msg):
+async def potato(bot, msg):
     "potato <user> - Makes <user> a tasty little potato."
-    user = ' '.join(msg.split_message[1:])
+    user = msg.message
     method = random.choice(['bakes', 'fries', 'boils', 'roasts'])
     flavor = random.choice([
         'tasty', 'delectable', 'delicious', 'yummy', 'toothsome', 'scrumptious', 'luscious'
@@ -121,7 +121,8 @@ async def yiff(bot, msg):
 @hook.hook('command', ['lewd'])
 async def lewd(bot, msg):
     """lewd <user> -- lewd <user>."""
-    if msg.message == msg.command:
+    print(msg.message)
+    if msg.message == msg.command or not msg.message:
         create_task(bot.send_privmsg([msg.target], 'ヽ(◔ ◡ ◔)ノ.･ﾟ*｡･+☆LEWD☆'))
     else:
         send_phrase(bot, msg, lewds)
@@ -130,7 +131,7 @@ async def lewd(bot, msg):
 @hook.hook('command', ['kill'])
 async def kill(bot, msg):
     """kill <user> -- Makes the bot kill <user>."""
-    target = ' '.join(msg.split_message[1:])
+    target = msg.message
     bot_nick = bot.server_config.nickname
 
     if ' ' in target:
@@ -153,7 +154,7 @@ async def kill(bot, msg):
 @hook.hook('command', ['slap'])
 async def slap(bot, msg):
     """slap <user> -- Makes the bot slap <user>."""
-    target = ' '.join(msg.split_message[1:])
+    target = msg.message
     bot_nick = bot.server_config.nickname
 
     if ' ' in target:
@@ -177,7 +178,7 @@ async def slap(bot, msg):
 async def slogan(bot, msg):
     """slogan <word> -- Makes a slogan for <word>."""
     out = random.choice(slogans)
-    inp = ' '.join(msg.split_message[1:])
+    inp = msg.message
     if inp.lower() and out.startswith("<text>"):
         inp = ' '.join([s[0].upper() + s[1:] for s in inp.split(' ')])
 
@@ -209,8 +210,8 @@ def get_filename(bot, msg, action):
 @hook.hook('command', ['add'], admin=True)
 async def add(bot, msg):
     """add <type> <data> -- appends <data> to <type>.txt"""
-    action = msg.split_message[1]
-    text = ' '.join(msg.split_message[2:]).replace(action, '').strip()
+    action = msg.split_message[0]
+    text = ' '.join(msg.split_message[1:]).replace(action, '').strip()
     action = get_filename(bot, msg, action)
 
     with open('plugins/data/{}.txt'.format(action), 'a') as file:
@@ -225,7 +226,7 @@ def process_text(bot, msg, name):
     if 'add' in msg.message:
         add(bot, msg)
     else:
-        inp = ' '.join(msg.split_message[1:])
+        inp = message
         with open("plugins/data/{}.txt".format(name)) as file:
             lines = [line.strip() for line in file.readlines() if not line.startswith("//")]
         linecount = len(lines) - 1
