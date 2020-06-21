@@ -18,7 +18,7 @@ async def google(bot, msg):
     cx = bot.full_config.api_keys['googleimage']
     search = '+'.join(inp.split())
     key = bot.full_config.api_keys['google']
-    result = request.get_json(url.format(key, cx, search.encode('utf-8')))['items'][0]
+    result = request.get_json(url.format(key, cx, search))['items'][0]
 
     title = result['title']
     content = messaging.remove_newlines(result['snippet'])
@@ -42,10 +42,9 @@ async def image(bot, msg):
 
     if filetype:
         url = API_URL + u'?key={}&cx={}&searchType=image&num=1&safe=off&q={}&fileType={}'
-        result = request.get_json(url.format(key, cx, search.encode('utf-8'),
-                                             filetype))['items'][0]['link']
+        result = request.get_json(url.format(key, cx, search, filetype))['items'][0]['link']
     else:
         url = API_URL + u'?key={}&cx={}&searchType=image&num=1&safe=off&q={}'
-        result = request.get_json(url.format(key, cx, search.encode('utf-8')))['items'][0]['link']
+        result = request.get_json(url.format(key, cx, search))['items'][0]['link']
 
     create_task(bot.send_privmsg([msg.target], result))
