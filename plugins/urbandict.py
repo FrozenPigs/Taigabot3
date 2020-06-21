@@ -14,8 +14,8 @@ def clean_text(text):
     return messaging.compress_whitespace(text.replace('[', '').replace(']', ''))
 
 
-def search(input):
-    json = request.get_json(base_url + request.urlencode(input))
+def search(inp):
+    json = request.get_json(base_url + request.urlencode(inp))
 
     if json is None or "error" in json or "errors" in json:
         return ["the server fucked up"]
