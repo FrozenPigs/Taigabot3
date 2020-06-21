@@ -29,8 +29,9 @@ async def tellinput(bot, msg):
         return
     if not tell_db_ready:
         init_tell_db(bot)
+    nickname = msg.nickname.lower()
 
-    tells = db.get_row(bot.db, 'tell', 'user_to', msg.nickname)
+    tells = db.get_row(bot.db, 'tell', 'user_to', nickname)
 
     if tells:
         _, user_from, message, chan, sent_time = tells[0]
@@ -44,16 +45,17 @@ async def tellinput(bot, msg):
             create_task(
                 bot.send_notice([msg.nickname],
                                 f'({len(tells) - 1} more, {prefix}showtells to view)'))
-        db.delete_row(bot.db, 'tell', 'user_to', msg.nickname, ('message', message))
+        db.delete_row(bot.db, 'tell', 'user_to', nickname, ('message', message))
 
 
 @hook.hook('command', ['showtells'])
 async def showtells(bot, msg):
     "showtells -- View all pending tell messages (sent in a notice)."
+    nickname = msg.nickname.lower()
 
     if not tell_db_ready: init_tell_db(bot)
 
-    tells = db.get_row(bot.db, 'tell', 'user_to', msg.nickname)
+    tells = db.get_row(bot.db, 'tell', 'user_to', nickname)
 
     if not tells:
         create_task(bot.send_notice([msg.nickname], "You have no pending tells."))
@@ -65,7 +67,7 @@ async def showtells(bot, msg):
         create_task(
             bot.send_notice([msg.nickname],
                             f'{user_from} sent you a message {past} ago from {chan}: {message}'))
-    db.delete_row(bot.db, 'tell', 'user_to', msg.nickname)
+    db.delete_row(bot.db, 'tell', 'user_to', nickname)
 
 
 @hook.hook('command', ['ask', 'tell'], autohelp=True)
