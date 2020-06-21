@@ -326,7 +326,7 @@ class Taigabot(irc.IRC):
                     doc: str = ' '.join(cast(str, func.__doc__).split())
                     asyncio.create_task(self.send_notice([message.nickname], f'{doc}'))
                     return
-                message.message = message.message.replace(message.command + ' ', '')
+                message.message = message.message.replace(message.command + ' ', '').strip()
                 message.split_message.pop(0)
                 if isinstance(message.split_message, str):
                     message.split_message = [message.split_message]
@@ -388,16 +388,21 @@ class Taigabot(irc.IRC):
                 regex = re.compile(*key)
             else:
                 regex = key
-            if re.match(regex, msg.message):
-                for func in funcs:
-                    if func.__name__.lower() not in self.server_config.disabled:
-                        asyncio.create_task(func(self, msg))
+            try:
+                if re.match(regex, msg.message):
+                    for func in funcs:
+                        if func.__name__.lower() not in self.server_config.disabled:
+                            asyncio.create_task(func(self, msg))
+            except AttributeError:
+                pass
 
     async def read_loop(self) -> None:    # message_handler
         await self._run_inits()
         while True:
             self.plugin_mtimes, self.plugins = plugins.reload(self.plugin_dirs, self.plugin_mtimes,
                                                               self.plugins)
+            self.full_config.save()
+            self.full_config.reload()
             try:
                 raw_message = await self.read_line()
                 message = Message(self, await self.parse_message(raw_message))

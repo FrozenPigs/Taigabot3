@@ -58,5 +58,6 @@ except KeyboardInterrupt:
     for bot in bot_objects:
         try:
             bot.close_connection()
+            bot.full_config.save()
         except RuntimeError:
             pass
