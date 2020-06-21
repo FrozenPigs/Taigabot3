@@ -177,9 +177,8 @@ async def g_join_part_cycle(bot, msg):
     """
     channels = bot.server_config.channels
     message = [msg.lower() for msg in msg.split_message]
-    command = msg.command
+    command = msg.command[1:]
     no_join = bot.server_config.no_channels
-
     if not message[0]:
         message = [msg.target]
 
