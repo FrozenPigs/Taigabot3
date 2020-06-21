@@ -486,7 +486,7 @@ async def kiss(bot, msg):
         nick = msg.nickname
     else:
         nick = msg.message
-    create_task(bot.send_privmsg([msg.target], f'(       ) \x02\x034            {nick}  \x03\x02'))
+    create_task(bot.send_privmsg([msg.target], f'(づ｡◕‿‿◕｡)づ\x02\x034。。・゜゜・。。・゜❤ {nick} ❤'))
 
 
 @hook.hook('command', ['intensify'], autohelp=True)
