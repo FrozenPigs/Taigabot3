@@ -6,3 +6,4 @@ pytz
 pyenchant
 pyparsing
 tweepy
+lxml
