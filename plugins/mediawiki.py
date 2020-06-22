@@ -27,7 +27,7 @@ INSTANCES = {
 }
 
 
-def search(instance, query):
+def search_wiki(instance, query):
     if instance not in INSTANCES:
         return
 
@@ -65,7 +65,7 @@ def scrape_text(url):
 
 
 def command_wrapper(instance, inp):
-    titles, descriptions, urls = search(instance, inp)
+    titles, descriptions, urls = search_wiki(instance, inp)
 
     if not titles:
         return "No results found."
