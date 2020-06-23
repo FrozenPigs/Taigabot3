@@ -47,7 +47,7 @@ def get_video_description(key, video_id, bot):
         return out
 
     length = data['contentDetails']['duration']
-    timelist = re.findall('(\d+[DHMS])', length)
+    timelist = re.findall(r'(\d+[DHMS])', length)
 
     seconds = 0
     for t in timelist:
@@ -140,7 +140,6 @@ async def youtube(bot, msg):
                              get_video_description(key, video_id) + u" - " + video_url.replace(
                                  'youtu.be', 'hooktube.com', bot).format(video_id)))
     else:
-        print(get_video_description(key, video_id, bot))
         create_task(
             bot.send_privmsg([msg.target],
                              get_video_description(key, video_id, bot) + " - " +
@@ -170,7 +169,7 @@ async def youtime(bot, msg):
     data = req['items'][0]
 
     length = data['contentDetails']['duration']
-    timelist = re.findall('(\d+[DHMS])', length)
+    timelist = re.findall(r'(\d+[DHMS])', length)
 
     seconds = 0
     for t in timelist:

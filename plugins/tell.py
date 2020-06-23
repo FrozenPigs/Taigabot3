@@ -96,7 +96,7 @@ async def tell(bot, msg):
         create_task(bot.send_notice([msg.nickname], "Thanks for the message, %s!" % user_from))
         return
 
-    if not re.match("^([A-Za-z0-9_.|`\^\-\[\]])+$", user_to.lower()):
+    if not re.match(r'^([A-Za-z0-9_.|`\^\-\[\]])+$', user_to.lower()):
         create_task(bot.send_notice([msg.nickname], "I cant send a message to that user!"))
         return
 
