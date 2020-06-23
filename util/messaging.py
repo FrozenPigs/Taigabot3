@@ -82,3 +82,11 @@ def get_text_list(list_, last_word='or'):
         (', ').join([i for i in list_][:-1]),
         last_word,
         list_[-1])
+
+
+def filesize(num, suffix='B'):
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+        if abs(num) < 1024.0:
+            return '{0:.2f}{1}{2}'.format(num, unit, suffix)
+        num /= 1024.0
+    return '{0:.1f}{}{}'.format(num, 'Yi', suffix)
