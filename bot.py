@@ -406,6 +406,8 @@ class Taigabot(irc.IRC):
             try:
                 raw_message = await self.read_line()
                 message = Message(self, await self.parse_message(raw_message))
+                if message.target == self.server_config.nickname and message.nickname:
+                    message.target = message.nickname
                 await self._get_prefix(message.target)
                 message = await self._run_input_sieves(message)
                 asyncio.create_task(self._run_regexps(message))
