@@ -117,7 +117,7 @@ def evaluateStack(s):
         return None
 
 
-@hook.hook('command', ['c'])
+@hook.hook('command', ['c'], autohelp=True)
 async def c(bot, msg):
     "c [equation] -- calculates equation with custom calculator"
     global exprStack
@@ -135,5 +135,4 @@ async def c(bot, msg):
             val = re.search(r'^(.*\...[1-9+]*).*$', val).group(1)
         except:
             val = val
-    # return u"{} = {}".format(inp, val)
-    create_task(bot.send_privmsg([msg.target], f'{val}'))
+    create_task(bot.send_privmsg([msg.target], f'{inp} = {val}'))
