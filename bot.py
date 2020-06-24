@@ -305,12 +305,14 @@ class Taigabot(irc.IRC):
 
     async def _run_commands(self, message: Message) -> None:
         commands = self.plugins['command']
-        command = message.command[1:]
+        message.command = message.command[1:]
         conn = self.db
         if not message.sent_by:
             return
-        if command in commands.keys():
-            for func in commands[command]:
+        if message.command in commands.keys():
+            if message.command in self.server_config.disabled:
+                return
+            for func in commands[message.command]:
                 hook = func.__hook__[1]
                 if hook['gadmin'] and not message.user.global_admin:
                     asyncio.create_task(
@@ -326,7 +328,7 @@ class Taigabot(irc.IRC):
                     doc: str = ' '.join(cast(str, func.__doc__).split())
                     asyncio.create_task(self.send_notice([message.nickname], f'{doc}'))
                     return
-                message.message = message.message.replace(message.command + ' ', '').strip()
+                message.message = message.message.replace(message.command + ' ', '').strip()[1:]
                 message.split_message.pop(0)
                 if isinstance(message.split_message, str):
                     message.split_message = [message.split_message]
@@ -410,8 +412,8 @@ class Taigabot(irc.IRC):
                     message.target = message.nickname
                 await self._get_prefix(message.target)
                 message = await self._run_input_sieves(message)
-                asyncio.create_task(self._run_regexps(message))
                 if message:
+                    asyncio.create_task(self._run_regexps(message))
                     await self._run_events(message)
                     if '!' in message.sent_by:
                         nick = message.sent_by.split('!')[0]
