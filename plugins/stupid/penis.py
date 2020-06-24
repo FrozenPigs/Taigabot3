@@ -1,7 +1,7 @@
 """Test penis commands."""
 # Standard Libs
-import asyncio
 import time
+from asyncio import create_task
 
 # First Party
 from core import hook
@@ -12,7 +12,7 @@ async def penis3(bot, message):
     """Is used to test threadding by sleeping."""
     print('penis')
     #time.sleep(5)
-    asyncio.create_task(bot.send_privmsg([message.target], 'penis'))
+    create_task(bot.send_privmsg([message.target], 'penis'))
 
 
 @hook.hook('command', ['penis2'], admin=True)
@@ -20,7 +20,7 @@ async def penis2(bot, message):
     """Is used to test threadding by sleeping."""
     print('penis')
     time.sleep(5)
-    asyncio.create_task(bot.send_privmsg([message.target], 'penis'))
+    create_task(bot.send_privmsg([message.target], 'penis'))
 
 
 @hook.hook('command', ['penis'], gadmin=True)
@@ -28,7 +28,7 @@ async def penis(bot, message):
     """Is used to test threadding by sleeping."""
     print('penis')
     time.sleep(1)
-    asyncio.create_task(bot.send_privmsg([message.target], 'penis'))
+    create_task(bot.send_privmsg([message.target], 'penis'))
 
 
 @hook.hook('command', ['hue1', 'hue2'])
@@ -37,7 +37,7 @@ async def hue(bot, message):
     print(message)
     if message.command[1:] == 'hue2':
         print('penis')
-        asyncio.create_task(bot.send_privmsg([message.target], 'penis'))
+        create_task(bot.send_privmsg([message.target], 'penis'))
         return
     print('hue')
-    asyncio.create_task(bot.send_privmsg([message.target], 'hue'))
+    create_task(bot.send_privmsg([message.target], 'hue'))
