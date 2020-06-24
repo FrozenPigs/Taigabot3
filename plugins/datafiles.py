@@ -121,7 +121,6 @@ async def yiff(bot, msg):
 @hook.hook('command', ['lewd'])
 async def lewd(bot, msg):
     """lewd <user> -- lewd <user>."""
-    print(msg.message)
     if msg.message == msg.command or not msg.message:
         create_task(bot.send_privmsg([msg.target], 'ヽ(◔ ◡ ◔)ノ.･ﾟ*｡･+☆LEWD☆'))
     else:
