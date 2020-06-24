@@ -9,13 +9,18 @@ Config = Dict[str, Any]
 
 def save(config: Config, config_file: str) -> None:
     """Is used to save the specified config file."""
-    json.dump(config, Path(config_file).resolve().open('w'), indent=2)
+    with Path(config_file).resolve().open('w') as f:
+        json.dump(config, f, indent=2)
+        f.close()
     return None
 
 
 def load(config_file: str) -> Union[Exception, Config]:
     """Is used to load the specified config file, use reload."""
-    return json.load(Path(config_file).resolve().open('r'))
+    with Path(config_file).resolve().open('r') as f:
+        conf = json.load(f)
+        f.close()
+        return conf
 
 
 def reload(config_file: str, config_mtime: float) -> Union[Exception, Tuple[float, Config]]:
