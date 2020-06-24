@@ -24,7 +24,7 @@ async def asyncsched(sched_time: int,
         event.enter(sched_time, 1, asyncio.create_task, (func(*args, **kwargs), ))
     else:
         event.enter(sched_time, 1, asyncio.create_task, (func(*args), ))
-    event.run()
+    event.run(blocking=False)
 
 
 # Copyright (c) Django Software Foundation and individual contributors.
