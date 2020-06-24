@@ -55,7 +55,7 @@ async def urban(bot, msg):
     "urban <phrase> -- Looks up <phrase> on urbandictionary.com."
 
     inp = msg.message
-    results = search_urbanwed(inp)
+    results = search_urban(inp)
 
     # always return just the first one
     for result in results:
