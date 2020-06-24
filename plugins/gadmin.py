@@ -25,7 +25,7 @@ async def parse_destination_sieve(bot, msg):
 
     if msg.command is not None:
         commands = bot.plugins['command']
-        command = msg.command[1:]
+        command = msg.command
         return_cmds = {'join', 'part', 'cycle', 'say', 'me', 'raw'}
 
         if command in commands and command not in return_cmds:
@@ -96,20 +96,18 @@ async def g_gadmins(bot, msg):
     """
     gadmins = bot.server_config.admins
     message = msg.split_message
-    print(message[1])
-    if message[1] == 'list':
-        print('hi')
+    if message[0] == 'list':
         asyncio.create_task(bot.send_notice([msg.nickname], 'gadmins are: ' + ', '.join(gadmins)))
         return
     conn = bot.db
     masks = await user.parse_masks(bot, conn, ' '.join(message[1:]))
 
     for mask in masks:
-        if message[1] == 'del':
+        if message[0] == 'del':
             asyncio.create_task(
                 botu.del_from_conf(bot, msg, mask, gadmins, f'Removing {mask} from gadmins.',
                                    f'{mask} is not a gadmin.'))
-        elif message[1] == 'add':
+        elif message[0] == 'add':
             asyncio.create_task(
                 botu.add_to_conf(bot, msg, mask, gadmins, f'Adding {mask} to gadmins..',
                                  f'{mask} is already a gadmin.'))
@@ -118,8 +116,7 @@ async def g_gadmins(bot, msg):
 @hook.hook('command', ['stop', 'restart'], gadmin=True)
 async def g_stop_restart(bot, msg):
     """.stop/.restart -- Stops or restarts the bot."""
-    print(msg.command)
-    if msg.command[1:] == 'stop':
+    if msg.command == 'stop':
         asyncio.create_task(bot.stop())
     else:
         asyncio.create_task(bot.stop(reset=True))
@@ -145,25 +142,25 @@ async def g_say_me_raw(bot, msg):
     """
     message = msg.split_message
     target = message[0]
-    msg = message[1:]
     command = msg.command
+    send = message[1:]
     channels = bot.server_config.channels
 
-    if not len(msg) and command != 'raw':
+    if not len(send) and command != 'raw':
         doc = ' '.join(g_say_me_raw.__doc__.split())
         asyncio.create_task(bot.send_notice([msg.nickname], f'{doc}'))
         return
 
     if command == 'say':
         if target != '#':
-            asyncio.create_task(bot.send_privmsg([target].join(msg)))
+            asyncio.create_task(bot.send_privmsg([target], ' '.join(send)))
         elif target in channels:
-            asyncio.create_task(bot.send_privmsg([target], ' '.join(msg)))
+            asyncio.create_task(bot.send_privmsg([target], ' '.join(send)))
     elif command == 'me':
         if target != '#':
-            messaging.action(bot, target, ' '.join(msg))
+            asyncio.create_task(messaging.send_action(bot, target, ' '.join(send)))
         elif target in channels:
-            messaging.action(bot, target, ' '.join(message))
+            asyncio.create_task(messaging.send_action(bot, target, ' '.join(message)))
     elif command == 'raw':
         asyncio.create_task(bot.send_line(msg.message.strip()))
 
@@ -177,7 +174,7 @@ async def g_join_part_cycle(bot, msg):
     """
     channels = bot.server_config.channels
     message = [msg.lower() for msg in msg.split_message]
-    command = msg.command[1:]
+    command = msg.command
     no_join = bot.server_config.no_channels
     if not message[0]:
         message = [msg.target]
