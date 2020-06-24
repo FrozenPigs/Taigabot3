@@ -14,7 +14,7 @@ def clean_text(text):
     return messaging.compress_whitespace(text.replace('[', '').replace(']', ''))
 
 
-def search(inp):
+def search_urban(inp):
     json = request.get_json(base_url + request.urlencode(inp))
 
     if json is None or "error" in json or "errors" in json:
@@ -55,7 +55,7 @@ async def urban(bot, msg):
     "urban <phrase> -- Looks up <phrase> on urbandictionary.com."
 
     inp = msg.message
-    results = search(inp)
+    results = search_urbanwed(inp)
 
     # always return just the first one
     for result in results:
