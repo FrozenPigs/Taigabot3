@@ -253,7 +253,9 @@ class Config:
         with self.config_file.open('r') as f:
             if json.load(f) != self.to_json():
                 f.close()
-                json.dump(self.to_json(), self.config_file.open('w'), indent=4)
+                with self.config_file.open('w') as wf:
+                    json.dump(self.to_json(), wf, indent=4)
+                    wf.close()
 
     def reload(self) -> Dict[str, Any]:
         """Load the config and change the mtime.
