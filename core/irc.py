@@ -121,14 +121,14 @@ class IRC:
 
         Ban a user from a channel.
         """
-        create_task(self.send_mode(channel, '+b', nickname))
+        create_task(self.send_mode(channel, '+b', [nickname]))
 
     async def send_unban(self, channel: str, nickname: str) -> None:
         """Send a MODE to unban to the server.
 
         Unban a user from a channel.
         """
-        create_task(self.send_mode(channel, '-b', nickname))
+        create_task(self.send_mode(channel, '-b', [nickname]))
 
     async def send_knock(self, channel: str, message: Optional[str] = None) -> None:
         """Send a KNOCK to the server.
@@ -454,7 +454,12 @@ class IRC:
         This is also used for handling the replies needed for the capability
         negotiation, sasl, and PINGS so must be used in a loop.
         """
-        raw_message = (await self.reader.readuntil(b'\r\n')).decode('utf-8')[:-2]
+        try:
+            raw_message = (await self.reader.readuntil(b'\r\n')).decode('utf-8')[:-2]
+        except Exception as e:
+            print(e)
+            raw_message = (await self.reader.readuntil(b'\r\n'))[:-2]
+
         message = await self.parse_message(raw_message)
         if message[2] == 'PING':
             create_task(self.send_pong(' '.join(message[3][0:])))
