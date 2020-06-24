@@ -446,7 +446,7 @@ async def hug(bot, msg):
         nick = msg.nickname
     else:
         nick = msg.message
-    create_task(bot.send_privmsg([msg.target], f'\x02\x034     \x03 {nick} \x034     \x03\x02'))
+    create_task(bot.send_privmsg([msg.target], f'\x02\x034♥♡❤♡♥\x03 {nick} \x034♥♡❤♡♥\x03\x02'))
 
 
 @hook.hook('command', ['dab'])
@@ -822,14 +822,14 @@ async def madoka(bot, msg):
 async def drink(bot, msg):
     """drink <drink> --- drinks drink."""
     create_task(
-        bot.send_privmsg([msg.target],
-                         f'Drinks {msg.message}, and it was delicious. mmmmmmmmmmmmmmmm'))
+        messaging.send_action(bot, msg.target,
+                              f'Drinks {msg.message}, and it was delicious. mmmmmmmmmmmmmmmm'))
 
 
 @hook.hook('command', ['fap'], autohelp=True)
 async def fap(bot, msg):
     """fap <thing> --- cums on <thing>."""
-    create_task(bot.send_privmsg([msg.target], f'Jerks off and cums on {msg.message}'))
+    create_task(messaging.send_action(bot, msg.target, f'Jerks off and cums on {msg.message}'))
 
 
 # var replies = ['faggot','i ought to fuk u up m8','1v1 me','do u evn lift','ur mom','consider urself trolld','ur mom iz gay','stfu fagget','omg nub','u hax i repert u','my dad works for this site so I would be nice if I were you','ill rek u','get rekt scrub','u r gay'];
@@ -854,7 +854,7 @@ async def spit(bot, msg):
         nick = msg.nickname
     else:
         nick = msg.message
-    create_task(bot.send_privmsg([msg.target], f'spits on {nick} like a dirty whore'))
+    create_task(messaging.send_action(bot, msg.target, f'spits on {nick} like a dirty whore'))
 
 
 @hook.hook('command', ['sniff', 'huff'])
@@ -865,7 +865,8 @@ async def sniff(bot, msg):
     else:
         nick = msg.message
     create_task(
-        bot.send_privmsg([msg.target], f'huffs {nick}s hair while sat behind them on the bus.'))
+        messaging.send_action(bot, msg.target,
+                              f'huffs {nick}s hair while sat behind them on the bus.'))
 
 
 # @hook.command('siid')
