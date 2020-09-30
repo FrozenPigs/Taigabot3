@@ -1,11 +1,7 @@
 # Standard Libs
 import json
-import math
 import re
-import time
 from asyncio import create_task
-from collections import deque
-from threading import Thread
 from time import sleep
 
 # First Party
@@ -14,7 +10,6 @@ from util import request
 
 # Third Party
 import requests
-from bs4 import BeautifulSoup
 
 
 def get_json_data(url, sleep_time=0):
