@@ -156,8 +156,8 @@ async def quotes(bot, msg):
     tables = db.get_table_names(conn)
     if 'quotes' not in tables:
         asyncio.create_task(
-            bot.privmsg([msg.target], ('Quote table uninitialized. Please ask your nearest bot'
-                                       'admin to run .qinit.')))
+            bot.send_privmsg([msg.target], ('Quote table uninitialized. Please ask your nearest bot'
+                                            'admin to run .qinit.')))
 
     if message[0] == 'add':
         quotedata = (msg.target, message[1], msg.nickname, ' '.join(message[2:]), int(time.time()),
