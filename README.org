@@ -2,12 +2,117 @@
 - Take another look at the disable code
 - finish cleaning admin.py
 - refine typing?
-* To Add
-** gadmin
+* Plugin List/Notes
+| lines | plugin                | status                 |
+|-------+-----------------------+------------------------|
+| 11526 |                       |                        |
+|   141 | mygengo_tranlate.py   | broken                 |
+|    40 | rss.py                | broken                 |
+|   106 | spotify.py            | broken                 |
+|   145 | steam.py              | broken                 |
+|   119 | twitch.py             | broken                 |
+|   137 | metacritic.py         | broken                 |
+|    94 | newegg.py             | broken                 |
+|   125 | calculator.py         | done                   |
+|    46 | spellcheck.py         | done                   |
+|   179 | twitter.py            | done                   |
+|    57 | google.py             | done                   |
+|    61 | lyrics.py             | done                   |
+|    65 | religion.py           | done                   |
+|    32 | times.py              | done                   |
+|    54 | bash.py               | done                   |
+|    24 | choose.py             | done                   |
+|    27 | coin.py               | done                   |
+|    81 | countdown.py          | done                   |
+|    74 | cypher.py             | done                   |
+|   382 | datafiles.py          | done                   |
+|    25 | debt.py               | done                   |
+|    93 | dice.py               | done                   |
+|    73 | dictionary.py         | done                   |
+|    43 | distance.py           | done                   |
+|    92 | distro.py             | done                   |
+|    32 | fmylife.py            | done                   |
+|    29 | geoip.py              | done                   |
+|    32 | kernel.py             | done                   |
+|    12 | reminder.py           | done                   |
+|   142 | seen.py               | done                   |
+|   122 | tell.py               | done                   |
+|   188 | todo.py               | done                   |
+|    63 | urbandict.py          | done                   |
+|    27 | validate.py           | done                   |
+|    25 | wordoftheday.py       | done                   |
+|    99 | system.py             | done                   |
+|   183 | 4chan.py              | done                   |
+|   214 | duckduckgo.py         | done                   |
+|    39 | yandere.py            | done                   |
+|   236 | youtube.py            | done                   |
+|    99 | amazon.py             | done                   |
+|   113 | mediawiki.py          | done                   |
+|    93 | namegen.py            | done                   |
+|    41 | vimeo.py              | done                   |
+|    67 | furry.py              | done                   |
+|   265 | heartbleed.py         | done                   |
+|    96 | coins.py              | done                   |
+|   197 | weather.py            | done                   |
+|   139 | lastfm.py             | done                   |
+|   343 | urls.py               | done                   |
+|   526 | core_user.py          | done                   |
+|   337 | wolframalpha.py       | done                   |
+|   116 | log.py                | done                   |
+|    69 | masshighlight.py      | done                   |
+|   174 | core_ctcp.py          | done                   |
+|   405 | core_admin_global.py  | done                   |
+|    77 | radio.py              | done                   |
+|   180 | translate.py          | done, no autotranslate |
+|  1014 | stupid.py             | done, no user db       |
+|   887 | core_admin_channel.py | done? needs testing    |
+|   283 | core_sieve.py         | done? needs testing    |
+|   315 | quote.py              | done? needs testing    |
+|   313 | media.py              | http.py                |
+|   207 | hashtags.py           | no regex               |
+|   215 | gelbooru.py           | web.py                 |
+|   226 | utility.py            |                        |
+|   108 | help.py               | later                  |
+|   185 | core_misc.py          | later                  |
+|    52 | soundcloud.py         | no api                 |
+|    84 | pomf.py               | unused                 |
+|   259 | migrate.py            | unused                 |
+|   147 | time.py               | unused                 |
+|   136 | ai.py                 | unused, redo later     |
+
+update hashtags
+port mlb.py
+
+update duckduckgo.py
+update 4chan
+update stupid
+
+
+|  43 | penis.py         | done                |
+|  47 | shit.py          | done                |
+|  50 | masshighlight.py | done? needs testing |
+|  53 | log.py           | done                |
+|  68 | ctcp.py          | done                |
+| 142 | ignore.py        | done? needs testing |
+| 174 | flood.py         | done? needs testing |
+| 203 | quote.py         | done? needs testing |
+| 211 | badwords.py      | done? needs testing |
+| 285 | admin.py         | done? needs testing |
+| 476 | gaidmin.py       | done                |
+
+python3 -m cProfile -s tottime Taigabot
+hashtags.py
+gelbooru.py
+help.py
+
+utility.py?
+* OLD LIST
+** To Add
+*** gadmin
 | Command   | File               |
 |-----------+--------------------|
 | forget    | hashtags           |
-** admin
+*** admin
 | Command         | File               |
 |-----------------+--------------------|
 | add             | datafiles          |
@@ -17,7 +122,7 @@
 | disabledhashes  | core_admin_channel |
 | enablehash      | core_admin_channel |
 | trim            | core_admin_channel |
-** events
+*** events
 | Events                                                         | File      |
 |----------------------------------------------------------------+-----------|
 | greet users and abuse kimi on join                             | core_misc |
@@ -25,22 +130,22 @@
 | If rejoin set, rejoin chan on kick, else remove from conf      | core_misc |
 | If auto ban enabled and user on list then ban them             | core_misc |
 | If auto op/hop/voice enabled and user on list then take actian | core_misc |
-* New Additions
-** gadmin
+** New Additions
+*** gadmin
 | Command | Description                     |
 |---------+---------------------------------|
 | bot     | Gives bot info like memory size |
-** events
+*** events
 | Event    | Description                       |
 |----------+-----------------------------------|
 | badwords | kick or ban users using bad words |
-** sieves
+*** sieves
 | Command                    | Description                    |
 |----------------------------+--------------------------------|
 | masshighlight_input_sieve  | Bans users masshighlighting    |
 | masshighlight_output_sieve | Stops the bot masshighlighting |
-* Maybe Add
-** gadmin
+** Maybe Add
+*** gadmin
 | Command   | File               |
 |-----------+--------------------|
 | pingip    | core_ctcp          |
@@ -48,8 +153,8 @@
 | shutup    | _junk              |
 | speak     | _junk              |
 | mask      | core_admin_channel |
-* Finished
-** gadmin
+** Finished
+*** gadmin
 | Command   | File              | New Command            | New File     |
 |-----------+-------------------+------------------------+--------------|
 | gignored  | core_admin_global | gignore/gunignore list | ignore       |
@@ -75,7 +180,7 @@
 | memory    | system            | system                 | gadmin       |
 | pid       | system            | bot                    | gadmin       |
 | ctcp      | core_ctcp         | ctcp                   | gadmin       |
-** admin
+*** admin
 | Command  | File               | New Command          | New File |
 |----------+--------------------+----------------------+----------|
 | ignored  | core_admin_channel | ignore/unignore list | ignore   |
@@ -107,13 +212,13 @@
 | bans     | core_admin_channel | ban list             | admin    |
 | unban    | core_admin_channel | unban                | admin    |
 
-** events
+*** events
 | Event        | File      | New Event    | New File |
 |--------------+-----------+--------------+----------|
 | invite       | core_misc | invite/whois | admin    |
 | log          | log       | logger       | log      |
 | ctcp replies | core_ctcp | ctcp replies | ctcp     |
-** sieves
+*** sieves
 | Sieve       | File       | New Sieve                                  | New File    |
 |-------------+------------+--------------------------------------------+-------------|
 | sieve_suite | core_sieve | flood_input_sieve                          | flood       |
@@ -124,8 +229,8 @@
 | sieve_suite | core_sieve | access control list for channels           | bot         |
 | sieve_suite | core_sieve | admin/gadmin commands                      | bot         |
 | ignoresieve | core_sieve | ignore_sieve                               | ignore      |
-* Don't Add
-** gadmin
+** Don't Add
+*** gadmin
 | Command        | File              | Reason                                                    |
 |----------------+-------------------+-----------------------------------------------------------|
 | getusers       | masshighlight     | Not needed for our masshighlight system                   |
@@ -137,12 +242,12 @@
 | pomfadd        | pomf              | Command was for infinity to do stuff                      |
 | test           | _junk             | Just some kind of hostname test                           |
 | migrate_old_db | _junk             | One of my old commands for stealing uguus db              |
-** admin
+*** admin
 | Command    | File               | Reason               |
 |------------+--------------------+----------------------|
 | testdamnit | core_admin_channel | Useless test command |
 
-** events
+*** events
 | Event                         | File              | Reason                                     |
 |-------------------------------+-------------------+--------------------------------------------|
 | onnames/onjoined_addhighlight | masshighlight     | Different masshighlight system             |
@@ -153,7 +258,7 @@
 | onnick                        | core_misc         | Useless                                    |
 | keep_alive                    | core_misc         | Useless                                    |
 | onjoined                      | core_misc         | Adding masks to db is done in bot.py       |
-** sieves
+*** sieves
 | Event       | File       | Reason                                   |
 |-------------+------------+------------------------------------------|
 | sieve_suite | core_sieve | Useless counters for people are left out |
